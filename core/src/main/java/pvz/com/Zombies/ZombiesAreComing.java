@@ -33,10 +33,18 @@ public class ZombiesAreComing extends Actor {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        batch.draw(texture, getX(), getY(), getWidth(), getHeight());
+        if (texture != null) {
+            batch.draw(texture, getX(), getY(), getWidth(), getHeight());
+        }
     }
     public void dispose() {
-        texture.dispose();
-        sound.dispose();
+        if (texture != null) {
+            texture.dispose();
+            texture = null;
+        }
+        if (sound != null) {
+            sound.dispose();
+            sound = null;
+        }
     }
 }
