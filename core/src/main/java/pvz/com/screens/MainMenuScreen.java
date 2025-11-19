@@ -4,7 +4,6 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -12,7 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import pvz.com.Main; // Import lớp Main (extends Game) của bạn
 
 public class MainMenuScreen implements Screen {
 
@@ -39,10 +37,10 @@ public class MainMenuScreen implements Screen {
             skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
         } catch (Exception e) {
             Gdx.app.error("MainMenuScreen", "Không tìm thấy file uiskin.json", e);
-            // Tạo một skin rỗng nếu không tìm thấy để tránh crash
-            skin = new Skin();
+            // Ở đây nên dừng hoặc dùng skin fallback có style, chứ Skin rỗng sẽ lỗi khi tạo
+            // TextButton
+            throw new RuntimeException("Không thể load UI skin", e);
         }
-
         // (5) Khởi tạo Table để chứa các nút
         table = new Table();
         table.setFillParent(true); // Cho table lấp đầy màn hình
@@ -64,7 +62,10 @@ public class MainMenuScreen implements Screen {
                 Gdx.app.log("MainMenu", "Nút CHƠI được nhấn!");
                 // !! Đây là dòng chuyển màn hình
                 // Bạn sẽ cần tạo file "GameScreen.java"
-                // game.setScreen(new GameScreen((Main) game));
+                game.setScreen(new GameScreen(game));
+
+                // Quan trọng: Hủy màn hình Menu hiện tại để giải phóng bộ nhớ
+                dispose();
             }
         });
 
@@ -102,10 +103,12 @@ public class MainMenuScreen implements Screen {
     }
 
     @Override
-    public void pause() {}
+    public void pause() {
+    }
 
     @Override
-    public void resume() {}
+    public void resume() {
+    }
 
     @Override
     public void hide() {
