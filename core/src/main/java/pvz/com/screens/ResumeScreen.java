@@ -50,8 +50,8 @@ public class ResumeScreen implements Screen {
         exitButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(exitTex)));
 
         // (tuỳ thích) chỉnh size cho nút
-        backButton.setSize(260, 80);
-        exitButton.setSize(260, 80);
+        backButton.setSize(820, 460);
+        exitButton.setSize(720, 360);
 
         // Sự kiện
         backButton.addListener(new ClickListener() {
