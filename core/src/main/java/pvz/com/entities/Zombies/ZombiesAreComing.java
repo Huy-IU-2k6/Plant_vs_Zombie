@@ -1,4 +1,4 @@
-package pvz.com.zombies;
+package pvz.com.entities.Zombies;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
@@ -28,7 +28,7 @@ public class ZombiesAreComing extends Actor {
         super.act(delta);
 
         long now = System.currentTimeMillis();
-        
+
         // Remove after 1.5 seconds
         if (now - startTime >= 1500) {
             remove();     // remove from stage safely
