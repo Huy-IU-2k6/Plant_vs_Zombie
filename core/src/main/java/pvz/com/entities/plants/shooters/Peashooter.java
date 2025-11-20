@@ -1,31 +1,32 @@
 package pvz.com.entities.plants.shooters;
+
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
+// Giả sử bạn sẽ tạo class PeaProjectile cho viên đạn
+import pvz.com.entities.projectiles.PeaProjectile; 
 
 public class Peashooter extends Plant {
 
     public Peashooter(float x, float y) {
-        super(x, y, 80, 80); // init position + size + bounds + sprite
+        // 1. Setup khung sườn: Vị trí + Kích thước (80x80)
+        super(x, y, 80, 80);
 
-        this.health = new HealthComponent(getBaseHealth());          // HP cơ bản
-        this.cooldown = new CooldownComponent(getCooldownTime());    // bắn mỗi 1.5s
-        this.plantAttack = new PlantAttackComponent(20, 300f, Peashooter.class, PlantDamageType.FIRE, 1.5f);                // damage 20, range 300
-        this.sprite = new SpriteComponent("plants/shooters/peashooter.png");
-    }
+        // 2. Setup Hình ảnh
+        this.addComponent(new SpriteComponent("plants/shooters/peashooter.png"));
 
-    @Override
-    public int getBaseHealth() {
-        return 100;
-    }
+        // 3. Setup Máu (100 HP)
+        this.addComponent(new HealthComponent(100));
 
-    @Override
-    public float getCooldownTime() {
-        return 1.5f; // 1.5 giây giữa các lần bắn
+        // 4. Setup Tấn công
+        // Lưu ý: CooldownComponent đã nằm TRONG PlantAttackComponent rồi, không cần add lẻ bên ngoài.
+        this.addComponent(new PlantAttackComponent(
+            20,                     // Damage (Sát thương)
+            300f,                   // Range (Tầm bắn)
+            PeaProjectile.class,    // Loại đạn (Bắn ra viên đạn, không phải bắn ra cái cây)
+            PlantDamageType.FIRE,   // Loại damage (Bạn để FIRE cũng được, hoặc sửa thành NORMAL)
+            1.5f                    // Tốc độ bắn (Cooldown)
+        ));
     }
-
-    @Override
-    public String getTexturePath() {
-        return "plants/shooters/peashooter.png";
-    }
+    
+    // Đã XÓA hết các hàm getBaseHealth, getCooldownTime... vì không cần thiết nữa.
 }
-

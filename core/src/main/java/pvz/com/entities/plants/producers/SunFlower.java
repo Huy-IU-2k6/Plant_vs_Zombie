@@ -6,34 +6,19 @@ import pvz.com.entities.components.*;
 public class SunFlower extends Plant {
 
     public SunFlower(float x, float y) {
-        super(x
+        // 1. Setup phần khung cơ bản (Vị trí, kích thước 80x80)
+        super(x, y, 80, 80); 
 
-
-            , y, 80, 80); // init position, size, bounds, sprite
-
-        this.health = new HealthComponent(getBaseHealth());
-        this.sprite = new SpriteComponent(getTexturePath());
-
-        // SunProducerComponent riêng, có CooldownComponent riêng
-       SunProducerComponent sunProducer = new SunProducerComponent(getCooldownTime(), getSunAmount());
-    }
-
-    @Override
-    public int getBaseHealth() {
-        return 100;
-    }
-
-    @Override
-    public float getCooldownTime() {
-        return 7f; // spawn Sun mỗi 7 giây
-    }
-
-    public int getSunAmount() {
-        return 25; // mỗi lần spawn 25 Sun
-    }
-
-    @Override
-    public String getTexturePath() {
-        return "plants/producers/sunflower.png";
+        // 2. Setup các Component ĐẶC TRƯNG (Data composition)
+        
+        // Hình ảnh hiển thị
+        this.addComponent(new SpriteComponent("plants/producers/sunflower.png"));
+        
+        // Máu (100 HP)
+        this.addComponent(new HealthComponent(100));
+        
+        // Khả năng sinh Sun: 7 giây một lần, mỗi lần 25 điểm
+        // Class này CHỈ chứa số liệu, KHÔNG chứa logic đếm giờ (Logic thuộc về System)
+        this.addComponent(new SunProducerComponent(7.0f, 25));
     }
 }
