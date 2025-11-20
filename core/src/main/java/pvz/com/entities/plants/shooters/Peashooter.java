@@ -3,7 +3,7 @@ package pvz.com.entities.plants.shooters;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 // Giả sử bạn sẽ tạo class PeaProjectile cho viên đạn
-import pvz.com.entities.projectiles.PeaProjectile; 
+import pvz.com.entities.projectiles.PeaProjectile;
 
 public class Peashooter extends Plant {
 
@@ -12,7 +12,7 @@ public class Peashooter extends Plant {
         super(x, y, 80, 80);
 
         // 2. Setup Hình ảnh
-        this.addComponent(new SpriteComponent("plants/shooters/peashooter.png"));
+        this.addComponent(new SpriteComponent("assets/images/Plants/peashooterani.gif"));
 
         // 3. Setup Máu (100 HP)
         this.addComponent(new HealthComponent(100));
@@ -27,6 +27,6 @@ public class Peashooter extends Plant {
             1.5f                    // Tốc độ bắn (Cooldown)
         ));
     }
-    
+
     // Đã XÓA hết các hàm getBaseHealth, getCooldownTime... vì không cần thiết nữa.
 }

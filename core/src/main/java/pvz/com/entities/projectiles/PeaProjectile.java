@@ -10,7 +10,7 @@ public class PeaProjectile extends Entity {
         this.addComponent(new PositionComponent(x, y));
         this.addComponent(new SizeComponent(20, 20));
         this.addComponent(new BoundsComponent(x, y, 20, 20));
-        this.addComponent(new SpriteComponent("projectiles/pea.png"));
+        this.addComponent(new SpriteComponent("assets/images/Plants/peabullet.png"));
         
         // Component di chuyển (để System xử lý bay)
         // this.addComponent(new MovementComponent(speedX, speedY...)); 
