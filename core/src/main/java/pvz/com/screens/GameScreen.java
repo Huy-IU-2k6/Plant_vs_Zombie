@@ -1,5 +1,6 @@
 package pvz.com.screens;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -8,56 +9,80 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 
 public class GameScreen implements Screen {
 
-    private Game game;
+    private static final float WORLD_WIDTH = 800f;
+    private static final float WORLD_HEIGHT = 600f;
 
-    // 1. Khai báo các biến cho game
-    private SpriteBatch batch;
-    private Texture backgroundTexture; // Ảnh nền sân cỏ
-    private Stage hudStage; // Stage riêng cho HUD (thẻ bài, mặt trời)
+    private final Game game;
+
+    private final SpriteBatch batch;
+    private final Stage hudStage;
+
+    private final OrthographicCamera camera;
+    private final Viewport viewport;
+
+    private Texture bgTex; // Ảnh nền sân cỏ
 
     public GameScreen(Game game) {
         this.game = game;
 
-        // Khởi tạo Batch để vẽ ảnh
         batch = new SpriteBatch();
-
-        // Khởi tạo Stage cho UI (HUD)
         hudStage = new Stage(new ScreenViewport());
 
-        // Tạm thời tải ảnh background (đảm bảo bạn có file này hoặc file khác thay thế)
-        // Nếu chưa có, hãy comment dòng dưới lại để tránh lỗi
-        // backgroundTexture = new Texture("lawn_background.png");
+        // Camera + viewport 800x600, scale vừa màn hình
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+        camera.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0);
+        camera.update();
+
+        try {
+            bgTex = new Texture("assets/images/backgrounds/Lawn.jpeg");
+            bgTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        } catch (Exception e) {
+            Gdx.app.error("GameScreen", "Không tìm thấy file Frontyard.png!", e);
+            bgTex = null;
+        }
     }
 
     @Override
     public void show() {
-        // Khi màn hình này hiện ra, ta cho phép người dùng tương tác với HUD
         Gdx.input.setInputProcessor(hudStage);
     }
 
     @Override
     public void render(float delta) {
-        // 1. Xóa màn hình (Màu xanh lá cây nhạt để giả làm sân cỏ nếu chưa có ảnh)
-        Gdx.gl.glClearColor(0, 0.5f, 0, 1);
+        // Xóa màn hình
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // 2. Vẽ thế giới game (Background, Plants, Zombies)
+        camera.update();
+        batch.setProjectionMatrix(camera.combined);
+
+        // Vẽ world (background, sau này plant/zombie)
         batch.begin();
-        if (backgroundTexture != null) {
-            batch.draw(backgroundTexture, 0, 0);
+        if (bgTex != null) {
+            // Vẽ phủ màn hình ảo 800x600
+            batch.draw(bgTex, 0f, 0f, WORLD_WIDTH, WORLD_HEIGHT);
         }
         batch.end();
 
-        // 3. Vẽ HUD (UI) lên trên cùng
+        // Vẽ HUD
         hudStage.act(delta);
         hudStage.draw();
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            game.setScreen(new ResumeScreen(game, this));
+        }
     }
 
     @Override
     public void resize(int width, int height) {
+        viewport.update(width, height, true);
         hudStage.getViewport().update(width, height, true);
     }
 
@@ -65,11 +90,11 @@ public class GameScreen implements Screen {
     public void dispose() {
         batch.dispose();
         hudStage.dispose();
-        if (backgroundTexture != null)
-            backgroundTexture.dispose();
+        if (bgTex != null) {
+            bgTex.dispose();
+        }
     }
 
-    // Các hàm chưa dùng tới
     @Override
     public void pause() {
     }
