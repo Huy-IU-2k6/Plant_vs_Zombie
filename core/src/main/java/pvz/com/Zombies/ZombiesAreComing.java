@@ -1,9 +1,11 @@
 package pvz.com.zombies;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+
 public class ZombiesAreComing extends Actor {
 
     private Sound sound;
@@ -11,12 +13,13 @@ public class ZombiesAreComing extends Actor {
     private long startTime;
 
     public ZombiesAreComing() {
-        texture = new Texture("zombies_coming.png");     // image
-        sound = Gdx.audio.newSound(Gdx.files.internal("zombies_coming.wav"));
-        sound.play();                                     // play once
+        texture = new Texture("zombies_coming.png");   // image
+        sound = Gdx.audio.newSound(Gdx.files.internal("zombies_are_coming.wav"));
+
+        sound.play();                                   // play sound once
         startTime = System.currentTimeMillis();
 
-        // Set size for actor (VERY IMPORTANT)
+        // Set actor size to match texture (important)
         setSize(texture.getWidth(), texture.getHeight());
     }
 
@@ -25,9 +28,10 @@ public class ZombiesAreComing extends Actor {
         super.act(delta);
 
         long now = System.currentTimeMillis();
-        if (now >= startTime + 1500) {     
-            dispose();               // remove after 1.5 sec
-            remove();
+        
+        // Remove after 1.5 seconds
+        if (now - startTime >= 1500) {
+            remove();     // remove from stage safely
         }
     }
 
@@ -37,11 +41,14 @@ public class ZombiesAreComing extends Actor {
             batch.draw(texture, getX(), getY(), getWidth(), getHeight());
         }
     }
+
     public void dispose() {
+        // Clean up
         if (texture != null) {
             texture.dispose();
             texture = null;
         }
+
         if (sound != null) {
             sound.dispose();
             sound = null;
