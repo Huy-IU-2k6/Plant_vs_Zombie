@@ -4,6 +4,7 @@ import pvz.com.entities.Entity;
 import pvz.com.entities.components.*;
 
 public abstract class Plant extends Entity {
+        public PlantAttackComponent plantAttack;
         public Plant(float x, float y, float w, float h) {
             super(); // gọi constructor protected
 

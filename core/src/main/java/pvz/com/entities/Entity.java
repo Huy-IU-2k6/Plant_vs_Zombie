@@ -6,7 +6,6 @@ public  abstract class Entity {
     public BoundsComponent bounds;
     public SpriteComponent sprite;
     public HealthComponent health;
-    public AttackComponent attack;
     public MovementComponent movement;
     public CooldownComponent cooldown;
 
