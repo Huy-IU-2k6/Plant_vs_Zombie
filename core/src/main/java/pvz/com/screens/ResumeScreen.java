@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class ResumeScreen implements Screen {
 
@@ -42,7 +43,7 @@ public class ResumeScreen implements Screen {
         Gdx.input.setInputProcessor(stage);
 
         // Load texture
-        bgTex   = new Texture("assets/images/backgrounds/resume_bg.png");
+        bgTex = new Texture("assets/images/backgrounds/resume_bg.png");
         signTex = new Texture("assets/images/items/Plants_vs_Zombies_logo.png");
         backTex = new Texture("assets/images/buttons/back.png");
         exitTex = new Texture("assets/images/buttons/exit.png");
@@ -54,7 +55,7 @@ public class ResumeScreen implements Screen {
 
         // Logo / bảng
         signImage = new Image(signTex);
-        signImage.setSize(500f, 200f);
+        signImage.setSize(450f, 180);
         stage.addActor(signImage);
 
         // Buttons
@@ -81,8 +82,7 @@ public class ResumeScreen implements Screen {
 
     private ImageButton createButton(Texture texture, float width, float height, ClickListener listener) {
         ImageButton button = new ImageButton(
-                new TextureRegionDrawable(new TextureRegion(texture))
-        );
+                new TextureRegionDrawable(new TextureRegion(texture)));
         button.setSize(width, height);
         button.addListener(listener);
         return button;
@@ -91,24 +91,24 @@ public class ResumeScreen implements Screen {
     private void centerActor(Actor actor, float centerX, float centerY) {
         actor.setPosition(
                 centerX - actor.getWidth() / 2f,
-                centerY - actor.getHeight() / 2f
-        );
+                centerY - actor.getHeight() / 2f);
     }
 
     private void layoutActors() {
         float stageW = stage.getViewport().getWorldWidth();
         float stageH = stage.getViewport().getWorldHeight();
 
-        // Logo / bảng trên bia bên phải
-        float boardCenterX = stageW * 0.73f;
-        float boardCenterY = stageH * 0.62f;
+        float graveCenterX = stageW * 0.7f;
+        float boardCenterX = stageW * 0.05f;
+
+        float boardCenterY = stageH * 0.23f; // logo ở trên cao hơn
+        float backCenterY = stageH * 0.65f; // nút Back
+        float exitCenterY = stageH * 0.45f; // nút Exit
+
+        // Logo
         centerActor(signImage, boardCenterX, boardCenterY);
 
-        // Nút trên bia mộ
-        float graveCenterX = stageW * 0.74f - 80f; // lệch trái 1 chút
-        float backCenterY  = stageH * 0.63f;
-        float exitCenterY  = stageH * 0.38f;
-
+        // Buttons
         centerActor(backButton, graveCenterX, backCenterY);
         centerActor(exitButton, graveCenterX, exitCenterY);
     }
@@ -133,9 +133,17 @@ public class ResumeScreen implements Screen {
         layoutActors(); // resize xong đặt lại vị trí tất cả
     }
 
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
 
     @Override
     public void dispose() {
