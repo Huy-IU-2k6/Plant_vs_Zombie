@@ -1,4 +1,5 @@
 package pvz.com.zombies;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -6,7 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 
 public class Zombies extends Actor {
 
-    protected int health ;
+    protected int health;
     protected float speed;
     protected static boolean gameOver = false;
     protected static int zombieCount = 0;
@@ -15,10 +16,8 @@ public class Zombies extends Actor {
 
     public Zombies() {
 
-        
         comingZombieSound = Gdx.audio.newSound(Gdx.files.internal("coming_zombie.wav"));
 
-        
         if (zombieCount == 0) {
             comingZombieSound.play();
         }
@@ -27,7 +26,7 @@ public class Zombies extends Actor {
     }
 
     public void update(float delta) {
-        
+
         if (!isTouchingPlant()) {
             moveBy(-speed * delta, 0);
         }
@@ -35,7 +34,6 @@ public class Zombies extends Actor {
         checkGameOver();
     }
 
-    
     public void takeDamage(int dmg) {
         health -= dmg;
 
@@ -43,27 +41,24 @@ public class Zombies extends Actor {
             die();
         }
     }
-    protected void die() {
-        
 
-        
+    protected void die() {
+
         Stage stage = getStage();
         if (stage != null) {
             stage.getRoot().removeActor(this);
         }
     }
 
-    
     protected void checkGameOver() {
         if (getX() < 260) {
             gameOver = true;
-            
+
         }
     }
 
-    
     protected boolean isTouchingPlant() {
-        
+
         return false;
     }
 }
