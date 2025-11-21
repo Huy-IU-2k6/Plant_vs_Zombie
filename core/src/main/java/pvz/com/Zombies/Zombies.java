@@ -10,7 +10,7 @@ public class Zombies extends Actor {
     protected static boolean gameOver = false;
     protected static int zombieCount = 0;
     private static final Sound comingZombieSound = Gdx.audio
-            .newSound(Gdx.files.internal("assets/sounds/coming_zombie.wav"));
+            .newSound(Gdx.files.internal("assets/sounds/zombies_are_coming.wav"));
 
     // ----- INSTANCE STATE -----
     protected int health;
