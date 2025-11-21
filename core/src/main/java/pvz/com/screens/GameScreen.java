@@ -1,17 +1,19 @@
 package pvz.com.screens;
 
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+
+import pvz.com.managers.FontManager;
+import pvz.com.managers.BackgroundManager;
 
 public class GameScreen implements Screen {
 
@@ -26,7 +28,18 @@ public class GameScreen implements Screen {
     private final OrthographicCamera camera;
     private final Viewport viewport;
 
-    private Texture bgTex; // Ảnh nền sân cỏ
+    private final BackgroundManager backgroundManager;
+
+    private CountdownActor countdown;
+
+    // ====== STATE CHO GAME ======
+    private enum State {
+        COUNTDOWN, // đang hiển thị count_bg + đếm ngược
+        PLAYING // đã đếm xong, chuyển sang main bg
+    }
+
+    private State state = State.COUNTDOWN;
+    private float countdownTime = 6f; // phải trùng với thời gian truyền vào CountdownActor
 
     public GameScreen(Game game) {
         this.game = game;
@@ -34,19 +47,19 @@ public class GameScreen implements Screen {
         batch = new SpriteBatch();
         hudStage = new Stage(new ScreenViewport());
 
-        // Camera + viewport 800x600, scale vừa màn hình
+        // Camera + viewport 800x600
         camera = new OrthographicCamera();
         viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
         camera.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0);
         camera.update();
 
-        try {
-            bgTex = new Texture("assets/images/backgrounds/Lawn.jpeg");
-            bgTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        } catch (Exception e) {
-            Gdx.app.error("GameScreen", "Không tìm thấy file Frontyard.png!", e);
-            bgTex = null;
-        }
+        // Background manager (đã có renderCount, renderMain, renderSub...)
+        backgroundManager = new BackgroundManager();
+
+        // Countdown 3 giây
+        countdown = new CountdownActor(countdownTime, FontManager.getPvzFont());
+        countdown.setPosition(400f, 500f);
+        hudStage.addActor(countdown);
     }
 
     @Override
@@ -56,27 +69,55 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        // Xóa màn hình
+        // cập nhật logic state
+        updateState(delta);
+
+        // Xoá màn hình
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
-        // Vẽ world (background, sau này plant/zombie)
+        // Vẽ background tuỳ theo state
         batch.begin();
-        if (bgTex != null) {
-            // Vẽ phủ màn hình ảo 800x600
-            batch.draw(bgTex, 0f, 0f, WORLD_WIDTH, WORLD_HEIGHT);
+        float w = viewport.getWorldWidth();
+        float h = viewport.getWorldHeight();
+
+        if (state == State.COUNTDOWN) {
+            // 1. Ban đầu (trong thời gian đếm ngược): dùng count_bg
+            backgroundManager.renderCount(batch, w, h);
+        } else {
+            // 3. Đếm ngược xong: chuyển sang main bg
+            backgroundManager.renderMain(batch, w, h);
+            // TODO: vẽ plant, zombie, bullet... ở đây
         }
+
         batch.end();
 
-        // Vẽ HUD
+        // Vẽ HUD (countdown text)
         hudStage.act(delta);
         hudStage.draw();
 
+        // ESC -> ResumeScreen
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new ResumeScreen(game, this));
+        }
+    }
+
+    private void updateState(float delta) {
+        if (state == State.COUNTDOWN) {
+            countdownTime -= delta;
+            if (countdownTime <= 0f) {
+                // Chuyển sang PLAYING
+                state = State.PLAYING;
+
+                // Ẩn/huỷ actor countdown nếu không cần nữa
+                if (countdown != null) {
+                    countdown.remove();
+                    countdown = null;
+                }
+            }
         }
     }
 
@@ -90,9 +131,8 @@ public class GameScreen implements Screen {
     public void dispose() {
         batch.dispose();
         hudStage.dispose();
-        if (bgTex != null) {
-            bgTex.dispose();
-        }
+        backgroundManager.dispose();
+        // FontManager dùng chung thì dispose ở Game chính
     }
 
     @Override
