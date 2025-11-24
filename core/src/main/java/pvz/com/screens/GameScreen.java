@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.utils.Array;
+import pvz.com.Zombies.NormalZombie;
 
 import pvz.com.managers.FontManager;
 import pvz.com.managers.BackgroundManager;
@@ -31,6 +33,8 @@ public class GameScreen implements Screen {
     private final BackgroundManager backgroundManager;
 
     private CountdownActor countdown;
+
+    private final Array<NormalZombie> zombies = new Array<>();
 
     // ====== STATE CHO GAME ======
     private enum State {
@@ -62,6 +66,22 @@ public class GameScreen implements Screen {
         hudStage.addActor(countdown);
     }
 
+    private void spawnInitialZombies() {
+        // Ví dụ: tạo 5 zombie, mỗi lane một con
+        float startX = WORLD_WIDTH + 50f; // xuất hiện ngoài mép phải tí cho đẹp
+        float baseY = 100f;
+        float laneGap = 80f;
+
+        for (int i = 0; i < 5; i++) {
+            NormalZombie z = new NormalZombie();
+
+            // Đặt vị trí theo hàng
+            z.setPosition(startX, baseY + i * laneGap);
+
+            zombies.add(z);
+        }
+    }
+
     @Override
     public void show() {
         Gdx.input.setInputProcessor(hudStage);
@@ -69,33 +89,40 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        // cập nhật logic state
+        // 1. cập nhật logic state
         updateState(delta);
 
-        // Xoá màn hình
+        // 2. cập nhật logic zombie (chỉ khi đang chơi)
+        updateGame(delta);
+
+        // 3. clear màn hình
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
-        // Vẽ background tuỳ theo state
+        // 4. vẽ background + zombie
         batch.begin();
         float w = viewport.getWorldWidth();
         float h = viewport.getWorldHeight();
 
         if (state == State.COUNTDOWN) {
-            // 1. Ban đầu (trong thời gian đếm ngược): dùng count_bg
             backgroundManager.renderCount(batch, w, h);
-        } else {
-            // 3. Đếm ngược xong: chuyển sang main bg
+        } else { // PLAYING
             backgroundManager.renderMain(batch, w, h);
-            // TODO: vẽ plant, zombie, bullet... ở đây
+
+            // Vẽ zombie
+            for (NormalZombie z : zombies) {
+                z.draw(batch, 1f);
+            }
+
+            // TODO: vẽ plant, bullet...
         }
 
         batch.end();
 
-        // Vẽ HUD (countdown text)
+        // 5. Vẽ HUD (countdown...)
         hudStage.act(delta);
         hudStage.draw();
 
@@ -103,6 +130,19 @@ public class GameScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new ResumeScreen(game, this));
         }
+    }
+
+    private void updateGame(float delta) {
+        if (state != State.PLAYING)
+            return;
+
+        for (NormalZombie z : zombies) {
+            z.act(delta); // dùng logic act() bạn đã viết trong NormalZombie
+        }
+
+        // Sau này có thể:
+        // - remove zombie nếu ra khỏi màn
+        // - check va chạm bullet, plant...
     }
 
     private void updateState(float delta) {
@@ -117,6 +157,9 @@ public class GameScreen implements Screen {
                     countdown.remove();
                     countdown = null;
                 }
+
+                // === Spawn zombie đợt đầu tiên ===
+                spawnInitialZombies();
             }
         }
     }
@@ -132,7 +175,10 @@ public class GameScreen implements Screen {
         batch.dispose();
         hudStage.dispose();
         backgroundManager.dispose();
-        // FontManager dùng chung thì dispose ở Game chính
+
+        for (NormalZombie z : zombies) {
+            z.dispose();
+        }
     }
 
     @Override
