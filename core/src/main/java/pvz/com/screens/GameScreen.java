@@ -40,8 +40,8 @@ public class GameScreen implements Screen {
 
     // ===== SeedBank layout =====
     private static final float SEED_BANK_HEIGHT = 110f; // tăng cao hơn chút
-    private static final float SEED_BANK_MARGIN_TOP = 10f;
-    private static final float SEED_BANK_MARGIN_LEFT = 5f; // gần như sát cạnh trái
+    private static final float SEED_BANK_MARGIN_TOP = 20f;
+    private static final float SEED_BANK_MARGIN_LEFT = 50f; // gần như sát cạnh trái
 
     private enum State {
         COUNTDOWN,
