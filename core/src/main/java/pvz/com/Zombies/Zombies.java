@@ -63,6 +63,25 @@ public class Zombies extends Actor {
         remove();
     }
 
+    public void instantKillByMower() {
+        if (dead)
+            return;
+
+        // Chết ngay lập tức
+        health = 0;
+        dead = true;
+
+        // Nếu có animation chết thì play
+        die();
+
+        // Có thể add hiệu ứng đặc biệt nếu cần:
+        // playSplatSound();
+        // spawnSplatAnimation();
+
+        // Gỡ khỏi stage (nếu die() không tự remove)
+        remove();
+    }
+
     protected void checkGameOver() {
         if (!dead && getX() < 260) {
             gameOver = true;
