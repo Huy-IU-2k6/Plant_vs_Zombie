@@ -1,69 +1,105 @@
-package pvz.com.zombies;
+package pvz.com.Zombies;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 
 public class Zombies extends Actor {
 
-    protected int health ;
-    protected float speed;
+    // ----- STATIC STATE -----
     protected static boolean gameOver = false;
     protected static int zombieCount = 0;
 
-    protected Sound comingZombieSound;
+    // ---- SOUNDS ----
+    private static final Sound comingZombieSound = Gdx.audio.newSound(
+            Gdx.files.internal("assets/sounds/zombies_are_coming.wav")
+    );
 
+    private static final Sound groanSound = Gdx.audio.newSound(
+            Gdx.files.internal("assets/sounds/groan.wav")
+    );
+
+    private static final Sound brainzSound = Gdx.audio.newSound(
+            Gdx.files.internal("assets/sounds/brainz.wav")
+    );
+
+    private static final Sound chompSound = Gdx.audio.newSound(
+            Gdx.files.internal("assets/sounds/chomp.wav")
+    );
+
+    // ----- INSTANCE FIELDS -----
+    protected float speed = 20f;
+    private float soundTimer = 0f;
+    private float chompTimer = 0f;   // <-- timer để loop chomp
+
+    private final Rectangle hitBox = new Rectangle();
+
+    // ----- CONSTRUCTOR -----
     public Zombies() {
-
-        
-        comingZombieSound = Gdx.audio.newSound(Gdx.files.internal("coming_zombie.wav"));
-
-        
-        if (zombieCount == 0) {
-            comingZombieSound.play();
-        }
-
         zombieCount++;
-    }
 
-    public void update(float delta) {
-        
-        if (!isTouchingPlant()) {
-            moveBy(-speed * delta, 0);
+        comingZombieSound.play(0.8f);
+        groanSound.play(0.6f);
+
+        if (Math.random() < 0.3) {
+            brainzSound.play(0.7f);
         }
 
-        checkGameOver();
+        setSize(70, 100);
     }
 
-    
-    public void takeDamage(int dmg) {
-        health -= dmg;
+    @Override
+    public void act(float delta) {
+        super.act(delta);
 
-        if (health <= 0) {
-            die();
+        if (gameOver) return;
+
+        // ---- MOVEMENT ----
+        moveBy(-speed * delta, 0);
+
+        // Update collider
+        hitBox.set(getX(), getY(), getWidth(), getHeight());
+
+        // ---- SFX: RANDOM GROAN / BRAINZ ----
+        soundTimer += delta;
+        if (soundTimer > 4f) {
+            double r = Math.random();
+            if (r < 0.7) groanSound.play(0.5f);
+            else brainzSound.play(0.6f);
+            soundTimer = 0f;
         }
-    }
-    protected void die() {
-        
 
-        
-        Stage stage = getStage();
-        if (stage != null) {
-            stage.getRoot().removeActor(this);
+        // ---- SFX: CHOMP LOOP WHEN EATING ----
+        if (isEating()) {
+            chompTimer += delta;
+            if (chompTimer > 0.85f) {  // mỗi ~0.85s phát lại (đúng cảm giác nhai của PvZ)
+                chompSound.play(0.7f);
+                chompTimer = 0f;
+            }
+        } else {
+            chompTimer = 0;  // reset khi không ăn
         }
+
+        // ---- GAME OVER ----
+        if (getX() < 0) gameOver = true;
     }
 
-    
-    protected void checkGameOver() {
-        if (getX() < 260) {
-            gameOver = true;
-            
-        }
+    // ----- OVERRIDABLE: zombie con sẽ override -----
+    public boolean isEating() {
+        return false; // mặc định zombie không ăn
     }
 
-    
-    protected boolean isTouchingPlant() {
-        
-        return false;
+    // ----- GET HITBOX -----
+    public Rectangle getHitBox() {
+        return hitBox;
+    }
+
+    // ----- DISPOSE -----
+    public static void disposeAll() {
+        comingZombieSound.dispose();
+        groanSound.dispose();
+        brainzSound.dispose();
+        chompSound.dispose();
     }
 }
