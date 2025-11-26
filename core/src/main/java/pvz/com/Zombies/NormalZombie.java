@@ -9,62 +9,40 @@ import com.badlogic.gdx.audio.Sound;
 
 import pvz.com.managers.GifManager;
 
+/**
+ * NormalZombie built following SOLID + Supports CherryBomb Burn Death
+ */
 public class NormalZombie extends Zombies {
 
-    // ===== CONST =====
+    // ----------- CONSTANTS -------------
     private static final int MAX_HEALTH = 100;
     private static final float MOVE_SPEED = 50f;
-    private static final int FRAMES_PER_ROW = 4;
-    private static final float WALK_FRAME_TIME = 0.20f;
-    private static final float DIE_FRAME_TIME = 0.20f;
-    private static final float EAT_FRAME_TIME = 0.25f;
 
-    // Spritesheets
-    private final Texture walkSheet;
-    private final Texture dyingSheet;
-    private final Texture eatSheet;
-
-    // Animations
-    private final Animation<TextureRegion> walkAnimation;
-    private final Animation<TextureRegion> dyingAnimation;
-    private final Animation<TextureRegion> eatAnimation;
-
-    // Sounds
-    private final Sound chompSound;
-    private final Sound groanSound;
-    private long chompSoundId = -1; // for looping chomp
-
-    // State
+    // ----------- STATE -------------
+    private ZombieState state = ZombieState.WALK;
     private float stateTime = 0f;
-    private boolean isDying = false;
-    private boolean isEating = false;
+
+    // ----------- COMPONENTS -------------
+    private final ZombieAnimationSet animations;
+    private final ZombieSoundSet sounds;
+
+    private long chompId = -1;
 
     public NormalZombie() {
         super();
 
-        // ===== Load GIFs =====
-        walkSheet = new Texture(Gdx.files.internal("assets/images/Zombies/NormalZombieRun.gif"));
-        dyingSheet = new Texture(Gdx.files.internal("assets/images/Zombies/ZombieDie.gif"));
-        eatSheet = new Texture(Gdx.files.internal("assets/images/Zombies/NormalZombieEat.gif"));
-
-        walkAnimation = GifManager.createAnim(walkSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
-        dyingAnimation = GifManager.createAnim(dyingSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
-        eatAnimation = GifManager.createAnim(eatSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
-
-        // ===== Set initial size =====
-        TextureRegion firstFrame = walkAnimation.getKeyFrame(0f);
-        setSize(firstFrame.getRegionWidth(), firstFrame.getRegionHeight());
-
-        // ===== Health & speed =====
         this.health = MAX_HEALTH;
         this.speed = MOVE_SPEED;
 
-        // ===== Load sounds =====
-        chompSound = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/chomp.wav"));
-        groanSound = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/groan.wav"));
+        this.animations = new ZombieAnimationSet();
+        this.sounds = new ZombieSoundSet();
 
-        // Play groan once on spawn
-        groanSound.play();
+        // First frame defines zombie size
+        TextureRegion first = animations.walk.getKeyFrame(0f);
+        setSize(first.getRegionWidth(), first.getRegionHeight());
+
+        // ZOMBIE SPAWN SOUND
+        sounds.playGroan();
     }
 
     @Override
@@ -72,81 +50,230 @@ public class NormalZombie extends Zombies {
         super.act(delta);
         stateTime += delta;
 
-        if (isDying) {
-            // Stop chomp if dying
-            if (chompSoundId != -1) {
-                chompSound.stop(chompSoundId);
-                chompSoundId = -1;
-            }
+        switch (state) {
 
-            if (dyingAnimation.isAnimationFinished(stateTime)) {
-                super.die();
-            }
-            return;
-        }
+            case DYING:
+                updateDying(delta);
+                break;
 
-        boolean touchingPlant = isTouchingPlant();
-        if (touchingPlant != isEating) {
-            isEating = touchingPlant;
-            stateTime = 0f;
+            case BURNED:
+                updateBurned(delta);
+                break;
 
-            if (isEating) {
-                // Start looping chomp
-                if (chompSoundId == -1) {
-                    chompSoundId = chompSound.loop();
-                }
-            } else {
-                // Stop chomp
-                if (chompSoundId != -1) {
-                    chompSound.stop(chompSoundId);
-                    chompSoundId = -1;
-                }
-            }
-        }
+            case EAT:
+                updateEating(delta);
+                break;
 
-        if (!isEating) {
-            update(delta); // movement logic
+            case WALK:
+            default:
+                updateWalking(delta);
+                break;
         }
     }
 
-    @Override
-    public void draw(Batch batch, float parentAlpha) {
-        Animation<TextureRegion> currentAnim;
-
-        if (isDying) {
-            currentAnim = dyingAnimation;
-        } else if (isEating) {
-            currentAnim = eatAnimation;
-        } else {
-            currentAnim = walkAnimation;
+    // ------------------ WALK LOGIC ------------------
+    private void updateWalking(float delta) {
+        if (isTouchingPlant()) {
+            changeState(ZombieState.EAT);
+            return;
         }
 
-        TextureRegion frame = currentAnim.getKeyFrame(stateTime);
+        update(delta); // movement from parent class
+    }
+
+    // ------------------ EAT LOGIC -------------------
+    private void updateEating(float delta) {
+        if (!isTouchingPlant()) {
+            changeState(ZombieState.WALK);
+            return;
+        }
+        // eating logic handled by animation + plant damage elsewhere
+    }
+
+    // ------------------ NORMAL DEATH ------------------
+    private void updateDying(float delta) {
+        stopChomp();
+
+        if (animations.dying.isAnimationFinished(stateTime)) {
+            super.die();
+        }
+    }
+
+    // ------------------ CHERRY BOMB BURN DEATH ------------------
+    private void updateBurned(float delta) {
+        stopChomp();
+
+        if (animations.burned.isAnimationFinished(stateTime)) {
+            super.die(); // remove zombie completely
+        }
+    }
+
+    // ------------------ STATE CHANGE ------------------
+    private void changeState(ZombieState newState) {
+        if (state == newState) return;
+
+        // EXIT old state
+        if (state == ZombieState.EAT)
+            stopChomp();
+
+        // ENTER new state
+        state = newState;
+        stateTime = 0f;
+
+        if (state == ZombieState.EAT)
+            startChomp();
+    }
+
+    private void startChomp() {
+        if (chompId == -1) {
+            chompId = sounds.startLoopChomp();
+        }
+    }
+
+    private void stopChomp() {
+        if (chompId != -1) {
+            sounds.stopChomp(chompId);
+            chompId = -1;
+        }
+    }
+
+    // ------------------ DAMAGE HANDLING ------------------
+    @Override
+    public void takeDamage(int damage) {
+        if (state == ZombieState.DYING || state == ZombieState.BURNED)
+            return;
+
+        health -= damage;
+
+        if (health <= 0) {
+            changeState(ZombieState.DYING);
+        }
+    }
+
+    // SPECIAL DEATH FOR CHERRY BOMB
+    public void burnToDeath() {
+        if (state == ZombieState.BURNED)
+            return;
+
+        stopChomp();
+
+        health = 0;
+        state = ZombieState.BURNED;
+        stateTime = 0f;
+    }
+
+    // ------------------ RENDER ------------------
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+
+        Animation<TextureRegion> anim;
+
+        switch (state) {
+
+            case DYING:
+                anim = animations.dying;
+                break;
+
+            case BURNED:
+                anim = animations.burned;
+                break;
+
+            case EAT:
+                anim = animations.eat;
+                break;
+
+            case WALK:
+            default:
+                anim = animations.walk;
+                break;
+        }
+
+        TextureRegion frame = anim.getKeyFrame(stateTime);
         batch.draw(frame, getX(), getY(), getWidth(), getHeight());
     }
 
     @Override
-    public void takeDamage(int damage) {
-        if (isDying)
-            return;
+    public void dispose() {
+        animations.dispose();
+        sounds.dispose();
+    }
 
-        health -= damage;
-        if (health <= 0) {
-            isDying = true;
-            stateTime = 0f;
+    // ======================= COMPONENT CLASSES =======================
+
+    /**
+     * Animation Holder (Single Responsibility)
+     */
+    private static class ZombieAnimationSet {
+
+        final Animation<TextureRegion> walk;
+        final Animation<TextureRegion> dying;
+        final Animation<TextureRegion> eat;
+        final Animation<TextureRegion> burned;
+
+        final Texture walkTex;
+        final Texture dieTex;
+        final Texture eatTex;
+        final Texture burnedTex;
+
+        ZombieAnimationSet() {
+
+            walkTex = new Texture("assets/images/Zombies/NormalZombieRun.gif");
+            dieTex = new Texture("assets/images/Zombies/ZombieDie.gif");
+            eatTex = new Texture("assets/images/Zombies/NormalZombieEat.gif");
+            burnedTex = new Texture("assets/images/Zombies/BurntZombie.gif");
+
+            walk = GifManager.createAnim(walkTex, 4, 0.20f, Animation.PlayMode.LOOP);
+            dying = GifManager.createAnim(dieTex, 4, 0.20f, Animation.PlayMode.NORMAL);
+            eat = GifManager.createAnim(eatTex, 4, 0.25f, Animation.PlayMode.LOOP);
+            burned = GifManager.createAnim(burnedTex, 4, 0.15f, Animation.PlayMode.NORMAL);
+        }
+
+        void dispose() {
+            walkTex.dispose();
+            dieTex.dispose();
+            eatTex.dispose();
+            burnedTex.dispose();
         }
     }
 
-    public void dispose() {
-        walkSheet.dispose();
-        dyingSheet.dispose();
-        eatSheet.dispose();
+    /**
+     * Sound Holder (Single Responsibility)
+     */
+    private static class ZombieSoundSet {
 
-        if (chompSoundId != -1) {
-            chompSound.stop(chompSoundId);
+        private final Sound chomp;
+        private final Sound groan;
+
+        ZombieSoundSet() {
+            chomp = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/chomp.wav"));
+            groan = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/groan.wav"));
         }
 
-        chompSound.dispose();
-        groanSound.dispose();
+        long startLoopChomp() {
+            return chomp.loop();
+        }
+
+        void stopChomp(long id) {
+            chomp.stop(id);
+        }
+
+        void playGroan() {
+            groan.play();
+        }
+
+        void dispose() {
+            chomp.dispose();
+            groan.dispose();
+        }
+    }
+
+    /**
+     * States following Open/Closed Principle
+     */
+    private enum ZombieState {
+        WALK,
+        EAT,
+        DYING,
+        BURNED   // <- CHERRY BOMB SPECIAL DEATH
     }
 }
