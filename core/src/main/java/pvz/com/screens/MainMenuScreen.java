@@ -1,109 +1,87 @@
 package pvz.com.screens;
 
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
+import pvz.com.managers.FontManager;
+import pvz.com.managers.BackgroundManager;
 
 public class MainMenuScreen implements Screen {
 
     private final Game game;
-
     private final Stage stage;
     private final Table table;
 
-    private Skin skin;
-    private Texture bgTex;
-    private BitmapFont titleFont;
+    private final BackgroundManager backgroundManager;
+
+    private Texture boardTex;
 
     public MainMenuScreen(Game game) {
         this.game = game;
 
         stage = new Stage(new ScreenViewport());
+        backgroundManager = new BackgroundManager();
+
         table = new Table();
         table.setFillParent(true);
-        table.center();
+        table.bottom();
+        table.padBottom(55f);
 
-        loadSkin();
-        createBackground();
+        stage.addActor(table);
+
         createUI();
     }
 
-    private void loadSkin() {
-        try {
-            skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
-        } catch (Exception e) {
-            Gdx.app.error("MainMenuScreen", "Không tìm thấy file uiskin.json", e);
-            skin = new Skin();
-        }
-    }
-
-    private void createBackground() {
-        bgTex = new Texture("assets/images/items/Frontyard.png");
-        bgTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-
-        Image bg = new Image(bgTex);
-        bg.setFillParent(true);
-
-        stage.addActor(bg);
-        stage.addActor(table);
-    }
-
     private void createUI() {
-        // Font title từ TTF
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
-                Gdx.files.internal("assets/fonts/Roboto-Black.ttf"));
-        FreeTypeFontGenerator.FreeTypeFontParameter param = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        param.size = 70;
-        titleFont = generator.generateFont(param);
-        generator.dispose();
+        // Biển gỗ
+        boardTex = new Texture("assets/images/items/board.png");
+        boardTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        TextureRegionDrawable boardDrawable = new TextureRegionDrawable(new TextureRegion(boardTex));
 
-        // Title label
-        Label.LabelStyle titleStyle = new Label.LabelStyle();
-        titleStyle.font = titleFont;
-        titleStyle.fontColor = new Color(0.95f, 1f, 0.4f, 1f);
+        // Style cho button
+        TextButton.TextButtonStyle startStyle = new TextButton.TextButtonStyle();
+        startStyle.up = boardDrawable;
+        startStyle.down = boardDrawable.tint(new Color(0.9f, 0.9f, 0.9f, 1f)); // nhấn xuống hơi tối
+        startStyle.font = FontManager.getPvzFont();
 
-        Label title = new Label("Plants vs Zombies", titleStyle);
+        // Nút "CLICK TO START"
+        TextButton startButton = new TextButton("CLICK TO START", startStyle);
+        startButton.getLabel().setFontScale(1.0f);
 
-        // Buttons
-        TextButton playButton = new TextButton("Play", skin);
-        TextButton exitButton = new TextButton("Exit", skin);
+        // Đẩy text lên cao trên tấm biển
+        startButton.getLabelCell().padBottom(70f);
 
-        // Layout
-        table.add(title).padBottom(40f);
-        table.row();
-        table.add(playButton).width(220).height(50).pad(10f);
-        table.row();
-        table.add(exitButton).width(220).height(50).pad(10f);
+        // Hiệu ứng nhấp nháy cho chữ
+        startButton.getLabel().addAction(
+                Actions.forever(
+                        Actions.sequence(
+                                Actions.fadeOut(0.6f),
+                                Actions.fadeIn(0.6f))));
 
-        // Listeners
-        playButton.addListener(new ClickListener() {
+        table.add(startButton)
+                .width(500f)
+                .height(320f)
+                .padTop(20f);
+
+        // Click -> sang GameScreen
+        startButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.log("MainMenu", "Play button clicked");
                 game.setScreen(new GameScreen(game));
-                dispose();
-            }
-        });
-
-        exitButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.log("MainMenu", "Exit button clicked");
-                Gdx.app.exit();
             }
         });
     }
@@ -118,6 +96,16 @@ public class MainMenuScreen implements Screen {
         Gdx.gl.glClearColor(0.05f, 0.25f, 0.05f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // Vẽ background bằng BackgroundManager
+        Batch batch = stage.getBatch();
+        batch.begin();
+        backgroundManager.renderMenu(
+                batch,
+                stage.getViewport().getWorldWidth(),
+                stage.getViewport().getWorldHeight());
+        batch.end();
+
+        // Vẽ UI
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
     }
@@ -125,6 +113,17 @@ public class MainMenuScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
+    }
+
+    @Override
+    public void dispose() {
+        stage.dispose(); // huỷ actors + batch
+        backgroundManager.dispose(); // huỷ background textures
+
+        if (boardTex != null) {
+            boardTex.dispose();
+            boardTex = null;
+        }
     }
 
     @Override
@@ -138,19 +137,5 @@ public class MainMenuScreen implements Screen {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
-    }
-
-    @Override
-    public void dispose() {
-        stage.dispose();
-        if (skin != null) {
-            skin.dispose();
-        }
-        if (bgTex != null) {
-            bgTex.dispose();
-        }
-        if (titleFont != null) {
-            titleFont.dispose();
-        }
     }
 }
