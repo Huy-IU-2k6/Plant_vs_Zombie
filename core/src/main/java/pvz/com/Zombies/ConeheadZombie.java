@@ -1,4 +1,4 @@
-package pvz.com.zombies;
+package pvz.com.Zombies;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -25,18 +25,22 @@ public class ConeheadZombie extends Zombies {
     private final Texture eatNormalSheet;
     private final Texture dieNormalSheet;
 
+    private final Texture burntZombieSheet; // NEW Cherry Bomb death
+
     // Animations
     private Animation<TextureRegion> walkConeAnim;
     private Animation<TextureRegion> eatConeAnim;
 
     private Animation<TextureRegion> walkNormalAnim;
     private Animation<TextureRegion> eatNormalAnim;
-    private Animation<TextureRegion> dieNormalAnim; // ONLY THIS FOR DYING
+    private Animation<TextureRegion> dieNormalAnim;
+    private Animation<TextureRegion> burntAnim; // NEW Cherry Bomb death
 
     // State
     private float stateTime = 0f;
     private boolean isDying = false;
     private boolean isEating = false;
+    private boolean killedByCherryBomb = false; // NEW
 
     private boolean coneOnHead = true;
     private int coneHealth = CONE_HEALTH;
@@ -47,14 +51,15 @@ public class ConeheadZombie extends Zombies {
         this.health = BODY_HEALTH;
         this.speed  = MOVE_SPEED;
 
-        // Load textures you said exist
+        // Load textures
         walkConeSheet = new Texture("ConeheadZombie.gif");
         eatConeSheet  = new Texture("ConeheadZombie_Eat.gif");
 
-        // Normal zombie textures
         walkNormalSheet = new Texture("NormalZombieEat.gif");
         eatNormalSheet  = new Texture("NormalZombieRun.gif");
         dieNormalSheet  = new Texture("ZombieDie.gif");
+
+        burntZombieSheet = new Texture("BurntZombie.gif"); // NEW
 
         // Build animations
         walkConeAnim   = createAnim(walkConeSheet,   FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
@@ -63,6 +68,8 @@ public class ConeheadZombie extends Zombies {
         walkNormalAnim = createAnim(walkNormalSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
         eatNormalAnim  = createAnim(eatNormalSheet,  FRAMES_PER_ROW, EAT_FRAME_TIME,  Animation.PlayMode.LOOP);
         dieNormalAnim  = createAnim(dieNormalSheet,  FRAMES_PER_ROW, DIE_FRAME_TIME,  Animation.PlayMode.NORMAL);
+
+        burntAnim      = createAnim(burntZombieSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL); // NEW
 
         // Set actor size to first cone frame
         TextureRegion first = walkConeAnim.getKeyFrame(0f);
@@ -96,7 +103,9 @@ public class ConeheadZombie extends Zombies {
 
         // Handle death animation fully
         if (isDying) {
-            if (dieNormalAnim.isAnimationFinished(stateTime)) {
+            Animation<TextureRegion> currentDieAnim = killedByCherryBomb ? burntAnim : dieNormalAnim;
+
+            if (currentDieAnim.isAnimationFinished(stateTime)) {
                 super.die();
             }
             return;
@@ -119,7 +128,7 @@ public class ConeheadZombie extends Zombies {
         Animation<TextureRegion> anim;
 
         if (isDying) {
-            anim = dieNormalAnim; // ALWAYS NORMAL ZOMBIE DIE
+            anim = killedByCherryBomb ? burntAnim : dieNormalAnim; // NEW Cherry Bomb priority
         } else if (isEating) {
             anim = coneOnHead ? eatConeAnim : eatNormalAnim;
         } else {
@@ -141,19 +150,26 @@ public class ConeheadZombie extends Zombies {
                 coneOnHead = false;
                 stateTime = 0f;
 
-                // Switching to normal zombie size
                 TextureRegion first = walkNormalAnim.getKeyFrame(0f);
                 setSize(first.getRegionWidth(), first.getRegionHeight());
             }
             return;
         }
 
-        // Cone gone → body takes damage
+        // Normal damage
         health -= dmg;
         if (health <= 0) {
             isDying = true;
             stateTime = 0f;
         }
+    }
+
+    // NEW method to handle cherry bomb death
+    public void dieByCherryBomb() {
+        if (isDying) return;
+        isDying = true;
+        killedByCherryBomb = true;
+        stateTime = 0f;
     }
 
     public void dispose() {
@@ -163,5 +179,8 @@ public class ConeheadZombie extends Zombies {
         walkNormalSheet.dispose();
         eatNormalSheet.dispose();
         dieNormalSheet.dispose();
+
+        burntZombieSheet.dispose(); // NEW
     }
 }
+
