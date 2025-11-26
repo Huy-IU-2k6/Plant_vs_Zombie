@@ -12,7 +12,7 @@ public class SeedBank extends Group {
     private final Texture bgTex;
     private final Array<PlantCard> cards = new Array<>();
 
-    private static final float SAFE_PADDING_LEFT = 300f;
+    private static final float SAFE_PADDING_LEFT = 310f;
     private static final float SAFE_PADDING_RIGHT = 30f;
     private static final float PADDING_TOP = 10f;
     private static final float PADDING_BOTTOM = 10f;

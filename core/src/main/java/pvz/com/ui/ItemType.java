@@ -3,7 +3,6 @@ package pvz.com.ui;
 public enum ItemType {
     CHERRYBOMB("assets/images/Cards/CherryBomb.png", 150, 50f), // very slow
     CHOMPER("assets/images/Cards/Chomper.png", 150, 7.5f), // fast
-    JALAPENO("assets/images/Cards/Jalapeno.png", 125, 50f), // very slow
     PEASHOOTER("assets/images/Cards/PeaShooter.png", 100, 7.5f), // fast
     POTATOMINE("assets/images/Cards/PotatoMine.png", 25, 30f), // slow
     REPEATER("assets/images/Cards/Repeater.png", 200, 7.5f), // fast

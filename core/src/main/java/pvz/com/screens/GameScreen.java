@@ -21,6 +21,7 @@ import pvz.com.ui.CountdownActor;
 import pvz.com.ui.ItemType;
 import pvz.com.ui.PlantCard;
 import pvz.com.ui.SeedBank;
+import pvz.com.items.LawnMower;
 
 public class GameScreen implements Screen {
 
@@ -36,12 +37,12 @@ public class GameScreen implements Screen {
     private static final int ZOMBIE_LANE_COUNT = 5;
     private static final float ZOMBIE_START_OFFSET_X = 50f;
     private static final float ZOMBIE_FIRST_LANE_Y = 100f;
-    private static final float ZOMBIE_LANE_GAP_Y = 80f;
+    private static final float ZOMBIE_LANE_GAP_Y = 100f;
 
     // ===== SeedBank layout =====
     private static final float SEED_BANK_HEIGHT = 110f; // tăng cao hơn chút
-    private static final float SEED_BANK_MARGIN_TOP = 10f;
-    private static final float SEED_BANK_MARGIN_LEFT = 5f; // gần như sát cạnh trái
+    private static final float SEED_BANK_MARGIN_TOP = 20f;
+    private static final float SEED_BANK_MARGIN_LEFT = 50f; // gần như sát cạnh trái
 
     private enum State {
         COUNTDOWN,
@@ -68,6 +69,7 @@ public class GameScreen implements Screen {
 
     // ===== Entities =====
     private final Array<NormalZombie> zombies = new Array<>();
+    private final Array<LawnMower> lawnMowers = new Array<>();
 
     public GameScreen(Game game) {
         this.game = game;
@@ -145,6 +147,32 @@ public class GameScreen implements Screen {
         // TODO: chuyển sang mode đặt plant lên grid
     }
 
+    // ================== Lawn mowers ==================
+
+    private void createLawnMowers() {
+        float mowerX = 180f; // hoặc 40f + 140f như cũ, muốn đứng đâu thì chỉnh ở đây
+
+        for (int i = 0; i < ZOMBIE_LANE_COUNT; i++) {
+            float laneY = ZOMBIE_FIRST_LANE_Y + i * ZOMBIE_LANE_GAP_Y - 50f;
+            lawnMowers.add(new LawnMower(mowerX, laneY, WORLD_WIDTH));
+        }
+    }
+
+    private void updateLawnMowers(float delta) {
+        // để ngược để xóa không bị lỗi index
+        for (int i = lawnMowers.size - 1; i >= 0; i--) {
+            LawnMower mower = lawnMowers.get(i);
+
+            // LawnMower tự lo: phát hiện zombie, trigger, chạy, giết
+            mower.update(delta, zombies);
+
+            // dùng xong thì bỏ khỏi mảng
+            if (mower.isUsed()) {
+                lawnMowers.removeIndex(i);
+            }
+        }
+    }
+
     // ================== Sun helpers ==================
 
     public void addSun(int amount) {
@@ -201,6 +229,9 @@ public class GameScreen implements Screen {
             unlockPlantCards();
             seedBank.setVisible(true);
             spawnInitialZombies();
+
+            // 👇 thêm dòng này: chỉ tạo lawnmower sau khi countdown xong
+            createLawnMowers();
         }
     }
 
@@ -208,9 +239,14 @@ public class GameScreen implements Screen {
         if (state != State.PLAYING)
             return;
 
+        // update zombie
         for (NormalZombie z : zombies) {
             z.act(delta);
         }
+
+        // update lawn mower
+        updateLawnMowers(delta);
+
         // TODO: remove zombie, check va chạm...
     }
 
@@ -222,11 +258,18 @@ public class GameScreen implements Screen {
 
         if (state == State.COUNTDOWN) {
             backgroundManager.renderCount(batch, w, h);
+
             return;
         }
 
         backgroundManager.renderMain(batch, w, h);
 
+        // Vẽ lawn mower
+        for (LawnMower mower : lawnMowers) {
+            mower.render(batch);
+        }
+
+        // Vẽ zombie
         for (NormalZombie z : zombies) {
             z.draw(batch, 1f);
         }
@@ -285,6 +328,13 @@ public class GameScreen implements Screen {
         hudStage.dispose();
         backgroundManager.dispose();
         seedBank.dispose();
+
+        // Dispose các lawnmower còn tồn tại (chưa dùng)
+        for (LawnMower mower : lawnMowers) {
+            if (!mower.isUsed()) {
+                mower.dispose();
+            }
+        }
     }
 
     @Override
