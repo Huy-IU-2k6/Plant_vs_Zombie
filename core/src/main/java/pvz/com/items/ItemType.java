@@ -1,4 +1,4 @@
-package pvz.com.ui;
+package pvz.com.items;
 
 public enum ItemType {
     CHERRYBOMB("assets/images/Cards/CherryBomb.png", 150, 50f), // very slow

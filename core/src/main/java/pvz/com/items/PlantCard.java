@@ -1,4 +1,4 @@
-package pvz.com.ui;
+package pvz.com.items;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
