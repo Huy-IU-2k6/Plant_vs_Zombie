@@ -18,9 +18,9 @@ import pvz.com.Zombies.NormalZombie;
 import pvz.com.managers.FontManager;
 import pvz.com.managers.BackgroundManager;
 import pvz.com.ui.CountdownActor;
-import pvz.com.ui.ItemType;
-import pvz.com.ui.PlantCard;
-import pvz.com.ui.SeedBank;
+import pvz.com.items.ItemType;
+import pvz.com.items.PlantCard;
+import pvz.com.items.SeedBank;
 import pvz.com.items.LawnMower;
 
 public class GameScreen implements Screen {
