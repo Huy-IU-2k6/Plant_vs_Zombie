@@ -7,12 +7,13 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.math.MathUtils;
 
 import pvz.com.Zombies.NormalZombie;
 import pvz.com.managers.FontManager;
@@ -33,16 +34,16 @@ public class GameScreen implements Screen {
     private static final float COUNTDOWN_DURATION = 6f;
     private static final int INITIAL_SUN = 150;
 
-    // ===== Zombie wave config (tạm) =====
+    // ===== Zombie lane config =====
     private static final int ZOMBIE_LANE_COUNT = 5;
     private static final float ZOMBIE_START_OFFSET_X = 50f;
     private static final float ZOMBIE_FIRST_LANE_Y = 100f;
     private static final float ZOMBIE_LANE_GAP_Y = 100f;
 
     // ===== SeedBank layout =====
-    private static final float SEED_BANK_HEIGHT = 110f; // tăng cao hơn chút
+    private static final float SEED_BANK_HEIGHT = 110f;
     private static final float SEED_BANK_MARGIN_TOP = 20f;
-    private static final float SEED_BANK_MARGIN_LEFT = 50f; // gần như sát cạnh trái
+    private static final float SEED_BANK_MARGIN_LEFT = 50f;
 
     private enum State {
         COUNTDOWN,
@@ -71,6 +72,17 @@ public class GameScreen implements Screen {
     private final Array<NormalZombie> zombies = new Array<>();
     private final Array<LawnMower> lawnMowers = new Array<>();
 
+    // ===== Zombie spawn control =====
+    private float spawnTimer = 0f;
+    private float nextSpawnTime = 0f;
+    private int zombiesSpawnedInWave = 0;
+    private int maxZombiesInWave = 20;
+
+    private static final float MIN_SPAWN_INTERVAL = 2.2f;
+    private static final float MAX_SPAWN_INTERVAL = 4.0f;
+
+    private final float[] laneYs = new float[ZOMBIE_LANE_COUNT];
+
     public GameScreen(Game game) {
         this.game = game;
 
@@ -78,7 +90,7 @@ public class GameScreen implements Screen {
 
         // HUD stage (UI)
         hudStage = new Stage(new ScreenViewport());
-        hudStage.getRoot().setUserObject(this); // cho PlantCard callback ngược
+        hudStage.getRoot().setUserObject(this);
 
         // Camera + viewport world 800x600
         camera = new OrthographicCamera();
@@ -89,10 +101,13 @@ public class GameScreen implements Screen {
         // Background
         backgroundManager = new BackgroundManager();
 
+        // lane Y
+        initLanes();
+
         // SeedBank
         seedBank = new SeedBank();
         layoutSeedBank();
-        seedBank.setVisible(false); // chỉ hiện sau countdown
+        seedBank.setVisible(false);
         hudStage.addActor(seedBank);
 
         // Countdown
@@ -110,7 +125,6 @@ public class GameScreen implements Screen {
     // ================== UI setup ==================
 
     private void layoutSeedBank() {
-        float hudW = hudStage.getViewport().getWorldWidth();
         float hudH = hudStage.getViewport().getWorldHeight();
 
         float originalW = seedBank.getWidth();
@@ -122,7 +136,6 @@ public class GameScreen implements Screen {
 
         seedBank.setSize(trayW, trayH);
 
-        // dính mép trái, chỉ chừa margin rất nhỏ
         seedBank.setPosition(
                 SEED_BANK_MARGIN_LEFT,
                 hudH - trayH - SEED_BANK_MARGIN_TOP);
@@ -136,7 +149,6 @@ public class GameScreen implements Screen {
         }
     }
 
-    // PlantCard gọi hàm này khi được click
     public void onPlantCardClicked(PlantCard card) {
         if (!card.canUse(sunPoints))
             return;
@@ -144,29 +156,86 @@ public class GameScreen implements Screen {
             return;
 
         card.triggerUse();
-        // TODO: chuyển sang mode đặt plant lên grid
+        // TODO: mode đặt plant
+    }
+
+    // ================== Lane & spawn helpers ==================
+
+    private void initLanes() {
+        for (int i = 0; i < ZOMBIE_LANE_COUNT; i++) {
+            laneYs[i] = ZOMBIE_FIRST_LANE_Y + i * ZOMBIE_LANE_GAP_Y;
+        }
+    }
+
+    private void startZombieWave() {
+        spawnTimer = 0f;
+        zombiesSpawnedInWave = 0;
+
+        // 2 con demo ban đầu cho người chơi thấy
+        spawnZombieInLane(0);
+        spawnZombieInLane(ZOMBIE_LANE_COUNT - 1);
+        zombiesSpawnedInWave = 2;
+
+        scheduleNextSpawn();
+    }
+
+    private void scheduleNextSpawn() {
+        nextSpawnTime = spawnTimer + MathUtils.random(MIN_SPAWN_INTERVAL, MAX_SPAWN_INTERVAL);
+    }
+
+    /** Spawn zombie ở lane cụ thể, đặt Y theo chiều cao zombie (đã scale). */
+    private void spawnZombieInLane(int laneIndex) {
+        float startX = WORLD_WIDTH + ZOMBIE_START_OFFSET_X + MathUtils.random(0f, 80f);
+        laneIndex = MathUtils.clamp(laneIndex, 0, ZOMBIE_LANE_COUNT - 1);
+
+        NormalZombie z = new NormalZombie();
+
+        // Y giữa lane
+        float laneCenterY = laneYs[laneIndex];
+
+        // Đặt sao cho chân zombie nằm trên mặt đất:
+        // laneCenterY ~ giữa ô cỏ, nên trừ đi nửa chiều cao zombie
+        float zombieY = laneCenterY - z.getHeight() / 2f;
+
+        z.setPosition(startX, zombieY);
+        zombies.add(z);
+    }
+
+    private void spawnZombieInRandomLane() {
+        int laneIndex = MathUtils.random(0, ZOMBIE_LANE_COUNT - 1);
+        spawnZombieInLane(laneIndex);
+    }
+
+    private void updateZombieSpawning(float delta) {
+        if (zombiesSpawnedInWave >= maxZombiesInWave)
+            return;
+
+        spawnTimer += delta;
+
+        if (spawnTimer >= nextSpawnTime) {
+            spawnZombieInRandomLane();
+            zombiesSpawnedInWave++;
+            scheduleNextSpawn();
+        }
     }
 
     // ================== Lawn mowers ==================
 
     private void createLawnMowers() {
-        float mowerX = 180f; // hoặc 40f + 140f như cũ, muốn đứng đâu thì chỉnh ở đây
+        float mowerX = 180f;
 
         for (int i = 0; i < ZOMBIE_LANE_COUNT; i++) {
+            // vẫn dùng offset cũ, nếu lệch thì chỉnh thêm sau
             float laneY = ZOMBIE_FIRST_LANE_Y + i * ZOMBIE_LANE_GAP_Y - 50f;
             lawnMowers.add(new LawnMower(mowerX, laneY, WORLD_WIDTH));
         }
     }
 
     private void updateLawnMowers(float delta) {
-        // để ngược để xóa không bị lỗi index
         for (int i = lawnMowers.size - 1; i >= 0; i--) {
             LawnMower mower = lawnMowers.get(i);
-
-            // LawnMower tự lo: phát hiện zombie, trigger, chạy, giết
             mower.update(delta, zombies);
 
-            // dùng xong thì bỏ khỏi mảng
             if (mower.isUsed()) {
                 lawnMowers.removeIndex(i);
             }
@@ -190,7 +259,6 @@ public class GameScreen implements Screen {
         float sbX = seedBank.getX();
         float sbY = seedBank.getY();
 
-        // Toạ độ ước lượng, tuỳ texture mà chỉnh tiếp
         float textX = sbX + 55f;
         float textY = sbY + 42f;
 
@@ -198,17 +266,6 @@ public class GameScreen implements Screen {
     }
 
     // ================== Game logic ==================
-
-    private void spawnInitialZombies() {
-        float startX = WORLD_WIDTH + ZOMBIE_START_OFFSET_X;
-
-        for (int i = 0; i < ZOMBIE_LANE_COUNT; i++) {
-            NormalZombie z = new NormalZombie();
-            float laneY = ZOMBIE_FIRST_LANE_Y + i * ZOMBIE_LANE_GAP_Y;
-            z.setPosition(startX, laneY);
-            zombies.add(z);
-        }
-    }
 
     private void unlockPlantCards() {
         for (PlantCard card : plantCards) {
@@ -228,9 +285,8 @@ public class GameScreen implements Screen {
 
             unlockPlantCards();
             seedBank.setVisible(true);
-            spawnInitialZombies();
 
-            // 👇 thêm dòng này: chỉ tạo lawnmower sau khi countdown xong
+            startZombieWave();
             createLawnMowers();
         }
     }
@@ -239,15 +295,21 @@ public class GameScreen implements Screen {
         if (state != State.PLAYING)
             return;
 
-        // update zombie
-        for (NormalZombie z : zombies) {
+        updateZombieSpawning(delta);
+
+        // update zombie + xoá nếu đi khỏi màn hình
+        for (int i = zombies.size - 1; i >= 0; i--) {
+            NormalZombie z = zombies.get(i);
             z.act(delta);
+
+            if (z.getX() < -150f) {
+                zombies.removeIndex(i);
+                // TODO: xử lý khi zombie lọt qua nhà
+            }
         }
 
-        // update lawn mower
         updateLawnMowers(delta);
-
-        // TODO: remove zombie, check va chạm...
+        // TODO: check va chạm plant, bullet...
     }
 
     // ================== Render helpers ==================
@@ -258,25 +320,19 @@ public class GameScreen implements Screen {
 
         if (state == State.COUNTDOWN) {
             backgroundManager.renderCount(batch, w, h);
-
             return;
         }
 
         backgroundManager.renderMain(batch, w, h);
 
-        // Vẽ lawn mower
         for (LawnMower mower : lawnMowers) {
             mower.render(batch);
         }
 
-        // Vẽ zombie
         for (NormalZombie z : zombies) {
             z.draw(batch, 1f);
         }
 
-        // TODO: vẽ plant, bullet...
-
-        // Vẽ HUD mặt trời chỉ khi khay đã hiện
         if (state == State.PLAYING) {
             drawSunHud(batch);
         }
@@ -329,7 +385,6 @@ public class GameScreen implements Screen {
         backgroundManager.dispose();
         seedBank.dispose();
 
-        // Dispose các lawnmower còn tồn tại (chưa dùng)
         for (LawnMower mower : lawnMowers) {
             if (!mower.isUsed()) {
                 mower.dispose();

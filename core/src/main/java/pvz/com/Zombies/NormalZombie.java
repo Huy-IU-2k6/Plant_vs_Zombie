@@ -12,11 +12,14 @@ public class NormalZombie extends Zombies {
 
     // ===== CONST =====
     private static final int MAX_HEALTH = 100;
-    private static final float MOVE_SPEED = 50f;
-    private static final int FRAMES_PER_ROW = 4;
+    private static final float MOVE_SPEED = 15f;
+    private static final int FRAMES_PER_ROW = 1;
     private static final float WALK_FRAME_TIME = 0.20f;
     private static final float DIE_FRAME_TIME = 0.20f;
     private static final float EAT_FRAME_TIME = 0.25f;
+
+    // Chiều cao zombie mong muốn trong world (vừa 1 ô cỏ ~ 100)
+    private static final float DESIRED_HEIGHT = 90f;
 
     // Spritesheets
     private final Texture walkSheet;
@@ -45,9 +48,15 @@ public class NormalZombie extends Zombies {
         dyingAnimation = GifManager.createAnim(dyingSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
         eatAnimation = GifManager.createAnim(eatSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        // ===== Set initial size =====
+        // ===== Set size với scale thay vì size gốc =====
         TextureRegion firstFrame = walkAnimation.getKeyFrame(0f);
-        setSize(firstFrame.getRegionWidth(), firstFrame.getRegionHeight());
+        float originalW = firstFrame.getRegionWidth();
+        float originalH = firstFrame.getRegionHeight();
+
+        float scale = DESIRED_HEIGHT / originalH;
+        float desiredWidth = originalW * scale;
+
+        setSize(desiredWidth, DESIRED_HEIGHT);
 
         // ===== Health & speed =====
         this.health = MAX_HEALTH;
@@ -61,7 +70,6 @@ public class NormalZombie extends Zombies {
             stateTime += delta;
 
             if (dyingAnimation.isAnimationFinished(stateTime)) {
-                // hoàn tất chết
                 dead = true;
                 speed = 0f;
                 if (zombieCount > 0) {
@@ -79,7 +87,7 @@ public class NormalZombie extends Zombies {
             stateTime = 0f;
         }
 
-        // Gọi logic chung: di chuyển, sound, gameOver, ...
+        // Logic chung: di chuyển, sound, gameOver, ...
         super.act(delta);
 
         // cập nhật thời gian animation
@@ -99,6 +107,8 @@ public class NormalZombie extends Zombies {
         }
 
         TextureRegion frame = currentAnim.getKeyFrame(stateTime);
+
+        // Vẽ theo kích thước actor (đã scale)
         batch.draw(frame, getX(), getY(), getWidth(), getHeight());
     }
 

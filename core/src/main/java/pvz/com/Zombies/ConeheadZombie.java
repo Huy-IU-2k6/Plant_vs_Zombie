@@ -12,7 +12,7 @@ public class ConeheadZombie extends Zombies {
     private static final int CONE_HEALTH = 200;
     private static final float MOVE_SPEED = 50f;
 
-    private static final int FRAMES_PER_ROW = 4;
+    private static final int FRAMES_PER_ROW = 1;
     private static final float WALK_FRAME_TIME = 0.20f;
     private static final float EAT_FRAME_TIME = 0.25f;
     private static final float DIE_FRAME_TIME = 0.20f;
