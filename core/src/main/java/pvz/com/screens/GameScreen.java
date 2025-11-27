@@ -3,17 +3,17 @@ package pvz.com.screens;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.badlogic.gdx.math.MathUtils;
 
 import pvz.com.Zombies.NormalZombie;
 import pvz.com.managers.FontManager;
@@ -24,102 +24,97 @@ import pvz.com.items.PlantCard;
 import pvz.com.items.SeedBank;
 import pvz.com.items.LawnMower;
 
-public class GameScreen implements Screen {
+// ECS imports
+import pvz.com.entities.Entity;
+import pvz.com.entities.plants.Plant;
+import pvz.com.entities.components.PlantDamageType;
+import pvz.com.entities.projectiles.PeaProjectile;
+import pvz.com.factories.PlantFactory;
+import pvz.com.systems.IGameSpawner;
+import pvz.com.systems.RenderSystem;
+import pvz.com.systems.SunProductionSystem;
+import pvz.com.systems.PlantAttackSystem;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class GameScreen implements Screen, IGameSpawner {
 
     // ===== World & layout =====
     private static final float WORLD_WIDTH = 800f;
     private static final float WORLD_HEIGHT = 600f;
 
-    // ===== Game config =====
-    private static final float COUNTDOWN_DURATION = 6f;
-    private static final int INITIAL_SUN = 150;
-
-    // ===== Zombie lane config =====
-    private static final int ZOMBIE_LANE_COUNT = 5;
-    private static final float ZOMBIE_START_OFFSET_X = 50f;
-    private static final float ZOMBIE_FIRST_LANE_Y = 100f;
-    private static final float ZOMBIE_LANE_GAP_Y = 100f;
+    private final Game game;
+    private final SpriteBatch batch;
+    private final Stage hudStage;
 
     // ===== SeedBank layout =====
     private static final float SEED_BANK_HEIGHT = 110f;
     private static final float SEED_BANK_MARGIN_TOP = 20f;
     private static final float SEED_BANK_MARGIN_LEFT = 50f;
 
+    // Background + Countdown (HEAD branch)
+    private final BackgroundManager backgroundManager;
+    private CountdownActor countdown;
+
     private enum State {
         COUNTDOWN,
         PLAYING
     }
-
-    // ===== Core refs =====
-    private final Game game;
-    private final SpriteBatch batch;
-    private final Stage hudStage;
-    private final OrthographicCamera camera;
-    private final Viewport viewport;
-    private final BackgroundManager backgroundManager;
-
-    // ===== UI & state =====
-    private CountdownActor countdown;
-    private final Array<PlantCard> plantCards = new Array<>();
-    private final SeedBank seedBank;
-    private final BitmapFont hudFont;
     private State state = State.COUNTDOWN;
+    private float countdownTime = 6f;
 
-    // ===== Sun HUD =====
-    private int sunPoints = INITIAL_SUN;
-
-    // ===== Entities =====
-    private final Array<NormalZombie> zombies = new Array<>();
-    private final Array<LawnMower> lawnMowers = new Array<>();
-
-    // ===== Zombie spawn control =====
-    private float spawnTimer = 0f;
-    private float nextSpawnTime = 0f;
-    private int zombiesSpawnedInWave = 0;
-    private int maxZombiesInWave = 20;
-
-    private static final float MIN_SPAWN_INTERVAL = 2.2f;
-    private static final float MAX_SPAWN_INTERVAL = 4.0f;
-
-    private final float[] laneYs = new float[ZOMBIE_LANE_COUNT];
+    // ECS
+    private Texture bgTex;
+    private List<Entity> entities;
+    private List<Plant> plants;
+    private RenderSystem renderSystem;
+    private SunProductionSystem sunSystem;
+    private PlantAttackSystem attackSystem;
 
     public GameScreen(Game game) {
         this.game = game;
+        this.batch = new SpriteBatch();
+        this.hudStage = new Stage(new ScreenViewport());
 
-        batch = new SpriteBatch();
-
-        // HUD stage (UI)
-        hudStage = new Stage(new ScreenViewport());
-        hudStage.getRoot().setUserObject(this);
-
-        // Camera + viewport world 800x600
+        // Camera + Viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
         camera.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0f);
         camera.update();
 
-        // Background
+        // Background Manager
         backgroundManager = new BackgroundManager();
 
-        // lane Y
-        initLanes();
-
-        // SeedBank
-        seedBank = new SeedBank();
-        layoutSeedBank();
-        seedBank.setVisible(false);
-        hudStage.addActor(seedBank);
-
-        // Countdown
-        countdown = new CountdownActor(COUNTDOWN_DURATION, FontManager.getPvzFont());
+        // Countdown Actor
+        countdown = new CountdownActor(countdownTime, FontManager.getPvzFont());
         countdown.setPosition(400f, 500f);
         hudStage.addActor(countdown);
 
-        // Plant cards
-        createPlantCards();
+        // ECS init
+        entities = new ArrayList<>();
+        plants = new ArrayList<>();
 
-        // Sun HUD
-        hudFont = FontManager.getPvzFont();
+        try {
+            bgTex = new Texture(Gdx.files.internal("assets/images/backgrounds/Lawn.jpeg"));
+            bgTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        } catch (Exception e) {
+            Gdx.app.error("GameScreen", "Lỗi load BG", e);
+        }
+
+        renderSystem = new RenderSystem(batch);
+        sunSystem = new SunProductionSystem(this);
+        attackSystem = new PlantAttackSystem(this);
+
+        // Test plants
+        spawnPlant(PlantFactory.createSunflower(100, 200));
+        spawnPlant(PlantFactory.createPeashooter(200, 200));
+        spawnPlant(PlantFactory.createWallnut(300, 300));
+    }
+
+    private void spawnPlant(Plant plant) {
+        entities.add(plant);
+        plants.add(plant);
     }
 
     // ================== UI setup ==================
@@ -348,15 +343,30 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(hudStage);
+        // Click để tạo cây
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                Vector3 world = camera.unproject(new Vector3(screenX, screenY, 0));
+
+                if (button == Input.Buttons.LEFT)
+                    spawnPlant(PlantFactory.createPeashooter(world.x, world.y));
+                else if (button == Input.Buttons.RIGHT)
+                    spawnPlant(PlantFactory.createSunflower(world.x, world.y));
+
+                return true;
+            }
+        });
     }
 
     @Override
     public void render(float delta) {
+
         updateState(delta);
         updateGame(delta);
         handleEscape();
 
+        // Clear screen
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -364,11 +374,59 @@ public class GameScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
-        renderWorld(batch);
+        float w = viewport.getWorldWidth();
+        float h = viewport.getWorldHeight();
+
+        if (state == State.COUNTDOWN) {
+            backgroundManager.renderCount(batch, w, h);
+        } else {
+            backgroundManager.renderMain(batch, w, h);
+        }
         batch.end();
 
+        // Only update ECS when playing
+        if (state == State.PLAYING) {
+            sunSystem.update(plants, delta);
+            attackSystem.update(plants, delta);
+
+            // Render entities
+            batch.setProjectionMatrix(camera.combined);
+            renderSystem.update(entities);
+        }
+
+        // HUD
         hudStage.act(delta);
         hudStage.draw();
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            // TODO: mở Resume Screen
+        }
+    }
+
+    private void updateState(float delta) {
+        if (state == State.COUNTDOWN) {
+            countdownTime -= delta;
+            if (countdownTime <= 0f) {
+                state = State.PLAYING;
+                if (countdown != null) {
+                    countdown.remove();
+                    countdown = null;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void spawnSun(float x, float y, int amount) {
+        Gdx.app.log("GameEvent", "Sun Spawn: " + x + "," + y);
+    }
+
+    @Override
+    public void spawnProjectile(float x, float y, int damage, PlantDamageType type, Class<?> projectileClass) {
+        if (projectileClass == PeaProjectile.class) {
+            Entity pea = new PeaProjectile(x, y, damage);
+            entities.add(pea);
+        }
     }
 
     @Override
@@ -383,24 +441,10 @@ public class GameScreen implements Screen {
         batch.dispose();
         hudStage.dispose();
         backgroundManager.dispose();
-        seedBank.dispose();
-
-        for (LawnMower mower : lawnMowers) {
-            if (!mower.isUsed()) {
-                mower.dispose();
-            }
-        }
+        if (bgTex != null) bgTex.dispose();
     }
 
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
-
-    @Override
-    public void hide() {
-    }
+    @Override public void pause() {}
+    @Override public void resume() {}
+    @Override public void hide() {}
 }
