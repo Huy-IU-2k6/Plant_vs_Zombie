@@ -2,7 +2,9 @@ package pvz.com.Zombies;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
@@ -11,31 +13,45 @@ import pvz.com.managers.GifManager;
 public class BucketheadZombie extends Zombies {
 
     // ---------- CONSTANTS ----------
-    private static final int BODY_HEALTH   = 100;
-    private static final int BUCKET_HEALTH = 300;     // Bucket HP
-    private static final float MOVE_SPEED  = 45f;
+    private static final int BODY_HEALTH = 100;
+    private static final int BUCKET_HEALTH = 300; // Bucket HP
+    private static final float MOVE_SPEED = 45f;
+
+    // tuỳ spritesheet của bạn, hiện đang giả sử 4 frame trên 1 hàng
+    private static final int FRAME_COUNT = 4;
+    private static final float WALK_FRAME_TIME = 0.15f;
+    private static final float ATTACK_FRAME_TIME = 0.15f;
+    private static final float BURNT_FRAME_TIME = 0.15f;
 
     // ---------- STATE ----------
     private int bucketHP;
     private boolean bucketLost = false;
 
     private boolean isEating = false;
-    private boolean isDead = false;
     private boolean isBurnt = false;
 
     private float animationTimer = 0f;
 
+    // ---------- TEXTURES ----------
+    private final Texture bucketWalkSheet;
+    private final Texture bucketAttackSheet;
+
+    private final Texture normalWalkSheet;
+    private final Texture normalAttackSheet;
+
+    private final Texture burntSheet;
+
     // ---------- ANIMATIONS ----------
-    private Animation<TextureRegion> walkAnim;
-    private Animation<TextureRegion> attackAnim;
+    private final Animation<TextureRegion> walkAnim;
+    private final Animation<TextureRegion> attackAnim;
 
-    private Animation<TextureRegion> normalWalkAnim;
-    private Animation<TextureRegion> normalAttackAnim;
+    private final Animation<TextureRegion> normalWalkAnim;
+    private final Animation<TextureRegion> normalAttackAnim;
 
-    private Animation<TextureRegion> burntAnim;
+    private final Animation<TextureRegion> burntAnim;
 
     // ---------- SOUNDS ----------
-    private Sound groanSound;
+    private final Sound groanSound;
 
     public BucketheadZombie(float x, float y) {
         setPosition(x, y);
@@ -44,40 +60,72 @@ public class BucketheadZombie extends Zombies {
         this.bucketHP = BUCKET_HEALTH;
         this.speed = MOVE_SPEED;
 
-        // Load animations for buckethead
-        walkAnim        = GifManager.loadGifAnimation("BucketheadZombieRun.gif");
-        attackAnim      = GifManager.loadGifAnimation("BucketheadZombieAttack.gif");
+        // --------- LOAD TEXTURES ----------
+        // Chỉnh path cho đúng với project của bạn
+        bucketWalkSheet = new Texture(Gdx.files.internal("BucketheadZombieRun.gif"));
+        bucketAttackSheet = new Texture(Gdx.files.internal("BucketheadZombieAttack.gif"));
 
-        // Animations after bucket falls off → NormalZombie
-        normalWalkAnim   = GifManager.loadGifAnimation("NormalZombieRun.gif");
-        normalAttackAnim = GifManager.loadGifAnimation("NormalZombieAttack.gif");
+        normalWalkSheet = new Texture(Gdx.files.internal("NormalZombieRun.gif"));
+        normalAttackSheet = new Texture(Gdx.files.internal("NormalZombieAttack.gif"));
 
-        // Burnt Zombie animation
-        burntAnim       = GifManager.loadGifAnimation("BurntZombie.gif");
+        burntSheet = new Texture(Gdx.files.internal("BurntZombie.gif"));
 
-        // Zombie groan sound (if you use it globally)
-        groanSound = Gdx.audio.newSound(Gdx.files.internal("groan.wav"));
+        // --------- CREATE ANIMATIONS ----------
+        walkAnim = GifManager.createAnim(
+                bucketWalkSheet,
+                FRAME_COUNT,
+                WALK_FRAME_TIME,
+                PlayMode.LOOP);
+
+        attackAnim = GifManager.createAnim(
+                bucketAttackSheet,
+                FRAME_COUNT,
+                ATTACK_FRAME_TIME,
+                PlayMode.LOOP);
+
+        normalWalkAnim = GifManager.createAnim(
+                normalWalkSheet,
+                FRAME_COUNT,
+                WALK_FRAME_TIME,
+                PlayMode.LOOP);
+
+        normalAttackAnim = GifManager.createAnim(
+                normalAttackSheet,
+                FRAME_COUNT,
+                ATTACK_FRAME_TIME,
+                PlayMode.LOOP);
+
+        burntAnim = GifManager.createAnim(
+                burntSheet,
+                FRAME_COUNT,
+                BURNT_FRAME_TIME,
+                PlayMode.NORMAL // cháy 1 lần rồi thôi
+        );
+
+        // Zombie groan sound
+        groanSound = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/groan.wav"));
         groanSound.play(0.15f);
     }
 
     // ------------------------------------------------------
-    //                 DAMAGE & DEATH HANDLING
+    // DAMAGE & DEATH HANDLING
     // ------------------------------------------------------
     @Override
     public void takeDamage(int dmg) {
-        if (isDead || isBurnt) return;
+        if (dead || isBurnt)
+            return;
 
-        // Damage bucket first
+        // Damage bucket trước
         if (!bucketLost) {
             bucketHP -= dmg;
 
             if (bucketHP <= 0) {
-                bucketLost = true;  // No sound needed
+                bucketLost = true; // không cần sound
             }
             return;
         }
 
-        // Now damage zombie body
+        // Sau khi rớt xô thì trừ vào máu thân
         health -= dmg;
 
         if (health <= 0) {
@@ -86,35 +134,54 @@ public class BucketheadZombie extends Zombies {
     }
 
     private void die() {
-        isDead = true;
+        if (dead)
+            return;
+
+        dead = true;
+        speed = 0f;
+
+        if (zombieCount > 0) {
+            zombieCount--;
+        }
+
+        // Buckethead không có animation chết riêng → remove luôn
         remove();
     }
 
     @Override
     public void killByCherryBomb() {
+        if (dead)
+            return;
+
+        // dùng BurntZombie.gif
         isBurnt = true;
-        isDead = true;
-        animationTimer = 0;
+        dead = true;
+        speed = 0f;
+
+        if (zombieCount > 0) {
+            zombieCount--;
+        }
+
+        animationTimer = 0f;
+        // không remove ngay, chờ burntAnim xong trong draw()
     }
 
     // ------------------------------------------------------
-    //                      UPDATE
+    // UPDATE
     // ------------------------------------------------------
     @Override
     public void act(float delta) {
-        super.act(delta);
+        super.act(delta); // xử lý move, sound, gameOver ở base
 
         animationTimer += delta;
 
-        if (isDead) return;
-
-        if (!isEating) {
-            moveBy(-speed * delta, 0);
-        }
+        // Khi cháy hoặc dead thì không cần xử lý thêm
+        if (isBurnt || dead)
+            return;
     }
 
     // ------------------------------------------------------
-    //                      DRAW
+    // DRAW
     // ------------------------------------------------------
     @Override
     public void draw(Batch batch, float parentAlpha) {
@@ -125,21 +192,21 @@ public class BucketheadZombie extends Zombies {
             frame = burntAnim.getKeyFrame(animationTimer, false);
             batch.draw(frame, getX(), getY());
 
-            if (burntAnim.isAnimationFinished(animationTimer))
+            if (burntAnim.isAnimationFinished(animationTimer)) {
                 remove();
-
+            }
             return;
         }
 
-        if (isDead) return;
+        if (dead)
+            return;
 
         // Buckethead animations
         if (!bucketLost) {
             frame = (isEating ? attackAnim : walkAnim)
                     .getKeyFrame(animationTimer, true);
-        } 
-        // After bucket breaks → normal zombie anims
-        else {
+        } else {
+            // After bucket breaks → normal zombie anims
             frame = (isEating ? normalAttackAnim : normalWalkAnim)
                     .getKeyFrame(animationTimer, true);
         }
@@ -148,8 +215,18 @@ public class BucketheadZombie extends Zombies {
     }
 
     // ------------------------------------------------------
-    //              PLANT INTERACTION
+    // PLANT INTERACTION
     // ------------------------------------------------------
-    public void startEating() { isEating = true; }
-    public void stopEating()  { isEating = false; }
+    public void startEating() {
+        isEating = true;
+    }
+
+    public void stopEating() {
+        isEating = false;
+    }
+
+    @Override
+    public boolean isEating() {
+        return isEating;
+    }
 }

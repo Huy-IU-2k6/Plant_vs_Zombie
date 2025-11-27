@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.audio.Sound;
 
 import pvz.com.managers.GifManager;
 
@@ -28,11 +27,6 @@ public class NormalZombie extends Zombies {
     private final Animation<TextureRegion> walkAnimation;
     private final Animation<TextureRegion> dyingAnimation;
     private final Animation<TextureRegion> eatAnimation;
-
-    // Sounds
-    private final Sound chompSound;
-    private final Sound groanSound;
-    private long chompSoundId = -1; // for looping chomp
 
     // State
     private float stateTime = 0f;
@@ -58,55 +52,38 @@ public class NormalZombie extends Zombies {
         // ===== Health & speed =====
         this.health = MAX_HEALTH;
         this.speed = MOVE_SPEED;
-
-        // ===== Load sounds =====
-        chompSound = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/chomp.wav"));
-        groanSound = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/groan.wav"));
-
-        // Play groan once on spawn
-        groanSound.play();
     }
 
     @Override
     public void act(float delta) {
-        super.act(delta);
-        stateTime += delta;
-
+        // Nếu đang trong animation chết → không dùng logic Zombies.act
         if (isDying) {
-            // Stop chomp if dying
-            if (chompSoundId != -1) {
-                chompSound.stop(chompSoundId);
-                chompSoundId = -1;
-            }
+            stateTime += delta;
 
             if (dyingAnimation.isAnimationFinished(stateTime)) {
-                super.die();
+                // hoàn tất chết
+                dead = true;
+                speed = 0f;
+                if (zombieCount > 0) {
+                    zombieCount--;
+                }
+                remove();
             }
             return;
         }
 
+        // Cập nhật trạng thái ăn
         boolean touchingPlant = isTouchingPlant();
         if (touchingPlant != isEating) {
             isEating = touchingPlant;
             stateTime = 0f;
-
-            if (isEating) {
-                // Start looping chomp
-                if (chompSoundId == -1) {
-                    chompSoundId = chompSound.loop();
-                }
-            } else {
-                // Stop chomp
-                if (chompSoundId != -1) {
-                    chompSound.stop(chompSoundId);
-                    chompSoundId = -1;
-                }
-            }
         }
 
-        if (!isEating) {
-            update(delta); // movement logic
-        }
+        // Gọi logic chung: di chuyển, sound, gameOver, ...
+        super.act(delta);
+
+        // cập nhật thời gian animation
+        stateTime += delta;
     }
 
     @Override
@@ -127,7 +104,7 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void takeDamage(int damage) {
-        if (isDying)
+        if (isDying || dead)
             return;
 
         health -= damage;
@@ -137,16 +114,19 @@ public class NormalZombie extends Zombies {
         }
     }
 
+    @Override
+    public boolean isEating() {
+        return isEating;
+    }
+
+    // Tạm thời stub, bạn thay bằng logic va chạm plant sau
+    private boolean isTouchingPlant() {
+        return false;
+    }
+
     public void dispose() {
         walkSheet.dispose();
         dyingSheet.dispose();
         eatSheet.dispose();
-
-        if (chompSoundId != -1) {
-            chompSound.stop(chompSoundId);
-        }
-
-        chompSound.dispose();
-        groanSound.dispose();
     }
 }

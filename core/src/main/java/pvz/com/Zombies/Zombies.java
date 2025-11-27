@@ -97,6 +97,46 @@ public class Zombies extends Actor {
         return false; // mặc định zombie không ăn
     }
 
+    // ====== CÁC HÀM MỚI CHO COMBAT ======
+
+    /**
+     * Generic takeDamage – zombie con có thể override nếu có giáp, mũ, xô,...
+     */
+    public void takeDamage(int dmg) {
+        if (dead)
+            return;
+
+        health -= dmg;
+        if (health <= 0) {
+            dead = true;
+            speed = 0f;
+
+            if (zombieCount > 0) {
+                zombieCount--;
+            }
+
+            // base: biến mất luôn
+            remove();
+        }
+    }
+
+    /**
+     * Gọi khi bị Cherry Bomb nổ trúng.
+     * Zombie con có animation cháy (BurntZombie.gif) thì override.
+     */
+    public void killByCherryBomb() {
+        // mặc định: chết instant giống mower
+        killByMower();
+    }
+
+    /**
+     * API public cho LawnMower / game logic gọi.
+     * Mặc định gọi instantKillByMower().
+     */
+    public void killByMower() {
+        instantKillByMower();
+    }
+
     // ====== CÁC HÀM MỚI CHO LAWNMOWER ======
 
     // 1) cho LawnMower hỏi xem con này đã chết chưa
@@ -118,13 +158,12 @@ public class Zombies extends Actor {
         health = 0;
         speed = 0f; // đứng yên
 
-        // nếu muốn, có thể trừ số lượng zombie
         if (zombieCount > 0) {
             zombieCount--;
         }
 
-        // animation chết cụ thể thì xử lý ở subclass (NormalZombie, ConeheadZombie...)
-        // ví dụ: đổi state sang DIE, chơi BurntZombie.gif, v.v.
+        // animation chết cụ thể thì xử lý ở subclass
+        // (NormalZombie, ConeheadZombie, BucketheadZombie...)
     }
 
     // ----- DISPOSE -----
