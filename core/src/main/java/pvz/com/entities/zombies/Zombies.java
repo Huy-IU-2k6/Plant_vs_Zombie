@@ -1,4 +1,4 @@
-package pvz.com.entities.zombies;
+package pvz.com.entities.Zombies;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;

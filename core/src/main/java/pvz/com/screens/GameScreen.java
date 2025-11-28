@@ -123,7 +123,7 @@ public class GameScreen implements Screen, IGameSpawner {
 
         // ===== ECS init =====
         renderSystem = new RenderSystem(batch);
-        sunSystem = new SunProductionSystem(this);
+        sunSystem = new SunProductionSystem(this, entities);
         attackSystem = new PlantAttackSystem(this);
         movementSystem = new MovementSystem();
         this.projectileCollisionSystem = new ProjectileCollisionSystem(entities, zombieWaveController);
@@ -215,7 +215,7 @@ public class GameScreen implements Screen, IGameSpawner {
         // --- ECS (plants, projectiles, sun system, attack system) ---
         if (state == State.PLAYING) {
             // update hệ thống logic
-            sunSystem.update(plants, delta); // sunflower sinh sun
+            sunSystem.update(delta); // sunflower sinh sun
             attackSystem.update(plants, delta); // plant bắn đạn (spawn PeaProjectile)
 
             // cho entity có MovementComponent di chuyển (đạn, zombie ECS nếu có)
