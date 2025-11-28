@@ -2,7 +2,6 @@ package pvz.com.managers;
 
 /**
  * Cấu hình grid (lawn) dùng chung cho Plants & Zombies.
- * Tất cả logic quy đổi row/col <-> worldX/worldY nên dồn hết vào đây.
  */
 public class GridConfig {
 
@@ -10,15 +9,15 @@ public class GridConfig {
     public static final int ROWS = 5;
     public static final int COLS = 9;
 
-    // Kích thước 1 ô (theo world units, tùy theo ông scale stage thế nào)
+    // Kích thước 1 ô
     public static final float CELL_WIDTH = 80f;
     public static final float CELL_HEIGHT = 100f;
 
     // Góc trái dưới của ô (row=0, col=0) trên world
-    // 2 giá trị này ông chỉnh lại cho khớp với background hiện tại.
     public static final float START_X = 200f;
     public static final float START_Y = 60f;
 
+    // ====== CENTER ======
     /** Tâm ô theo col */
     public static float getCellCenterX(int col) {
         return START_X + col * CELL_WIDTH + CELL_WIDTH / 2f;
@@ -27,6 +26,17 @@ public class GridConfig {
     /** Tâm ô theo row */
     public static float getCellCenterY(int row) {
         return START_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2f;
+    }
+
+    // ====== ORIGIN (GÓC DƯỚI-TRÁI) ======
+    /** Góc trái dưới của ô theo col (dùng cho Entity, Actor dùng x,y là origin) */
+    public static float getCellOriginX(int col) {
+        return START_X + col * CELL_WIDTH;
+    }
+
+    /** Góc trái dưới của ô theo row */
+    public static float getCellOriginY(int row) {
+        return START_Y + row * CELL_HEIGHT;
     }
 
     /** Lấy col từ tọa độ worldX */
@@ -44,16 +54,11 @@ public class GridConfig {
         return row >= 0 && row < ROWS && col >= 0 && col < COLS;
     }
 
-    /**
-     * Trả về X để đặt Actor sao cho đứng giữa ô (theo col) với width đã biết.
-     */
+    // Nếu sau này cần canh giữa một Actor có width/height đã biết:
     public static float getActorXForCell(int col, float actorWidth) {
         return getCellCenterX(col) - actorWidth / 2f;
     }
 
-    /**
-     * Trả về Y để đặt Actor sao cho đứng giữa ô (theo row) với height đã biết.
-     */
     public static float getActorYForCell(int row, float actorHeight) {
         return getCellCenterY(row) - actorHeight / 2f;
     }
