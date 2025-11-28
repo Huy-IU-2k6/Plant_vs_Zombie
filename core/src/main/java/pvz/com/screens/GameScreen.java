@@ -123,6 +123,7 @@ public class GameScreen implements Screen, IGameSpawner {
 
         // ===== ECS init =====
         renderSystem = new RenderSystem(batch);
+     
         attackSystem = new PlantAttackSystem(this);
         movementSystem = new MovementSystem();
         this.projectileCollisionSystem = new ProjectileCollisionSystem(entities, zombieWaveController);
