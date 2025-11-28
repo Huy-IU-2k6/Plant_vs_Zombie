@@ -2,31 +2,40 @@ package pvz.com.entities.plants.shooters;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
-// Giả sử bạn sẽ tạo class PeaProjectile cho viên đạn
+// Đảm bảo bạn sẽ tạo class này ở bước sau
 import pvz.com.entities.projectiles.PeaProjectile;
+import pvz.com.managers.GridConfig;
 
 public class Peashooter extends Plant {
 
-    public Peashooter(float x, float y) {
+    // Thêm col, row vào constructor
+    public Peashooter(float x, float y, int col, int row) {
         // 1. Setup khung sườn: Vị trí + Kích thước (80x80)
         super(x, y, 80, 80);
 
-        // 2. Setup Hình ảnh
+        // 2. Setup Hình ảnh & Trạng thái
         this.addComponent(new SpriteComponent("assets/images/Plants/peashooterani.gif"));
+        this.addComponent(new StateComponent(EntityState.IDLE)); // Mặc định đứng yên
 
         // 3. Setup Máu (100 HP)
         this.addComponent(new HealthComponent(100));
 
-        // 4. Setup Tấn công
-        // Lưu ý: CooldownComponent đã nằm TRONG PlantAttackComponent rồi, không cần add lẻ bên ngoài.
-        this.addComponent(new PlantAttackComponent(
-            20,                     // Damage (Sát thương)
-            300f,                   // Range (Tầm bắn)
-            PeaProjectile.class,    // Loại đạn (Bắn ra viên đạn, không phải bắn ra cái cây)
-            PlantDamageType.FIRE,   // Loại damage (Bạn để FIRE cũng được, hoặc sửa thành NORMAL)
-            1.5f                    // Tốc độ bắn (Cooldown)
-        ));
-    }
+        // 4. Các Component định danh (QUAN TRỌNG CHO LOGIC BẮN)
+        
+        // Phe Plant (Để Zombie biết mà ăn)
+        this.addComponent(new TeamComponent(Team.PLANT));
+        
+        // Vị trí làn (Để súng biết làn này có Zombie không mà bắn)
+        this.addComponent(new GridPositionComponent(col, row));
 
-    // Đã XÓA hết các hàm getBaseHealth, getCooldownTime... vì không cần thiết nữa.
+        // 5. Setup Tấn công
+        this.addComponent(new PlantAttackComponent(
+            20,                     // Damage
+            900f,                   // Range: Thường là chiều ngang màn hình (Game PvZ bắn vô tận)
+            PeaProjectile.class,    // Class đạn sẽ sinh ra
+            PlantDamageType.NORMAL, // Loại đạn (Đã sửa thành NORMAL)
+            1.5f                    // Cooldown: 1.5 giây bắn 1 viên
+        ));
+        this.addComponent(new TeamComponent(Team.PLANT));
+    }
 }

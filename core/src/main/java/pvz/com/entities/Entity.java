@@ -1,31 +1,41 @@
 package pvz.com.entities;
 
 import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 public class Entity {
-    // Một cái Map để lưu trữ tất cả component.
-    // Key: Tên class (ví dụ: HealthComponent.class)
-    // Value: Bản thân object component đó
-    private Map<Class<?>, Object> components;
+    // ID duy nhất cho mỗi Entity (để debug hoặc xử lý logic mạng sau này)
+    public String id;
+    
+    // Map lưu trữ components: Key là Class, Value là Object component
+    private HashMap<Class<?>, Object> components;
+    
+    // Cờ đánh dấu để System xóa entity này khỏi game (ví dụ khi chết)
+    public boolean markedForRemoval = false;
 
     public Entity() {
-        components = new HashMap<>();
+        this.id = UUID.randomUUID().toString();
+        this.components = new HashMap<>();
     }
 
-    // 1. Hàm thêm Component vào túi
+    // Thêm một component vào Entity
     public <T> void addComponent(T component) {
         components.put(component.getClass(), component);
     }
 
-    // 2. Hàm lấy Component ra để dùng
-    // Cú pháp <T> T giúp bạn không cần ép kiểu thủ công (casting)
+    // Lấy một component ra để sử dụng
+    // Ví dụ: position = entity.getComponent(PositionComponent.class);
     public <T> T getComponent(Class<T> componentClass) {
         return componentClass.cast(components.get(componentClass));
     }
     
-    // 3. Hàm kiểm tra xem có Component đó không (Optional)
+    // Kiểm tra xem Entity có component này không
     public boolean hasComponent(Class<?> componentClass) {
         return components.containsKey(componentClass);
+    }
+    
+    // Xóa component (ít dùng nhưng cần thiết)
+    public void removeComponent(Class<?> componentClass) {
+        components.remove(componentClass);
     }
 }

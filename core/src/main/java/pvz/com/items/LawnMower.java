@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.Zombies.NormalZombie;
+import pvz.com.entities.Zombies.NormalZombie;
 
 public class LawnMower {
 

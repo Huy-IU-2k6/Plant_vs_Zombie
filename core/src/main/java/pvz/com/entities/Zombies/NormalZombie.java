@@ -1,4 +1,4 @@
-package pvz.com.Zombies;
+package pvz.com.entities.Zombies;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -19,7 +19,9 @@ public class NormalZombie extends Zombies {
     private static final float EAT_FRAME_TIME = 0.25f;
 
     // Chiều cao zombie mong muốn trong world (vừa 1 ô cỏ ~ 100)
+
     private static final float DESIRED_HEIGHT = 120f;
+
 
     // Spritesheets
     private final Texture walkSheet;
@@ -139,4 +141,7 @@ public class NormalZombie extends Zombies {
         dyingSheet.dispose();
         eatSheet.dispose();
     }
+
+    
+
 }

@@ -8,4 +8,5 @@ public class SizeComponent {
         this.width = width;
         this.height = height;
     }
+
 }
