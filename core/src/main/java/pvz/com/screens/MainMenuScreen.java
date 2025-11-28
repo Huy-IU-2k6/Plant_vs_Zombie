@@ -1,24 +1,26 @@
 package pvz.com.screens;
 
-import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 
-import pvz.com.managers.FontManager;
 import pvz.com.managers.BackgroundManager;
+import pvz.com.managers.FontManager;
+import pvz.com.managers.SoundManager; // ★ NEW
 
 public class MainMenuScreen implements Screen {
 
@@ -81,6 +83,10 @@ public class MainMenuScreen implements Screen {
         startButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                // phát sound click trước
+                SoundManager.i().playSound("menu_click");
+
+                // rồi chuyển màn
                 game.setScreen(new GameScreen(game));
             }
         });
@@ -89,6 +95,9 @@ public class MainMenuScreen implements Screen {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
+
+        // ★ NEW: bật nhạc nền menu, loop
+        SoundManager.i().playMusic("menu", true);
     }
 
     @Override
@@ -124,6 +133,7 @@ public class MainMenuScreen implements Screen {
             boardTex.dispose();
             boardTex = null;
         }
+        // Không dispose SoundManager ở đây, để Game chính quản lý.
     }
 
     @Override
