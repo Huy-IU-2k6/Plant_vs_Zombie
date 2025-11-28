@@ -2,12 +2,13 @@ package pvz.com.entities.plants.producers;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
+import pvz.com.managers.GridConfig;
 
 public class SunFlower extends Plant {
 
     public SunFlower(float x, float y) {
-        // 1. Setup phần khung cơ bản (Vị trí, kích thước 80x80)
-        super(x, y, 80, 80);
+        // 1. Setup phần khung cơ bản (Vị trí, kích thước bằng đúng 1 ô: 80 x 100)
+        super(x, y, GridConfig.CELL_WIDTH, GridConfig.CELL_HEIGHT);
 
         // 2. Setup các Component ĐẶC TRƯNG (Data composition)
 

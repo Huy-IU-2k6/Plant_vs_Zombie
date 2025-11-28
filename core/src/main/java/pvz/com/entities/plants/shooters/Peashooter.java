@@ -2,31 +2,29 @@ package pvz.com.entities.plants.shooters;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
-// Giả sử bạn sẽ tạo class PeaProjectile cho viên đạn
 import pvz.com.entities.projectiles.PeaProjectile;
+import pvz.com.managers.GridConfig;
 
 public class Peashooter extends Plant {
 
     public Peashooter(float x, float y) {
-        // 1. Setup khung sườn: Vị trí + Kích thước (80x80)
-        super(x, y, 80, 80);
+        // 1. Setup khung sườn: Vị trí + Kích thước bằng đúng 1 ô (80 x 100)
+        super(x, y, GridConfig.CELL_WIDTH, GridConfig.CELL_HEIGHT);
 
-        // 2. Setup Hình ảnh
+        // 2. Hình ảnh
         this.addComponent(new SpriteComponent("assets/images/Plants/peashooterani.gif"));
 
-        // 3. Setup Máu (100 HP)
+        // 3. Máu (100 HP)
         this.addComponent(new HealthComponent(100));
 
-        // 4. Setup Tấn công
-        // Lưu ý: CooldownComponent đã nằm TRONG PlantAttackComponent rồi, không cần add lẻ bên ngoài.
+        // 4. Tấn công
+        // CooldownComponent đã nằm TRONG PlantAttackComponent, không cần add riêng.
         this.addComponent(new PlantAttackComponent(
-            20,                     // Damage (Sát thương)
-            300f,                   // Range (Tầm bắn)
-            PeaProjectile.class,    // Loại đạn (Bắn ra viên đạn, không phải bắn ra cái cây)
-            PlantDamageType.FIRE,   // Loại damage (Bạn để FIRE cũng được, hoặc sửa thành NORMAL)
-            1.5f                    // Tốc độ bắn (Cooldown)
+                20, // Damage
+                300f, // Range
+                PeaProjectile.class, // Loại đạn
+                PlantDamageType.FIRE, // Type damage (NORMAL/FIRE tùy ông định nghĩa)
+                1.5f // Cooldown bắn
         ));
     }
-
-    // Đã XÓA hết các hàm getBaseHealth, getCooldownTime... vì không cần thiết nữa.
 }

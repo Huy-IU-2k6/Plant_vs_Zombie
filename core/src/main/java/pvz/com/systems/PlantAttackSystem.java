@@ -20,20 +20,20 @@ public class PlantAttackSystem {
             if (attacker != null && pos != null) {
                 attacker.cooldown.timer += deltaTime;
 
-                // Trong thực tế, bạn nên thêm logic check: "Có Zombie ở cùng hàng không?" tại đây
+                // Trong thực tế, bạn nên thêm logic check: "Có Zombie ở cùng hàng không?" tại
+                // đây
                 // if (isZombieInLane(plant, attacker.range)) { ... }
 
                 if (attacker.cooldown.timer >= attacker.cooldown.cooldownTime) {
                     attacker.cooldown.timer = 0;
-                    
+
                     // Bắn đạn dựa trên thông số trong Component
                     spawner.spawnProjectile(
-                        pos.x + 20, // Offset để đạn bay ra từ miệng cây
-                        pos.y + 20, 
-                        attacker.damage,
-                        attacker.damageType,
-                        attacker.projectileType
-                    );
+                            pos.x + 20, // Offset để đạn bay ra từ miệng cây
+                            pos.y + 20,
+                            attacker.damage,
+                            attacker.damageType,
+                            attacker.projectileType);
                 }
             }
         }
