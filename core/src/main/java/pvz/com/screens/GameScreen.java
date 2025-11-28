@@ -89,7 +89,7 @@ public class GameScreen implements Screen, IGameSpawner {
     private final List<Plant> plants = new ArrayList<>();
 
     private final RenderSystem renderSystem = new RenderSystem(new SpriteBatch());
-    private final SunProductionSystem sunSystem = new SunProductionSystem(this);
+
     private final PlantAttackSystem attackSystem = new PlantAttackSystem(this);
 
     // ===== Zombie spawn control =====

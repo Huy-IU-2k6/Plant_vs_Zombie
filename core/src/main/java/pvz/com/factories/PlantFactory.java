@@ -5,6 +5,7 @@ import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.defenders.Wallnut;
 import pvz.com.entities.plants.producers.SunFlower;
 import pvz.com.entities.plants.shooters.Peashooter;
+import pvz.com.entities.plants.bombs.PotatoMine;
 
 // Bạn có thể cần enum này để phương thức tổng quát hoạt động (xem bên dưới)
 import pvz.com.entities.plants.PlantType; 
@@ -42,6 +43,8 @@ public class PlantFactory {
                 return new Wallnut(x, y, col, row);
             case CHERRY_BOMB:
                 return new CherryBomb(x, y, col, row);
+            case POTATO_MINE:
+                return new PotatoMine(x, y, col, row);
             default:
                 return null; // Hoặc throw exception
         }

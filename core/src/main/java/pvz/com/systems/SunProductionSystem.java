@@ -1,32 +1,46 @@
 package pvz.com.systems;
 
-import pvz.com.entities.plants.Plant; // Giả sử Plant là class cha chứa các component
+import pvz.com.entities.Entity;
+import pvz.com.entities.components.PositionComponent; // Import thêm cái này
 import pvz.com.entities.components.SunProducerComponent;
-import pvz.com.entities.components.PositionComponent;
 import java.util.List;
 
 public class SunProductionSystem {
     private IGameSpawner spawner;
+    private List<Entity> entities; 
 
-    public SunProductionSystem(IGameSpawner spawner) {
+    public SunProductionSystem(IGameSpawner spawner, List<Entity> entities) {
         this.spawner = spawner;
+        this.entities = entities;
     }
 
-    public void update(List<Plant> plants, float deltaTime) {
-        for (Plant plant : plants) {
-            // Kiểm tra xem cây này có khả năng sinh Sun không
-            SunProducerComponent producer = plant.getComponent(SunProducerComponent.class);
-            PositionComponent pos = plant.getComponent(PositionComponent.class);
-
-            if (producer != null && pos != null) {
-                // Logic tính thời gian
-                producer.cooldown.timer += deltaTime;
+    public void update(float deltaTime) {
+        for (Entity entity : entities) {
+            // Kiểm tra xem entity có phải là máy tạo Sun không
+            if (entity.hasComponent(SunProducerComponent.class)) {
+                SunProducerComponent sunProd = entity.getComponent(SunProducerComponent.class);
                 
-                if (producer.cooldown.timer >= producer.cooldown.cooldownTime) {
-                    producer.cooldown.timer = 0; // Reset
-                    
-                    // Gọi qua Interface (DIP)
-                    spawner.spawnSun(pos.x, pos.y, producer.sunAmount);
+                // Cộng dồn thời gian
+                sunProd.cooldown.timer += deltaTime;
+                
+                // Nếu đủ thời gian cooldown -> Đẻ Sun
+                if (sunProd.cooldown.timer >= sunProd.cooldown.cooldownTime) {
+                    sunProd.cooldown.timer = 0;
+
+                    // --- LOGIC MỚI: LẤY VỊ TRÍ THỰC TẾ ---
+                    float spawnX = 0;
+                    float spawnY = 0;
+
+                    // Kiểm tra xem cây này có vị trí không (chắc chắn là có, nhưng check cho an toàn)
+                    if (entity.hasComponent(PositionComponent.class)) {
+                        PositionComponent pos = entity.getComponent(PositionComponent.class);
+                        // Cộng thêm một chút offset (ví dụ +0, +20) để Sun hiện ra ở giữa hoặc trên đầu cây
+                        spawnX = pos.x + 10f; 
+                        spawnY = pos.y + 10f; 
+                    }
+
+                    // Gọi Spawner tạo Sun tại vị trí vừa lấy được
+                    spawner.spawnSun(spawnX, spawnY, sunProd.sunAmount); 
                 }
             }
         }

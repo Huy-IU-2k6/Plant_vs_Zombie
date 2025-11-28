@@ -5,5 +5,6 @@ public enum PlantType {
     PEASHOOTER,
     WALLNUT,
     CHERRY_BOMB,
+    POTATO_MINE,
     // Thêm các cây khác ở đây sau này
 }
