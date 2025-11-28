@@ -13,8 +13,8 @@ public class MovementSystem {
             MovementComponent mov = e.getComponent(MovementComponent.class);
 
             if (pos != null && mov != null) {
-                pos.x += mov.vx * deltaTime;
-                pos.y += mov.vy * deltaTime;
+                pos.x += mov.velocity.x * deltaTime;
+                pos.y += mov.velocity.y * deltaTime;
             }
         }
     }

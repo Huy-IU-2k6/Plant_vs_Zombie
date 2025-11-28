@@ -11,8 +11,9 @@ public class CherryBomb extends Plant {
 
         // 2. Hình ảnh
         this.addComponent(new SpriteComponent("assets/images/Plants/cherrybomb.gif"));
-        
-        // 3. Trạng thái (Bắt đầu là IDLE, hệ thống sẽ chuyển sang EXPLODING khi hết giờ)
+
+        // 3. Trạng thái (Bắt đầu là IDLE, hệ thống sẽ chuyển sang EXPLODING khi hết
+        // giờ)
         this.addComponent(new StateComponent(EntityState.IDLE));
 
         // 4. Máu (Vẫn cần máu để Zombie có thể ăn nó trong lúc nó đang chờ nổ)

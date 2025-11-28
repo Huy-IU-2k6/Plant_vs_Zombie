@@ -8,34 +8,44 @@ import pvz.com.managers.GridConfig;
 
 public class Peashooter extends Plant {
 
-    // Thêm col, row vào constructor
+    private static final float SCALE_X = 0.7f; // rộng 70% ô
+    private static final float SCALE_Y = 0.8f; // cao 80% ô
+
+    // Constructor CHÍNH: có col, row để chơi với grid
     public Peashooter(float x, float y, int col, int row) {
-        // 1. Setup khung sườn: Vị trí + Kích thước (80x80)
-        super(x, y, 80, 80);
+        super(
+                x,
+                y,
+                GridConfig.CELL_WIDTH * SCALE_X,
+                GridConfig.CELL_HEIGHT * SCALE_Y);
 
-        // 2. Setup Hình ảnh & Trạng thái
+        // Hình ảnh
         this.addComponent(new SpriteComponent("assets/images/Plants/peashooterani.gif"));
-        this.addComponent(new StateComponent(EntityState.IDLE)); // Mặc định đứng yên
 
-        // 3. Setup Máu (100 HP)
+        // Trạng thái mặc định
+        this.addComponent(new StateComponent(EntityState.IDLE));
+
+        // Máu
         this.addComponent(new HealthComponent(100));
 
-        // 4. Các Component định danh (QUAN TRỌNG CHO LOGIC BẮN)
-        
-        // Phe Plant (Để Zombie biết mà ăn)
+        // Phe
         this.addComponent(new TeamComponent(Team.PLANT));
-        
-        // Vị trí làn (Để súng biết làn này có Zombie không mà bắn)
+
+        // Vị trí trên lưới
         this.addComponent(new GridPositionComponent(col, row));
 
-        // 5. Setup Tấn công
+        // Tấn công
         this.addComponent(new PlantAttackComponent(
-            20,                     // Damage
-            900f,                   // Range: Thường là chiều ngang màn hình (Game PvZ bắn vô tận)
-            PeaProjectile.class,    // Class đạn sẽ sinh ra
-            PlantDamageType.NORMAL, // Loại đạn (Đã sửa thành NORMAL)
-            1.5f                    // Cooldown: 1.5 giây bắn 1 viên
+                20, // damage
+                900f, // range: gần như hết lane
+                PeaProjectile.class, // loại đạn
+                PlantDamageType.NORMAL, // Peashooter thường
+                1.5f // cooldown
         ));
-        this.addComponent(new TeamComponent(Team.PLANT));
+    }
+
+    // OPTIONAL: để không vỡ code cũ nếu còn chỗ gọi Peashooter(x, y)
+    public Peashooter(float x, float y) {
+        this(x, y, -1, -1);
     }
 }
