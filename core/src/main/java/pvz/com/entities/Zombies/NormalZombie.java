@@ -19,7 +19,7 @@ public class NormalZombie extends Zombies {
     private static final float EAT_FRAME_TIME = 0.25f;
 
     // Chiều cao zombie mong muốn trong world (vừa 1 ô cỏ ~ 100)
-    private static final float DESIRED_HEIGHT = 90f;
+    private static final float DESIRED_HEIGHT = 120f;
 
     // Spritesheets
     private final Texture walkSheet;
