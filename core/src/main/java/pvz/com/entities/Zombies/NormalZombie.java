@@ -46,9 +46,12 @@ public class NormalZombie extends Zombies {
         dyingSheet = new Texture(Gdx.files.internal("assets/images/Zombies/ZombieDie.gif"));
         eatSheet = new Texture(Gdx.files.internal("assets/images/Zombies/NormalZombieEat.gif"));
 
-        walkAnimation = GifManager.createAnim(walkSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
-        dyingAnimation = GifManager.createAnim(dyingSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
-        eatAnimation = GifManager.createAnim(eatSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
+        walkAnimation = GifManager.createAnim(
+                walkSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
+        dyingAnimation = GifManager.createAnim(
+                dyingSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
+        eatAnimation = GifManager.createAnim(
+                eatSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
         // ===== Set size với scale thay vì size gốc =====
         TextureRegion firstFrame = walkAnimation.getKeyFrame(0f);
@@ -67,7 +70,7 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void act(float delta) {
-        // Nếu đang trong animation chết → không dùng logic Zombies.act
+        // Nếu đang trong animation chết → chỉ chạy anim, không gọi super.act
         if (isDying) {
             stateTime += delta;
 
@@ -82,7 +85,7 @@ public class NormalZombie extends Zombies {
             return;
         }
 
-        // Cập nhật trạng thái ăn
+        // Cập nhật trạng thái ăn (sau này thay isTouchingPlant bằng va chạm thật)
         boolean touchingPlant = isTouchingPlant();
         if (touchingPlant != isEating) {
             isEating = touchingPlant;
@@ -92,12 +95,16 @@ public class NormalZombie extends Zombies {
         // Logic chung: di chuyển, sound, gameOver, ...
         super.act(delta);
 
-        // cập nhật thời gian animation
+        // Cập nhật thời gian animation
         stateTime += delta;
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
+        // Nếu đã chết hẳn (animation kết thúc và đã set dead = true) thì khỏi vẽ
+        if (dead)
+            return;
+
         Animation<TextureRegion> currentAnim;
 
         if (isDying) {
@@ -109,9 +116,20 @@ public class NormalZombie extends Zombies {
         }
 
         TextureRegion frame = currentAnim.getKeyFrame(stateTime);
-
-        // Vẽ theo kích thước actor (đã scale)
         batch.draw(frame, getX(), getY(), getWidth(), getHeight());
+    }
+
+    // ===== DEATH LOGIC =====
+
+    /** Bắt đầu trạng thái chết (dùng chung cho đạn, mower, cherry bomb). */
+    private void startDeath() {
+        if (isDying || dead)
+            return;
+
+        isDying = true;
+        stateTime = 0f;
+        health = 0;
+        speed = 0f;
     }
 
     @Override
@@ -121,9 +139,20 @@ public class NormalZombie extends Zombies {
 
         health -= damage;
         if (health <= 0) {
-            isDying = true;
-            stateTime = 0f;
+            startDeath();
         }
+    }
+
+    @Override
+    public void killByMower() {
+        // Mower cán cũng cho chơi animation chết
+        startDeath();
+    }
+
+    @Override
+    public void killByCherryBomb() {
+        // Sau này nếu có Burnt_Zombie.gif thì có thể đổi animation ở đây
+        startDeath();
     }
 
     @Override
@@ -141,7 +170,4 @@ public class NormalZombie extends Zombies {
         dyingSheet.dispose();
         eatSheet.dispose();
     }
-
-    
-
 }
