@@ -91,45 +91,4 @@ public class PlantGridController extends InputAdapter {
         // trả false để HUD vẫn có thể xử lý tiếp nếu cần
         return false;
     }
-
-    /**
-     * Demo: đặt sẵn vài cây lên grid cho đúng hàng/cột.
-     */
-    public void initTestPlantsOnGrid() {
-        int[][] demoCells = {
-                { 0, 1 },
-                { 1, 1 },
-                { 2, 1 }
-        };
-
-        // Sunflower
-        {
-            int row = demoCells[0][0];
-            int col = demoCells[0][1];
-            float x = GridConfig.getCellCenterX(col);
-            float y = GridConfig.getCellCenterY(row);
-            Plant p = PlantFactory.createSunflower(x, y);
-            spawnPlant(p, row, col);
-        }
-
-        // Peashooter
-        {
-            int row = demoCells[1][0];
-            int col = demoCells[1][1];
-            float x = GridConfig.getCellCenterX(col);
-            float y = GridConfig.getCellCenterY(row);
-            Plant p = PlantFactory.createPeashooter(x, y);
-            spawnPlant(p, row, col);
-        }
-
-        // Wallnut
-        {
-            int row = demoCells[2][0];
-            int col = demoCells[2][1];
-            float x = GridConfig.getCellCenterX(col);
-            float y = GridConfig.getCellCenterY(row);
-            Plant p = PlantFactory.createWallnut(x, y);
-            spawnPlant(p, row, col);
-        }
-    }
 }

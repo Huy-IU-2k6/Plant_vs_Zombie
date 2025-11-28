@@ -3,7 +3,7 @@ package pvz.com.logic;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.Zombies.NormalZombie;
+import pvz.com.entities.zombies.NormalZombie;
 import pvz.com.items.LawnMower;
 import pvz.com.managers.GridConfig;
 

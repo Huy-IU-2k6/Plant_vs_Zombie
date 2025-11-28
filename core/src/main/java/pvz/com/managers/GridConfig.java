@@ -10,11 +10,11 @@ public class GridConfig {
     public static final int COLS = 9;
 
     // Kích thước 1 ô
-    public static final float CELL_WIDTH = 80f;
+    public static final float CELL_WIDTH = 62f;
     public static final float CELL_HEIGHT = 100f;
 
     // Góc trái dưới của ô (row=0, col=0) trên world
-    public static final float START_X = 200f;
+    public static final float START_X = 255f;
     public static final float START_Y = 60f;
 
     // ====== CENTER ======

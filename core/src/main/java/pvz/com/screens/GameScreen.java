@@ -29,6 +29,8 @@ import pvz.com.systems.IGameSpawner;
 import pvz.com.systems.RenderSystem;
 import pvz.com.systems.SunProductionSystem;
 import pvz.com.systems.PlantAttackSystem;
+import pvz.com.systems.MovementSystem;
+import pvz.com.systems.ProjectileCollisionSystem;
 
 // ===== Logic controllers =====
 import pvz.com.logic.HudController;
@@ -69,6 +71,8 @@ public class GameScreen implements Screen, IGameSpawner {
     private final RenderSystem renderSystem;
     private final SunProductionSystem sunSystem;
     private final PlantAttackSystem attackSystem;
+    private final MovementSystem movementSystem;
+    private final ProjectileCollisionSystem projectileCollisionSystem;
 
     // ===== Controllers =====
     private final HudController hudController;
@@ -101,8 +105,6 @@ public class GameScreen implements Screen, IGameSpawner {
 
         plantGridController = new PlantGridController(entities, plants, camera);
         plantGridController.setEnabled(false);
-        // demo: đặt sẵn vài cây
-        plantGridController.initTestPlantsOnGrid();
 
         lawnMowerController = new LawnMowerController(ZOMBIE_LANE_COUNT, WORLD_WIDTH, 180f);
         zombieWaveController = new ZombieWaveController(
@@ -123,6 +125,8 @@ public class GameScreen implements Screen, IGameSpawner {
         renderSystem = new RenderSystem(batch);
         sunSystem = new SunProductionSystem(this);
         attackSystem = new PlantAttackSystem(this);
+        movementSystem = new MovementSystem();
+        this.projectileCollisionSystem = new ProjectileCollisionSystem(entities, zombieWaveController);
     }
 
     // ================== HUD interaction ==================
@@ -211,8 +215,14 @@ public class GameScreen implements Screen, IGameSpawner {
         // --- ECS (plants, projectiles, sun system, attack system) ---
         if (state == State.PLAYING) {
             // update hệ thống logic
-            sunSystem.update(plants, delta);
-            attackSystem.update(plants, delta);
+            sunSystem.update(plants, delta); // sunflower sinh sun
+            attackSystem.update(plants, delta); // plant bắn đạn (spawn PeaProjectile)
+
+            // cho entity có MovementComponent di chuyển (đạn, zombie ECS nếu có)
+            movementSystem.update(entities, delta); // đạn bay sang phải
+
+            // xử lý đạn đâm vào zombie (trừ máu + xóa đạn / zombie chết)
+            projectileCollisionSystem.update(delta);
 
             // render tất cả entity ECS (plant, đạn...)
             batch.setProjectionMatrix(camera.combined);
