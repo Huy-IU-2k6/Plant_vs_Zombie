@@ -1,5 +1,6 @@
 package pvz.com.factories;
 
+import pvz.com.entities.plants.bombs.CherryBomb;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.PlantType;
 

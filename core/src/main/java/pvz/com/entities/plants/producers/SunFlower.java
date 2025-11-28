@@ -21,6 +21,9 @@ public class SunFlower extends Plant {
 
         // Hình ảnh
         this.addComponent(new SpriteComponent("assets/images/Plants/sunflowerani.gif"));
+        
+        // Thêm State để sau này có thể chuyển trạng thái (VD: IDLE -> Sắp đẻ Sun -> IDLE)
+        this.addComponent(new StateComponent(EntityState.IDLE));
 
         // Trạng thái – để sau này làm nhiều state (idle, shine, v.v)
         this.addComponent(new StateComponent(EntityState.IDLE));

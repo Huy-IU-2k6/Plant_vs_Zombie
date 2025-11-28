@@ -20,6 +20,7 @@ public class Peashooter extends Plant {
 
         // Hình ảnh
         this.addComponent(new SpriteComponent("assets/images/Plants/peashooterani.gif"));
+        this.addComponent(new StateComponent(EntityState.IDLE)); // Mặc định đứng yên
 
         // Trạng thái mặc định
         this.addComponent(new StateComponent(EntityState.IDLE));

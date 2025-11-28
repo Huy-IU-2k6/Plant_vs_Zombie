@@ -4,7 +4,10 @@ import pvz.com.entities.Entity;
 import pvz.com.entities.components.*;
 
 public class PeaProjectile extends Entity {
-    public PeaProjectile(float x, float y, int damage) {
+
+    // startX, startY: Vị trí nòng súng của Peashooter
+    // damage: Sát thương viên đạn (lấy từ Peashooter truyền vào)
+    public PeaProjectile(float startX, float startY, int damage) {
         super();
 
         this.addComponent(new PositionComponent(x, y));
