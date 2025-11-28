@@ -10,38 +10,29 @@ import pvz.com.managers.GridConfig;
 public class LawnMowerController {
 
     private final Array<LawnMower> lawnMowers = new Array<>();
-
-    private final float worldWidth;
     private final int laneCount;
-
-    // cấu hình vị trí mower
+    private final float worldWidth;
     private final float mowerStartX;
-    private final float mowerYOffset;
 
-    public LawnMowerController(float worldWidth, int laneCount) {
-        this(worldWidth, laneCount, 180f, 50f);
-    }
-
-    public LawnMowerController(float worldWidth, int laneCount, float mowerStartX, float mowerYOffset) {
-        this.worldWidth = worldWidth;
+    public LawnMowerController(int laneCount, float worldWidth, float mowerStartX) {
         this.laneCount = laneCount;
+        this.worldWidth = worldWidth;
         this.mowerStartX = mowerStartX;
-        this.mowerYOffset = mowerYOffset;
     }
 
-    /** Tạo mower cho mỗi lane một lần, dùng GridConfig để canh Y. */
     public void createLawnMowers() {
         lawnMowers.clear();
 
         for (int row = 0; row < laneCount; row++) {
+            // Grid center Y của row hiện tại
             float laneCenterY = GridConfig.getCellCenterY(row);
-            float mowerY = laneCenterY - mowerYOffset;
+            // offset xuống 1 chút cho phù hợp sprite (giống logic cũ: -50f)
+            float mowerY = laneCenterY - 50f;
 
             lawnMowers.add(new LawnMower(mowerStartX, mowerY, worldWidth));
         }
     }
 
-    /** Update tất cả mower + xử lý khi dùng xong thì remove. */
     public void update(float delta, Array<NormalZombie> zombies) {
         for (int i = lawnMowers.size - 1; i >= 0; i--) {
             LawnMower mower = lawnMowers.get(i);
@@ -53,24 +44,18 @@ public class LawnMowerController {
         }
     }
 
-    /** Vẽ mower. */
     public void render(SpriteBatch batch) {
         for (LawnMower mower : lawnMowers) {
             mower.render(batch);
         }
     }
 
-    /** Giải phóng resource. */
     public void dispose() {
         for (LawnMower mower : lawnMowers) {
             if (!mower.isUsed()) {
                 mower.dispose();
             }
         }
-    }
-
-    /** Nếu sau này cần truy cập trực tiếp list mower. */
-    public Array<LawnMower> getLawnMowers() {
-        return lawnMowers;
+        lawnMowers.clear();
     }
 }

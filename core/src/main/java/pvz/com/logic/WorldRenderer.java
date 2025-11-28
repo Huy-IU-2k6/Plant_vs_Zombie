@@ -1,75 +1,50 @@
 package pvz.com.logic;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import pvz.com.Zombies.NormalZombie;
-import pvz.com.items.LawnMower;
-import pvz.com.items.SeedBank;
 import pvz.com.managers.BackgroundManager;
 
 public class WorldRenderer {
 
-    private final Viewport viewport;
     private final BackgroundManager backgroundManager;
-    private final Array<LawnMower> lawnMowers;
-    private final Array<NormalZombie> zombies;
-    private final SeedBank seedBank;
-    private final BitmapFont hudFont;
+    private final Viewport viewport;
+    private final LawnMowerController lawnMowerController;
+    private final ZombieWaveController zombieWaveController;
+    private final HudController hudController;
 
-    public WorldRenderer(Viewport viewport,
-            BackgroundManager backgroundManager,
-            Array<LawnMower> lawnMowers,
-            Array<NormalZombie> zombies,
-            SeedBank seedBank,
-            BitmapFont hudFont) {
-        this.viewport = viewport;
+    public WorldRenderer(BackgroundManager backgroundManager,
+            Viewport viewport,
+            LawnMowerController lawnMowerController,
+            ZombieWaveController zombieWaveController,
+            HudController hudController) {
         this.backgroundManager = backgroundManager;
-        this.lawnMowers = lawnMowers;
-        this.zombies = zombies;
-        this.seedBank = seedBank;
-        this.hudFont = hudFont;
+        this.viewport = viewport;
+        this.lawnMowerController = lawnMowerController;
+        this.zombieWaveController = zombieWaveController;
+        this.hudController = hudController;
     }
 
-    public void render(SpriteBatch batch,
-            boolean isCountdown,
-            boolean showSunHud,
-            int sunPoints) {
+    public void render(SpriteBatch batch, boolean isCountdown, boolean isPlaying) {
         float w = viewport.getWorldWidth();
         float h = viewport.getWorldHeight();
 
-        // Background
         if (isCountdown) {
             backgroundManager.renderCount(batch, w, h);
-        } else {
-            backgroundManager.renderMain(batch, w, h);
+            return;
         }
 
-        // Lawn mowers
-        for (LawnMower mower : lawnMowers) {
-            mower.render(batch);
-        }
+        backgroundManager.renderMain(batch, w, h);
 
-        // Zombies
-        for (NormalZombie z : zombies) {
-            z.draw(batch, 1f);
-        }
+        lawnMowerController.render(batch);
+        zombieWaveController.render(batch);
 
-        // Sun HUD
-        if (showSunHud) {
-            drawSunHud(batch, sunPoints);
+        if (isPlaying) {
+            hudController.drawSunHud(batch);
         }
     }
 
-    private void drawSunHud(SpriteBatch batch, int sunPoints) {
-        float sbX = seedBank.getX();
-        float sbY = seedBank.getY();
-
-        float textX = sbX + 55f;
-        float textY = sbY + 42f;
-
-        hudFont.draw(batch, String.valueOf(sunPoints), textX, textY);
+    public void dispose() {
+        backgroundManager.dispose();
     }
 }

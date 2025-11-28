@@ -31,24 +31,23 @@ public class HudController {
         this.hudStage = hudStage;
         this.sunPoints = initialSun;
 
-        this.hudFont = FontManager.getPvzFont();
-
-        // --- SeedBank ---
-        this.seedBank = new SeedBank();
+        // SeedBank
+        seedBank = new SeedBank();
         layoutSeedBank();
         seedBank.setVisible(false);
         hudStage.addActor(seedBank);
 
-        // --- Countdown ---
-        this.countdown = new CountdownActor(countdownDuration, hudFont);
+        // Font
+        hudFont = FontManager.getPvzFont();
+
+        // Countdown
+        countdown = new CountdownActor(countdownDuration, hudFont);
         countdown.setPosition(400f, 500f);
         hudStage.addActor(countdown);
 
-        // --- Plant cards ---
+        // Plant cards
         createPlantCards();
     }
-
-    // ============== SeedBank & plant cards ==============
 
     private void layoutSeedBank() {
         float hudH = hudStage.getViewport().getWorldHeight();
@@ -61,7 +60,6 @@ public class HudController {
         float trayH = originalH * scale;
 
         seedBank.setSize(trayW, trayH);
-
         seedBank.setPosition(
                 SEED_BANK_MARGIN_LEFT,
                 hudH - trayH - SEED_BANK_MARGIN_TOP);
@@ -75,29 +73,43 @@ public class HudController {
         }
     }
 
+    public void resize(int width, int height) {
+        hudStage.getViewport().update(width, height, true);
+        layoutSeedBank();
+    }
+
+    // ===== Countdown =====
+
+    public boolean isCountdownFinished() {
+        return countdown != null && countdown.isFinished();
+    }
+
+    public void onCountdownFinished() {
+        if (countdown != null) {
+            countdown.remove();
+            countdown = null;
+        }
+        unlockPlantCards();
+        seedBank.setVisible(true);
+    }
+
     private void unlockPlantCards() {
         for (PlantCard card : plantCards) {
             card.setLockedByGame(false);
         }
     }
 
-    // ============== Countdown flow ==============
+    // ===== Sun HUD =====
 
-    public boolean isCountdownFinished() {
-        return countdown != null && countdown.isFinished();
+    public void drawSunHud(SpriteBatch batch) {
+        float sbX = seedBank.getX();
+        float sbY = seedBank.getY();
+
+        float textX = sbX + 55f;
+        float textY = sbY + 42f;
+
+        hudFont.draw(batch, String.valueOf(sunPoints), textX, textY);
     }
-
-    /** Gọi khi countdown xong: ẩn countdown, mở SeedBank, unlock cards. */
-    public void onCountdownFinished() {
-        if (countdown != null) {
-            countdown.remove();
-            countdown = null;
-        }
-        seedBank.setVisible(true);
-        unlockPlantCards();
-    }
-
-    // ============== Sun HUD ==============
 
     public void addSun(int amount) {
         sunPoints += amount;
@@ -110,45 +122,19 @@ public class HudController {
         return true;
     }
 
-    public void drawSunHud(SpriteBatch batch) {
-        float sbX = seedBank.getX();
-        float sbY = seedBank.getY();
-
-        float textX = sbX + 55f;
-        float textY = sbY + 42f;
-
-        hudFont.draw(batch, String.valueOf(sunPoints), textX, textY);
+    public int getSunPoints() {
+        return sunPoints;
     }
 
-    /** Logic khi click card – GameScreen sẽ gọi delegate tới. */
-    public void onPlantCardClicked(PlantCard card) {
-        if (!card.canUse(sunPoints))
-            return;
-        if (!spendSun(card.type.cost))
-            return;
-
-        card.triggerUse();
-        // TODO: đặt mode kéo/đặt plant, việc này xử lý ở GameScreen
+    public SeedBank getSeedBank() {
+        return seedBank;
     }
 
-    // ============== Stage helper ==============
-
-    public Stage getStage() {
-        return hudStage;
-    }
-
-    public void resize(int width, int height) {
-        hudStage.getViewport().update(width, height, true);
-        layoutSeedBank();
-    }
-
-    public void actAndDraw(float delta) {
-        hudStage.act(delta);
-        hudStage.draw();
+    public Array<PlantCard> getPlantCards() {
+        return plantCards;
     }
 
     public void dispose() {
         seedBank.dispose();
-        // font do FontManager quản lý, không dispose ở đây
     }
 }

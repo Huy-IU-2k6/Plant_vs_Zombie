@@ -14,7 +14,7 @@ import pvz.com.managers.GridConfig;
 
 public class PlantGridController extends InputAdapter {
 
-    // Grid plants: [row][col] – để không cho đặt 2 cây trùng 1 ô
+    // Grid plants: [row][col]
     private final Plant[][] plantGrid;
 
     private final List<Entity> entities;
@@ -36,66 +36,28 @@ public class PlantGridController extends InputAdapter {
         this.enabled = enabled;
     }
 
-    /** Thêm 1 plant vào ECS world và trả về plant. */
-    private Plant spawnPlant(Plant plant) {
+    public Plant[][] getPlantGrid() {
+        return plantGrid;
+    }
+
+    private Plant spawnPlant(Plant plant, int row, int col) {
         if (plant == null)
             return null;
         entities.add(plant);
         plants.add(plant);
+        plantGrid[row][col] = plant;
         return plant;
-    }
-
-    /** Demo: đặt sẵn vài cây lên grid cho đúng hàng/cột. */
-    public void initDemoPlants() {
-        int[][] demoCells = {
-                { 0, 1 },
-                { 1, 1 },
-                { 2, 1 }
-        };
-
-        // Sunflower
-        {
-            int row = demoCells[0][0];
-            int col = demoCells[0][1];
-            float x = GridConfig.getCellCenterX(col);
-            float y = GridConfig.getCellCenterY(row);
-            Plant p = spawnPlant(PlantFactory.createSunflower(x, y));
-            plantGrid[row][col] = p;
-        }
-
-        // Peashooter
-        {
-            int row = demoCells[1][0];
-            int col = demoCells[1][1];
-            float x = GridConfig.getCellCenterX(col);
-            float y = GridConfig.getCellCenterY(row);
-            Plant p = spawnPlant(PlantFactory.createPeashooter(x, y));
-            plantGrid[row][col] = p;
-        }
-
-        // Wallnut
-        {
-            int row = demoCells[2][0];
-            int col = demoCells[2][1];
-            float x = GridConfig.getCellCenterX(col);
-            float y = GridConfig.getCellCenterY(row);
-            Plant p = spawnPlant(PlantFactory.createWallnut(x, y));
-            plantGrid[row][col] = p;
-        }
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        if (!enabled) {
+        if (!enabled)
             return false;
-        }
 
-        // Convert screen -> world
         Vector3 world = camera.unproject(new Vector3(screenX, screenY, 0));
         float worldX = world.x;
         float worldY = world.y;
 
-        // Chuyển worldX, worldY -> col, row theo GridConfig
         int col = GridConfig.worldToCol(worldX);
         int row = GridConfig.worldToRow(worldY);
 
@@ -110,8 +72,8 @@ public class PlantGridController extends InputAdapter {
         }
 
         // Tâm ô
-        float plantX = GridConfig.getCellCenterX(col);
-        float plantY = GridConfig.getCellCenterY(row);
+        float plantX = GridConfig.getCellOriginX(col);
+        float plantY = GridConfig.getCellOriginY(row);
 
         Plant plant = null;
 
@@ -122,12 +84,52 @@ public class PlantGridController extends InputAdapter {
         }
 
         if (plant != null) {
-            Plant spawned = spawnPlant(plant);
-            plantGrid[row][col] = spawned;
+            spawnPlant(plant, row, col);
             return true;
         }
 
-        // trả false để InputMultiplexer cho các processor khác xử lý tiếp nếu cần
+        // trả false để HUD vẫn có thể xử lý tiếp nếu cần
         return false;
+    }
+
+    /**
+     * Demo: đặt sẵn vài cây lên grid cho đúng hàng/cột.
+     */
+    public void initTestPlantsOnGrid() {
+        int[][] demoCells = {
+                { 0, 1 },
+                { 1, 1 },
+                { 2, 1 }
+        };
+
+        // Sunflower
+        {
+            int row = demoCells[0][0];
+            int col = demoCells[0][1];
+            float x = GridConfig.getCellCenterX(col);
+            float y = GridConfig.getCellCenterY(row);
+            Plant p = PlantFactory.createSunflower(x, y);
+            spawnPlant(p, row, col);
+        }
+
+        // Peashooter
+        {
+            int row = demoCells[1][0];
+            int col = demoCells[1][1];
+            float x = GridConfig.getCellCenterX(col);
+            float y = GridConfig.getCellCenterY(row);
+            Plant p = PlantFactory.createPeashooter(x, y);
+            spawnPlant(p, row, col);
+        }
+
+        // Wallnut
+        {
+            int row = demoCells[2][0];
+            int col = demoCells[2][1];
+            float x = GridConfig.getCellCenterX(col);
+            float y = GridConfig.getCellCenterY(row);
+            Plant p = PlantFactory.createWallnut(x, y);
+            spawnPlant(p, row, col);
+        }
     }
 }
