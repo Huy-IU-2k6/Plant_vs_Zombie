@@ -2,8 +2,11 @@ package pvz.com.entities.plants.defenders;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
+import pvz.com.managers.GridConfig;
 
 public class Wallnut extends Plant {
+    private static final float SCALE_X = 0.7f; // rộng 70% ô
+    private static final float SCALE_Y = 0.8f; // cao 80% ô
 
     // Nên truyền thêm gridCol, gridRow để xác định vị trí trên lưới
     public Wallnut(float x, float y, int gridCol, int gridRow) {

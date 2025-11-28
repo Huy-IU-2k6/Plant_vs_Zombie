@@ -2,34 +2,40 @@ package pvz.com.entities.plants.producers;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
+import pvz.com.managers.GridConfig;
 
 public class SunFlower extends Plant {
+    // Tỉ lệ kích thước so với ô đất (để chừa khoảng trống cho đẹp)
+    private static final float SCALE_X = 0.7f; 
+    private static final float SCALE_Y = 0.8f; 
 
-    // Thêm tham số col, row vào constructor để xác định vị trí lưới
+    // QUAN TRỌNG: Phải thêm int col, int row vào đây
     public SunFlower(float x, float y, int col, int row) {
-        // 1. Setup khung cơ bản (Vị trí thực, kích thước 80x80)
-        super(x, y, 80, 80);
+        // 1. Setup phần khung cơ bản
+        // Tính toán kích thước dựa trên GridConfig
+        super(
+            x + (GridConfig.CELL_WIDTH * (1 - SCALE_X) / 2), // Căn giữa theo X
+            y + (GridConfig.CELL_HEIGHT * (1 - SCALE_Y) / 2), // Căn giữa theo Y
+            GridConfig.CELL_WIDTH * SCALE_X,
+            GridConfig.CELL_HEIGHT * SCALE_Y
+        );
 
         // 2. Setup hình ảnh & Animation
-        // Lưu ý: SunFlower thường có animation đung đưa, nên dùng AnimationComponent sẽ đẹp hơn Sprite tĩnh về sau.
         this.addComponent(new SpriteComponent("assets/images/Plants/sunflowerani.gif"));
         
-        // Thêm State để sau này có thể chuyển trạng thái (VD: IDLE -> Sắp đẻ Sun -> IDLE)
+        // Trạng thái (IDLE -> PRODUCE -> IDLE)
         this.addComponent(new StateComponent(EntityState.IDLE));
 
         // 3. Chỉ số sinh tồn
-        this.addComponent(new HealthComponent(100)); // Máu giấy hơn Wallnut
+        this.addComponent(new HealthComponent(100));
 
-        // 4. Khả năng sinh Sun (DATA ONLY)
-        // 7 giây/lần, 25 sun.
+        // 4. Khả năng sinh Sun (7 giây/lần, 25 sun)
         this.addComponent(new SunProducerComponent(7.0f, 25));
 
-        // --- CÁC COMPONENT QUAN TRỌNG MỚI THÊM ---
-
-        // 5. Định danh phe (Để Zombie biết mà ăn)
+        // 5. Định danh phe
         this.addComponent(new TeamComponent(Team.PLANT));
 
-        // 6. Vị trí trên lưới (Để hệ thống quản lý ô đất biết ô này đã có cây)
+        // 6. Vị trí trên lưới (Đã có biến col, row từ tham số để truyền vào)
         this.addComponent(new GridPositionComponent(col, row));
     }
 }

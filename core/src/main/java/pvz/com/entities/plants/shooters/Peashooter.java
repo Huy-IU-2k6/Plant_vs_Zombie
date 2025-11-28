@@ -4,6 +4,7 @@ import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 // Đảm bảo bạn sẽ tạo class này ở bước sau
 import pvz.com.entities.projectiles.PeaProjectile;
+import pvz.com.managers.GridConfig;
 
 public class Peashooter extends Plant {
 
