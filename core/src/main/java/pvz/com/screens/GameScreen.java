@@ -29,6 +29,7 @@ import pvz.com.items.LawnMower;
 // ECS imports
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
+import pvz.com.entities.plants.PlantType;
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.factories.PlantFactory;
@@ -101,7 +102,13 @@ public class GameScreen implements Screen, IGameSpawner {
     private static final float MAX_SPAWN_INTERVAL = 4.0f;
 
     private final float[] laneYs = new float[ZOMBIE_LANE_COUNT];
-
+    // Cấu hình lưới (Grid Config) - Chỉnh số cho khớp với ảnh background của bạn
+    private static final float GRID_OFFSET_X = 40f; // Mép trái sân cỏ bắt đầu từ x = 40
+    private static final float GRID_OFFSET_Y = 100f; // Mép dưới sân cỏ bắt đầu từ y = 100
+    private static final float CELL_WIDTH = 80f;     // Chiều rộng 1 ô
+    private static final float CELL_HEIGHT = 100f;   // Chiều cao 1 ô (bằng khoảng cách giữa các làn)
+    private static final int GRID_COLS = 9;
+    private static final int GRID_ROWS = 5;
     public GameScreen(Game game) {
         this.game = game;
         this.batch = new SpriteBatch();
@@ -338,17 +345,48 @@ public class GameScreen implements Screen, IGameSpawner {
 
     // ================== Screen lifecycle ==================
 
+    // Đảm bảo bạn đã khai báo các hằng số này ở đầu class GameScreen
+    // private static final float GRID_OFFSET_X = 40f; 
+    // private static final float GRID_OFFSET_Y = 100f; 
+    // private static final float CELL_WIDTH = 80f;
+    // private static final float CELL_HEIGHT = 95f; // Hoặc 100f tùy khoảng cách làn của bạn
+    // private static final int GRID_COLS = 9;
+    // private static final int GRID_ROWS = 5;
+
     @Override
     public void show() {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                // 1. Chuyển đổi tọa độ màn hình sang tọa độ thế giới game
                 Vector3 world = camera.unproject(new Vector3(screenX, screenY, 0));
 
-                if (button == Input.Buttons.LEFT)
-                    spawnPlant(PlantFactory.createPeashooter(world.x, world.y));
-                else if (button == Input.Buttons.RIGHT)
-                    spawnPlant(PlantFactory.createSunflower(world.x, world.y));
+                // 2. Tính toán xem đang click vào Hàng (row) nào, Cột (col) nào
+                int col = (int) ((world.x - GRID_OFFSET_X) / CELL_WIDTH);
+                int row = (int) ((world.y - GRID_OFFSET_Y) / CELL_HEIGHT);
+
+                // 3. Kiểm tra xem click có nằm trong sân cỏ không (Nếu ra ngoài thì không trồng)
+                if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) {
+                    return false;
+                }
+
+                // 4. Tính toán tọa độ vẽ cây (để cây nằm chính giữa ô đất)
+                float plantX = GRID_OFFSET_X + col * CELL_WIDTH;
+                float plantY = GRID_OFFSET_Y + row * CELL_HEIGHT;
+
+                // 5. Gọi Factory để tạo cây (Dùng enum PlantType cho gọn)
+                if (button == Input.Buttons.LEFT) {
+                    // Chuột TRÁI -> Trồng Peashooter
+                    spawnPlant(PlantFactory.createPlant(PlantType.PEASHOOTER, plantX, plantY, col, row));
+                    
+                } else if (button == Input.Buttons.RIGHT) {
+                    // Chuột PHẢI -> Trồng Sunflower
+                    spawnPlant(PlantFactory.createPlant(PlantType.SUNFLOWER, plantX, plantY, col, row));
+                    
+                } else if (button == Input.Buttons.MIDDLE) {
+                    // Chuột GIỮA -> Trồng Cherry Bomb (Thử nghiệm nổ)
+                    spawnPlant(PlantFactory.createPlant(PlantType.CHERRY_BOMB, plantX, plantY, col, row));
+                }
 
                 return true;
             }
