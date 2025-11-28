@@ -78,9 +78,9 @@ public class PlantGridController extends InputAdapter {
         Plant plant = null;
 
         if (button == Input.Buttons.LEFT) {
-            plant = PlantFactory.createPeashooter(plantX, plantY);
+            plant = PlantFactory.createPeashooter(plantX, plantY, col, row);
         } else if (button == Input.Buttons.RIGHT) {
-            plant = PlantFactory.createSunflower(plantX, plantY);
+            plant = PlantFactory.createSunflower(plantX, plantY, col, row);
         }
 
         if (plant != null) {
