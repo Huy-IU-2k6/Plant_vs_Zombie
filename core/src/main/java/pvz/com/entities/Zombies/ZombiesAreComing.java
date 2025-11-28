@@ -1,8 +1,4 @@
-<<<<<<< HEAD:core/src/main/java/pvz/com/entities/Zombies/ZombiesAreComing.java
 package pvz.com.entities.Zombies;
-=======
-package pvz.com.Zombies;
->>>>>>> origin:core/src/main/java/pvz/com/Zombies/ZombiesAreComing.java
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
@@ -28,19 +24,11 @@ public class ZombiesAreComing extends Actor {
     public void act(float delta) {
         super.act(delta);
 
-<<<<<<< HEAD:core/src/main/java/pvz/com/entities/Zombies/ZombiesAreComing.java
-        long now = System.currentTimeMillis();
-
-        // Remove after 1.5 seconds
-        if (now - startTime >= 1500) {
-            remove();     // remove from stage safely
-=======
         elapsedTime += delta;
 
         // Remove sau 1.5s
         if (elapsedTime >= DISPLAY_TIME) {
             remove(); // sẽ gọi override remove() phía dưới
->>>>>>> origin:core/src/main/java/pvz/com/Zombies/ZombiesAreComing.java
         }
     }
 
@@ -61,4 +49,3 @@ public class ZombiesAreComing extends Actor {
         }
     }
 }
-
