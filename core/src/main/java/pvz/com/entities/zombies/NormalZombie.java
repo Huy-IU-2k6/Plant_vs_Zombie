@@ -1,4 +1,4 @@
-package pvz.com.entities.Zombies;
+package pvz.com.entities.zombies;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
