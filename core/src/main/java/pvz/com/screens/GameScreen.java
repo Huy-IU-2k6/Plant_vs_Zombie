@@ -69,7 +69,8 @@ public class GameScreen implements Screen, IGameSpawner {
     private final List<Entity> entities = new ArrayList<>();
     private final List<Plant> plants = new ArrayList<>();
     private final RenderSystem renderSystem;
-  
+    private final SunProductionSystem sunSystem;
+
     private final PlantAttackSystem attackSystem;
     private final MovementSystem movementSystem;
     private final ProjectileCollisionSystem projectileCollisionSystem;
