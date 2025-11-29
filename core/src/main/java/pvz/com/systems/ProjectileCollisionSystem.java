@@ -9,7 +9,7 @@ import pvz.com.entities.components.BoundsComponent;
 import pvz.com.entities.components.DamageComponent;
 import pvz.com.entities.components.PositionComponent;
 import pvz.com.entities.components.ProjectileTagComponent;
-import pvz.com.entities.zombies.Zombies;
+import pvz.com.entities.Zombies.Zombies;
 import pvz.com.logic.ZombieWaveController;
 
 public class ProjectileCollisionSystem {

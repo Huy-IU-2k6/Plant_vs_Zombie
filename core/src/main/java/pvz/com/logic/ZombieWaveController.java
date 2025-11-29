@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.entities.zombies.NormalZombie;
+import pvz.com.entities.Zombies.NormalZombie;
 import pvz.com.managers.GridConfig;
 
 public class ZombieWaveController {
