@@ -19,7 +19,7 @@ public class Wallnut extends Plant {
                 GridConfig.CELL_HEIGHT * SCALE_Y);
 
         // Hình ảnh
-        this.addComponent(new SpriteComponent("assets/images/Plants/Wallnut.gif"));
+        this.addComponent(new SpriteComponent("images/Plants/Wallnut.gif"));
 
         // Máu trâu
         this.addComponent(new HealthComponent(4000));

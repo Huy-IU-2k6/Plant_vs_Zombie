@@ -11,18 +11,15 @@ public class WorldRenderer {
     private final Viewport viewport;
     private final LawnMowerController lawnMowerController;
     private final ZombieWaveController zombieWaveController;
-    private final HudController hudController;
 
     public WorldRenderer(BackgroundManager backgroundManager,
             Viewport viewport,
             LawnMowerController lawnMowerController,
-            ZombieWaveController zombieWaveController,
-            HudController hudController) {
+            ZombieWaveController zombieWaveController) {
         this.backgroundManager = backgroundManager;
         this.viewport = viewport;
         this.lawnMowerController = lawnMowerController;
         this.zombieWaveController = zombieWaveController;
-        this.hudController = hudController;
     }
 
     public void render(SpriteBatch batch, boolean isCountdown, boolean isPlaying) {
@@ -30,18 +27,19 @@ public class WorldRenderer {
         float h = viewport.getWorldHeight();
 
         if (isCountdown) {
+            // Màn hình đếm ngược
             backgroundManager.renderCount(batch, w, h);
             return;
         }
 
+        // Màn chính
         backgroundManager.renderMain(batch, w, h);
 
+        // Lawn mower + zombie
         lawnMowerController.render(batch);
         zombieWaveController.render(batch);
 
-        if (isPlaying) {
-            hudController.drawSunHud(batch);
-        }
+        // KHÔNG vẽ sun HUD nữa, phần đó do HudController/hudStage xử lý
     }
 
     public void dispose() {

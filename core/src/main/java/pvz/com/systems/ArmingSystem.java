@@ -40,7 +40,7 @@ public class ArmingSystem {
                 SpriteComponent sprite = entity.getComponent(SpriteComponent.class);
                 // Lưu ý: Nên dùng AssetManager để lấy texture thay vì new Texture liên tục (gây lag)
                 // Ở đây mình viết new Texture cho dễ hiểu
-                sprite.sprite.setTexture(new Texture("assets/images/Plants/potatomine_ready.gif"));
+                sprite.sprite.setTexture(new Texture("images/Plants/potatomine_ready.gif"));
             }
             
             // 2. Play âm thanh "Sproing!" nếu muốn

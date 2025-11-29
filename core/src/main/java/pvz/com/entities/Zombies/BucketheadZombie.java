@@ -103,7 +103,7 @@ public class BucketheadZombie extends Zombies {
         );
 
         // Zombie groan sound
-        groanSound = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/groan.wav"));
+        groanSound = Gdx.audio.newSound(Gdx.files.internal("sounds/groan.wav"));
         groanSound.play(0.15f);
     }
 

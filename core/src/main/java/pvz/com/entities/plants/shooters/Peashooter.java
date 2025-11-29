@@ -19,7 +19,7 @@ public class Peashooter extends Plant {
                 GridConfig.CELL_HEIGHT * SCALE_Y);
 
         // Hình ảnh
-        this.addComponent(new SpriteComponent("assets/images/Plants/peashooterani.gif"));
+        this.addComponent(new SpriteComponent("images/Plants/peashooterani.gif"));
 
         // Trạng thái mặc định
         this.addComponent(new StateComponent(EntityState.IDLE));

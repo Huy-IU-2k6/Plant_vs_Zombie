@@ -50,7 +50,7 @@ public class MainMenuScreen implements Screen {
 
     private void createUI() {
         // Biển gỗ
-        boardTex = new Texture("assets/images/items/board.png");
+        boardTex = new Texture("images/items/board.png");
         boardTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         TextureRegionDrawable boardDrawable = new TextureRegionDrawable(new TextureRegion(boardTex));
 

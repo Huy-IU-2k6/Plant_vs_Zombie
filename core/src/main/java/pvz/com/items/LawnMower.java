@@ -31,9 +31,9 @@ public class LawnMower {
 
     public LawnMower(float startX, float startY, float worldWidth) {
         this.idleTexture = new Texture(
-                Gdx.files.internal("assets/images/items/lawnMower_Idle.png"));
+                Gdx.files.internal("images/items/lawnMower_Idle.png"));
         this.activeTexture = new Texture(
-                Gdx.files.internal("assets/images/items/lawnMower_Active.gif"));
+                Gdx.files.internal("images/items/lawnMower_Active.gif"));
 
         this.currentTexture = idleTexture; // mặc định đứng yên
 

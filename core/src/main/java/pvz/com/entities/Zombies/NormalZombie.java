@@ -42,9 +42,9 @@ public class NormalZombie extends Zombies {
         super();
 
         // ===== Load GIFs =====
-        walkSheet = new Texture(Gdx.files.internal("assets/images/Zombies/NormalZombieRun.gif"));
-        dyingSheet = new Texture(Gdx.files.internal("assets/images/Zombies/ZombieDie.gif"));
-        eatSheet = new Texture(Gdx.files.internal("assets/images/Zombies/NormalZombieEat.gif"));
+        walkSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieRun.gif"));
+        dyingSheet = new Texture(Gdx.files.internal("images/Zombies/ZombieDie.gif"));
+        eatSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieEat.gif"));
 
         walkAnimation = GifManager.createAnim(
                 walkSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);

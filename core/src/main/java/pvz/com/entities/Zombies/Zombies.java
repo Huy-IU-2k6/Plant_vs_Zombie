@@ -13,13 +13,13 @@ public class Zombies extends Actor {
 
     // ===== SOUNDS =====
     private static final Sound comingZombieSound = Gdx.audio.newSound(
-            Gdx.files.internal("assets/sounds/zombies_are_coming.wav"));
+            Gdx.files.internal("sounds/zombies_are_coming.wav"));
     private static final Sound groanSound = Gdx.audio.newSound(
-            Gdx.files.internal("assets/sounds/groan.wav"));
+            Gdx.files.internal("sounds/groan.wav"));
     private static final Sound brainzSound = Gdx.audio.newSound(
-            Gdx.files.internal("assets/sounds/brainz.wav"));
+            Gdx.files.internal("sounds/brainz.wav"));
     private static final Sound chompSound = Gdx.audio.newSound(
-            Gdx.files.internal("assets/sounds/chomp.wav"));
+            Gdx.files.internal("sounds/chomp.wav"));
 
     // ===== CONFIG =====
     protected float speed = 20f;
