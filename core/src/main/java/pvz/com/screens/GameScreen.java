@@ -82,7 +82,7 @@ public class GameScreen implements Screen, IGameSpawner {
     private final WorldRenderer worldRenderer;
     
     private State state = State.COUNTDOWN;
-    private SunProductionSystem sunSystem;
+    private final SunProductionSystem sunSystem;
 
     public GameScreen(Game game) {
         this.game = game;
