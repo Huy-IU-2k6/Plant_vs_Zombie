@@ -30,14 +30,14 @@ public class SoundManager implements Disposable {
 
         // Background Music
         // musics.put("menu",
-        // Gdx.audio.newMusic(Gdx.files.internal("assets/sounds/menu_bgm.mp3")));
+        // Gdx.audio.newMusic(Gdx.files.internal("sounds/menu_bgm.mp3")));
         musics.put("menu",
-                Gdx.audio.newMusic(Gdx.files.internal("assets/musics/Grasswalk.mp3")));
+                Gdx.audio.newMusic(Gdx.files.internal("musics/Grasswalk.mp3")));
 
         // Sound Effect
         // sounds.put("chomp",
-        // Gdx.audio.newSound(Gdx.files.internal("assets/sounds/chomp.wav")));
-        sounds.put("menu_click", Gdx.audio.newSound(Gdx.files.internal("assets/sounds/menu_click.mp3")));
+        // Gdx.audio.newSound(Gdx.files.internal("sounds/chomp.wav")));
+        sounds.put("menu_click", Gdx.audio.newSound(Gdx.files.internal("sounds/menu_click.mp3")));
     }
 
     // ===== MUSIC =====

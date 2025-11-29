@@ -24,7 +24,7 @@ public class FontManager {
     private static void createPvzFont() {
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(
                 // chỉnh lại path cho đúng với project của bạn
-                Gdx.files.internal("assets/fonts/HouseofTerror/HouseofTerror Regular.ttf"));
+                Gdx.files.internal("fonts/HouseofTerror/HouseofTerror Regular.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter param = new FreeTypeFontGenerator.FreeTypeFontParameter();
 
         param.size = 50;

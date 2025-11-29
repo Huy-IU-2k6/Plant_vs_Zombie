@@ -5,39 +5,37 @@ import pvz.com.entities.components.*;
 import pvz.com.managers.GridConfig;
 
 public class Wallnut extends Plant {
+
     private static final float SCALE_X = 0.7f; // rộng 70% ô
     private static final float SCALE_Y = 0.8f; // cao 80% ô
 
-    // Nên truyền thêm gridCol, gridRow để xác định vị trí trên lưới
+    // Constructor CHÍNH: có gridCol, gridRow để sync với grid
     public Wallnut(float x, float y, int gridCol, int gridRow) {
-        // 1. Khung sườn cơ bản (Position, Size, Bounds - giả sử class cha Plant đã lo việc này)
-        super(x, y, 70, 90); 
+        // Khung sườn: vị trí + kích thước theo ô
+        super(
+                x,
+                y,
+                GridConfig.CELL_WIDTH * SCALE_X,
+                GridConfig.CELL_HEIGHT * SCALE_Y);
 
-        // 2. Hình ảnh (Sprite)
-        // Lưu ý: Về sau nên dùng AssetManager để load Texture tối ưu hơn
-        this.addComponent(new SpriteComponent("assets/images/Plants/Wallnut.gif"));
+        // Hình ảnh
+        this.addComponent(new SpriteComponent("images/Plants/Wallnut.gif"));
 
-        // 3. Chỉ số sinh tồn
-        this.addComponent(new HealthComponent(4000)); // Máu trâu
+        // Máu trâu
+        this.addComponent(new HealthComponent(4000));
 
-        // --- CÁC COMPONENT MỚI CẦN THÊM ---
-
-        // 4. Định danh phe phái (QUAN TRỌNG)
-        // Nếu thiếu cái này, CollisionSystem sẽ không biết Wallnut là Cây hay Zombie
+        // Phe
         this.addComponent(new TeamComponent(Team.PLANT));
 
-        // 5. Vị trí trên lưới (QUAN TRỌNG)
-        // Để Zombie biết có cây nào đang ở cùng làn (row) với nó không
+        // Vị trí trên lưới
         this.addComponent(new GridPositionComponent(gridCol, gridRow));
 
-        // 6. Trạng thái (Tùy chọn nâng cao)
-        // Wallnut có 3 dạng: Nguyên vẹn, Nứt nhẹ, Nứt to.
-        // Ta thêm StateComponent để sau này thay đổi hình ảnh dựa theo % máu.
+        // Trạng thái (để sau này đổi sprite theo % máu)
         this.addComponent(new StateComponent(EntityState.IDLE));
+    }
 
-        // 7. Giá tiền (Tùy chọn)
-        // Để hệ thống quản lý Sun biết trừ bao nhiêu tiền
-        // Bạn có thể tạo thêm CostComponent như đã bàn, hoặc quản lý trong Enum PlantType
-        // this.addComponent(new CostComponent(50)); 
+    // OPTIONAL: overload giữ backward compatibility
+    public Wallnut(float x, float y) {
+        this(x, y, -1, -1);
     }
 }

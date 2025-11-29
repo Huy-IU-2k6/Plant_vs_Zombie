@@ -79,6 +79,7 @@ public class ZombieWaveController {
     }
 
     public void update(float delta) {
+        // spawn thêm zombie nếu chưa đủ số lượng
         if (zombiesSpawnedInWave < maxZombiesInWave) {
             spawnTimer += delta;
 
@@ -89,11 +90,18 @@ public class ZombieWaveController {
             }
         }
 
-        // update zombie + xoá nếu đi khỏi màn hình
+        // update zombie + xoá nếu chết hoặc đi khỏi màn hình
         for (int i = zombies.size - 1; i >= 0; i--) {
             NormalZombie z = zombies.get(i);
             z.act(delta);
 
+            // 1) Animation chết đã xong, NormalZombie đặt dead = true
+            if (z.isDead()) {
+                zombies.removeIndex(i);
+                continue;
+            }
+
+            // 2) Lọt qua bên trái màn hình
             if (z.getX() < -150f) {
                 zombies.removeIndex(i);
                 // TODO: xử lý khi zombie lọt qua nhà (thua game)

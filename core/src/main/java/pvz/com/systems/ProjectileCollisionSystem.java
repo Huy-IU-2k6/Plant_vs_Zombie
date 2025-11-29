@@ -44,6 +44,9 @@ public class ProjectileCollisionSystem {
             syncBoundsWithPosition(projectile);
 
             for (Zombies z : zombieWaveController.getZombies()) {
+                if (z.isDead())
+                    continue; // bỏ qua xác
+
                 Rectangle zRect = z.getBounds(); // dùng hitBox trong class Zombies
 
                 if (pBounds.bounds.overlaps(zRect)) {

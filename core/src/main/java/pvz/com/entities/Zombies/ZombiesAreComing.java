@@ -14,7 +14,7 @@ public class ZombiesAreComing extends Actor {
 
     public ZombiesAreComing() {
         // load asset
-        sound = Gdx.audio.newSound(Gdx.files.internal("assets/sounds/zombies_are_coming.wav"));
+        sound = Gdx.audio.newSound(Gdx.files.internal("sounds/zombies_are_coming.wav"));
 
         // play sound một lần
         sound.play();

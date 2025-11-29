@@ -23,14 +23,17 @@ import pvz.com.managers.GridConfig;
 // ===== ECS imports =====
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
+import pvz.com.entities.suns.Sun;
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.projectiles.PeaProjectile;
+
 import pvz.com.systems.IGameSpawner;
 import pvz.com.systems.RenderSystem;
 import pvz.com.systems.SunProductionSystem;
 import pvz.com.systems.PlantAttackSystem;
 import pvz.com.systems.MovementSystem;
 import pvz.com.systems.ProjectileCollisionSystem;
+import pvz.com.systems.SunPickupSystem;
 
 // ===== Logic controllers =====
 import pvz.com.logic.HudController;
@@ -68,11 +71,13 @@ public class GameScreen implements Screen, IGameSpawner {
     // ===== ECS: plants, projectiles, systems =====
     private final List<Entity> entities = new ArrayList<>();
     private final List<Plant> plants = new ArrayList<>();
+
     private final RenderSystem renderSystem;
-  
+    private final SunProductionSystem sunSystem;
     private final PlantAttackSystem attackSystem;
     private final MovementSystem movementSystem;
     private final ProjectileCollisionSystem projectileCollisionSystem;
+    private final SunPickupSystem sunPickupSystem;
 
     // ===== Controllers =====
     private final HudController hudController;
@@ -118,15 +123,20 @@ public class GameScreen implements Screen, IGameSpawner {
                 backgroundManager,
                 viewport,
                 lawnMowerController,
-                zombieWaveController,
-                hudController);
+                zombieWaveController);
 
         // ===== ECS init =====
         renderSystem = new RenderSystem(batch);
-     
-        attackSystem = new PlantAttackSystem(this);
-        movementSystem = new MovementSystem();
-        this.projectileCollisionSystem = new ProjectileCollisionSystem(entities, zombieWaveController);
+        sunSystem = new SunProductionSystem(this, entities); // Sunflower sinh sun
+        attackSystem = new PlantAttackSystem(this); // Plant bắn đạn
+        movementSystem = new MovementSystem(); // Đạn / entity di chuyển
+        projectileCollisionSystem = new ProjectileCollisionSystem(
+                entities,
+                zombieWaveController); // Đạn trúng zombie
+        sunPickupSystem = new SunPickupSystem(
+                entities,
+                camera,
+                this); // Click nhặt sun + timeout
     }
 
     // ================== HUD interaction ==================
@@ -162,9 +172,10 @@ public class GameScreen implements Screen, IGameSpawner {
         if (state != State.PLAYING)
             return;
 
+        // logic thuần "thế giới" (zombie, mower, wave...)
         zombieWaveController.update(delta);
         lawnMowerController.update(delta, zombieWaveController.getZombies());
-        // TODO: check va chạm plant, bullet...
+        // TODO: check va chạm plant, bullet... nếu dùng thêm ECS cho zombie
     }
 
     private void handleEscape() {
@@ -179,14 +190,18 @@ public class GameScreen implements Screen, IGameSpawner {
     public void show() {
         // Dùng InputMultiplexer để:
         // - HUD (SeedBank, Countdown, button...) vẫn nhận input
-        // - Đồng thời click xuống world để đặt cây theo grid
+        // - Click xuống world để đặt cây theo grid
+        // - Click vào Sun rớt để nhặt
         InputMultiplexer multiplexer = new InputMultiplexer();
 
         // Ưu tiên HUD trước để click vào card không bị lọt xuống world
         multiplexer.addProcessor(hudStage);
 
-        // Controller xử lý click xuống lawn
+        // Controller xử lý click xuống lawn (đặt cây)
         multiplexer.addProcessor(plantGridController);
+
+        // System xử lý click nhặt Sun
+        multiplexer.addProcessor(sunPickupSystem);
 
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -205,7 +220,7 @@ public class GameScreen implements Screen, IGameSpawner {
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
-        // --- world (background, zombie, mower, sun HUD) ---
+        // --- world (background, zombie, mower, HUD countdown, ...) ---
         batch.begin();
         boolean isCountdown = (state == State.COUNTDOWN);
         boolean isPlaying = (state == State.PLAYING);
@@ -214,22 +229,20 @@ public class GameScreen implements Screen, IGameSpawner {
 
         // --- ECS (plants, projectiles, sun system, attack system) ---
         if (state == State.PLAYING) {
-            // update hệ thống logic
-            
+            // update hệ thống logic ECS
+            sunSystem.update(delta); // sunflower sinh sun
             attackSystem.update(plants, delta); // plant bắn đạn (spawn PeaProjectile)
 
-            // cho entity có MovementComponent di chuyển (đạn, zombie ECS nếu có)
-            movementSystem.update(entities, delta); // đạn bay sang phải
+            movementSystem.update(entities, delta); // entity có MovementComponent di chuyển
+            projectileCollisionSystem.update(delta); // đạn đâm zombie
+            sunPickupSystem.update(delta); // sun tự biến mất nếu quá lâu
 
-            // xử lý đạn đâm vào zombie (trừ máu + xóa đạn / zombie chết)
-            projectileCollisionSystem.update(delta);
-
-            // render tất cả entity ECS (plant, đạn...)
+            // render tất cả entity ECS (plant, đạn, sun...)
             batch.setProjectionMatrix(camera.combined);
             renderSystem.update(entities);
         }
 
-        // --- HUD (SeedBank, countdown, card...) ---
+        // --- HUD (SeedBank, countdown, card, sun text...) ---
         hudStage.act(delta);
         hudStage.draw();
     }
@@ -265,9 +278,12 @@ public class GameScreen implements Screen, IGameSpawner {
 
     @Override
     public void spawnSun(float x, float y, int amount) {
-        // TODO: sau này tạo SunEntity và add vào entities
+        // Sun được spawn ra world, người chơi phải click để nhặt
         Gdx.app.log("GameEvent", "Sun Spawn: " + x + "," + y + " amount=" + amount);
-        addSun(amount);
+
+        Sun sun = new Sun(x, y, amount);
+        entities.add(sun);
+        // KHÔNG gọi addSun() ở đây, chỉ cộng sun khi người chơi click nhặt
     }
 
     @Override

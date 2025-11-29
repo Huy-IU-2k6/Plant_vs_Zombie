@@ -43,10 +43,10 @@ public class ResumeScreen implements Screen {
         Gdx.input.setInputProcessor(stage);
 
         // Load texture
-        bgTex = new Texture("assets/images/backgrounds/resume_bg.png");
-        signTex = new Texture("assets/images/items/Plants_vs_Zombies_logo.png");
-        backTex = new Texture("assets/images/buttons/back.png");
-        exitTex = new Texture("assets/images/buttons/exit.png");
+        bgTex = new Texture("images/backgrounds/resume_bg.png");
+        signTex = new Texture("images/items/Plants_vs_Zombies_logo.png");
+        backTex = new Texture("images/buttons/back.png");
+        exitTex = new Texture("images/buttons/exit.png");
 
         // Background
         backgroundImage = new Image(bgTex);

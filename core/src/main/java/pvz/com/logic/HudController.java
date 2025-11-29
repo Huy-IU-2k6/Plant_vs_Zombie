@@ -1,7 +1,7 @@
 package pvz.com.logic;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 
@@ -31,14 +31,15 @@ public class HudController {
         this.hudStage = hudStage;
         this.sunPoints = initialSun;
 
+        // Font dùng cho HUD (countdown + seed bank)
+        hudFont = FontManager.getPvzFont();
+
         // SeedBank
-        seedBank = new SeedBank();
+        seedBank = new SeedBank(hudFont);
         layoutSeedBank();
         seedBank.setVisible(false);
+        seedBank.setSunAmount(initialSun); // sync số sun ban đầu
         hudStage.addActor(seedBank);
-
-        // Font
-        hudFont = FontManager.getPvzFont();
 
         // Countdown
         countdown = new CountdownActor(countdownDuration, hudFont);
@@ -100,25 +101,20 @@ public class HudController {
     }
 
     // ===== Sun HUD =====
-
-    public void drawSunHud(SpriteBatch batch) {
-        float sbX = seedBank.getX();
-        float sbY = seedBank.getY();
-
-        float textX = sbX + 55f;
-        float textY = sbY + 42f;
-
-        hudFont.draw(batch, String.valueOf(sunPoints), textX, textY);
-    }
+    // Chỉ lưu logic sunPoints, việc vẽ giao cho SeedBank
 
     public void addSun(int amount) {
         sunPoints += amount;
+        seedBank.setSunAmount(sunPoints);
     }
 
     public boolean spendSun(int cost) {
         if (sunPoints < cost)
             return false;
+
         sunPoints -= cost;
+        seedBank.setSunAmount(sunPoints);
+        Gdx.app.log("HUD", "spendSun: -" + cost + ", total=" + sunPoints);
         return true;
     }
 
@@ -136,5 +132,6 @@ public class HudController {
 
     public void dispose() {
         seedBank.dispose();
+        // hudFont do FontManager quản lý, không dispose ở đây
     }
 }

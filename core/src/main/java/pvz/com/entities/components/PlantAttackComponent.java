@@ -8,7 +8,8 @@ public class PlantAttackComponent {
     public PlantDamageType damageType;
     public CooldownComponent cooldown;
 
-    public PlantAttackComponent(int damage, float range, Class<?> projectileType, PlantDamageType damageType, float cooldownTime) {
+    public PlantAttackComponent(int damage, float range, Class<?> projectileType, PlantDamageType damageType,
+            float cooldownTime) {
         this.damage = damage;
         this.range = range;
         this.projectileType = projectileType;
@@ -16,4 +17,3 @@ public class PlantAttackComponent {
         this.cooldown = new CooldownComponent(cooldownTime);
     }
 }
-
