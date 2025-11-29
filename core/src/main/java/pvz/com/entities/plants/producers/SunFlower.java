@@ -14,11 +14,18 @@ public class SunFlower extends Plant {
     // Constructor CHÍNH: dùng cho hệ thống grid + factory
     public SunFlower(float x, float y, int col, int row) {
         super(
+<<<<<<< HEAD
             x + (GridConfig.CELL_WIDTH * (1 - SCALE_X) / 2), // Căn giữa theo X
             y + (GridConfig.CELL_HEIGHT * (1 - SCALE_Y) / 2), // Căn giữa theo Y
             GridConfig.CELL_WIDTH * SCALE_X,
             GridConfig.CELL_HEIGHT * SCALE_Y
         );
+=======
+                x,
+                y,
+                GridConfig.CELL_WIDTH * SCALE_X,
+                GridConfig.CELL_HEIGHT * SCALE_Y);
+>>>>>>> 2ba7b6f81dcc998e313ca56f50281196a902a14d
 
         // Hình ảnh
         this.addComponent(new SpriteComponent("assets/images/Plants/sunflowerani.gif"));

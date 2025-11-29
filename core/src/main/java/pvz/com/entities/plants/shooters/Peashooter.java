@@ -2,7 +2,10 @@ package pvz.com.entities.plants.shooters;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
+<<<<<<< HEAD
 // Đảm bảo bạn sẽ tạo class này ở bước sau
+=======
+>>>>>>> 2ba7b6f81dcc998e313ca56f50281196a902a14d
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.managers.GridConfig;
 
