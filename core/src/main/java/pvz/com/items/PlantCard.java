@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
@@ -40,24 +39,10 @@ public class PlantCard extends Image {
 
         setSize(WIDTH, HEIGHT);
 
-        addClickSupport();
+        // Chỉ còn kéo thả, KHÔNG click
         addDragSupport();
 
         updateStateUI();
-    }
-
-    // ===================== CLICK =====================
-
-    private void addClickSupport() {
-        addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                GameScreen screen = getGameScreen();
-                if (screen != null) {
-                    screen.onPlantCardClicked(PlantCard.this);
-                }
-            }
-        });
     }
 
     private GameScreen getGameScreen() {
