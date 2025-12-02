@@ -10,7 +10,7 @@ public class CherryBomb extends Plant {
         super(x, y, 90, 90);
 
         // 2. Hình ảnh
-        this.addComponent(new SpriteComponent("images/Plants/cherrybomb.gif"));
+        this.addComponent(new SpriteComponent("images/Plants/CherryBomb.gif"));
 
         // 3. Trạng thái (Bắt đầu là IDLE, hệ thống sẽ chuyển sang EXPLODING khi hết
         // giờ)

@@ -11,7 +11,7 @@ public class PotatoMine extends Plant {
 
         // 2. Hình ảnh ban đầu: CỤC ĐẤT (Unarmed)
         // Bạn cần 2 ảnh: "potatomine_dirt.png" và "potatomine_ready.gif"
-        this.addComponent(new SpriteComponent("images/Plants/potatomine_dirt.png"));
+        this.addComponent(new SpriteComponent("images/Plants/PotatoMine.gif"));
 
         // 3. Máu (300 HP - Zombie có thể ăn lúc nó chưa lên)
         this.addComponent(new HealthComponent(300));
