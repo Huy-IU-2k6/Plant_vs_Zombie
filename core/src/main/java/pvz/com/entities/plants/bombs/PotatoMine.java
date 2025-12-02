@@ -18,12 +18,12 @@ public class PotatoMine extends Plant {
 
         // 4. Component quản lý việc trồi lên
         // 14 giây là chuẩn game, để 3 giây test cho nhanh
-        this.addComponent(new ArmingComponent(3.0f)); 
+        this.addComponent(new ArmingComponent(3.0f));
 
         // 5. Định danh
         this.addComponent(new TeamComponent(Team.PLANT));
         this.addComponent(new GridPositionComponent(col, row));
-        
+
         // 6. Dữ liệu nổ (Sát thương cực to 1800, phạm vi rất nhỏ 50f)
         // fuseTime = 0 vì đạp trúng là nổ ngay
         this.addComponent(new ExplosiveComponent(1800, 50f, 0f));
