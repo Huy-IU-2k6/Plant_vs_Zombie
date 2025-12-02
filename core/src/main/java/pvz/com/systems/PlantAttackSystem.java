@@ -30,7 +30,7 @@ public class PlantAttackSystem {
                     // Bắn đạn dựa trên thông số trong Component
                     spawner.spawnProjectile(
                             pos.x + 20, // Offset để đạn bay ra từ miệng cây
-                            pos.y + 20,
+                            pos.y + 50,
                             attacker.damage,
                             attacker.damageType,
                             attacker.projectileType);

@@ -3,11 +3,14 @@ package pvz.com.items;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 
 import pvz.com.screens.GameScreen;
 
@@ -23,8 +26,11 @@ public class PlantCard extends Image {
 
     private float cooldownRemaining = 0f;
 
-    // >>> NEW: khoá card cho đến khi game start xong
+    // khoá card cho đến khi game start xong
     private boolean lockedByGame = true;
+
+    // ghost khi kéo
+    private Image dragGhost;
 
     public PlantCard(ItemType type) {
         super(new TextureRegionDrawable(
@@ -34,6 +40,15 @@ public class PlantCard extends Image {
 
         setSize(WIDTH, HEIGHT);
 
+        addClickSupport();
+        addDragSupport();
+
+        updateStateUI();
+    }
+
+    // ===================== CLICK =====================
+
+    private void addClickSupport() {
         addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -43,8 +58,6 @@ public class PlantCard extends Image {
                 }
             }
         });
-
-        updateStateUI();
     }
 
     private GameScreen getGameScreen() {
@@ -54,7 +67,76 @@ public class PlantCard extends Image {
         return (o instanceof GameScreen) ? (GameScreen) o : null;
     }
 
-    // >>> NEW: cho GameScreen mở/khoá card
+    // ===================== DRAG & DROP =====================
+
+    private void addDragSupport() {
+        addListener(new DragListener() {
+            @Override
+            public void dragStart(InputEvent event, float x, float y, int pointer) {
+                super.dragStart(event, x, y, pointer);
+
+                // nếu đang khoá hoặc cooldown thì không cho kéo
+                if (lockedByGame || cooldownRemaining > 0f || getStage() == null) {
+                    return;
+                }
+
+                // tạo ghost card bám theo chuột
+                dragGhost = new Image(getDrawable());
+                dragGhost.setSize(WIDTH, HEIGHT);
+                dragGhost.setOrigin(Align.center);
+                dragGhost.setColor(1f, 1f, 1f, 0.8f); // hơi trong suốt
+
+                getStage().addActor(dragGhost);
+                updateGhostPosition(pointer);
+            }
+
+            @Override
+            public void drag(InputEvent event, float x, float y, int pointer) {
+                super.drag(event, x, y, pointer);
+                if (dragGhost != null) {
+                    updateGhostPosition(pointer);
+                }
+            }
+
+            @Override
+            public void dragStop(InputEvent event, float x, float y, int pointer) {
+                super.dragStop(event, x, y, pointer);
+
+                if (dragGhost != null) {
+                    float screenX = Gdx.input.getX(pointer);
+                    float screenY = Gdx.input.getY(pointer);
+
+                    GameScreen screen = getGameScreen();
+                    if (screen != null) {
+                        // GameScreen xử lý: convert screen -> world -> grid -> spawn plant
+                        screen.onPlantCardDragged(PlantCard.this, screenX, screenY);
+                    }
+
+                    dragGhost.remove();
+                    dragGhost = null;
+                }
+            }
+
+            private void updateGhostPosition(int pointer) {
+                if (getStage() == null || dragGhost == null)
+                    return;
+
+                float screenX = Gdx.input.getX(pointer);
+                float screenY = Gdx.input.getY(pointer);
+
+                // screen -> toạ độ trong hudStage (nơi card đang sống)
+                Vector2 stageCoords = getStage().screenToStageCoordinates(
+                        new Vector2(screenX, screenY));
+
+                dragGhost.setPosition(
+                        stageCoords.x - dragGhost.getWidth() / 2f,
+                        stageCoords.y - dragGhost.getHeight() / 2f);
+            }
+        });
+    }
+
+    // ===================== GAME STATE / COOLDOWN =====================
+
     public void setLockedByGame(boolean locked) {
         this.lockedByGame = locked;
         updateStateUI();

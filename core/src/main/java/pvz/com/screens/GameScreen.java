@@ -8,6 +8,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -22,7 +23,10 @@ import pvz.com.managers.GridConfig;
 
 // ===== ECS imports =====
 import pvz.com.entities.Entity;
+import pvz.com.items.ItemType;
 import pvz.com.entities.plants.Plant;
+import pvz.com.entities.plants.PlantType;
+import pvz.com.factories.PlantFactory;
 import pvz.com.entities.suns.Sun;
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.projectiles.PeaProjectile;
@@ -149,6 +153,79 @@ public class GameScreen implements Screen, IGameSpawner {
         card.triggerUse();
         // TODO: sau này dùng PlantGridController để chọn loại plant, không dùng chuột
         // trái/phải nữa
+    }
+
+    /** Được PlantCard gọi khi người chơi kéo card và thả ra màn hình. */
+    public void onPlantCardDragged(PlantCard card, float screenX, float screenY) {
+        // chỉ cho kéo–thả khi đang chơi
+        if (state != State.PLAYING)
+            return;
+
+        // 1) screen -> world (dùng viewport của world)
+        Vector2 world = viewport.unproject(new Vector2(screenX, screenY));
+
+        // 2) world -> row/col trên grid
+        int col = GridConfig.worldToCol(world.x);
+        int row = GridConfig.worldToRow(world.y);
+
+        if (!GridConfig.isInsideGrid(row, col)) {
+            // thả ra ngoài lawn thì bỏ
+            return;
+        }
+
+        // 3) check đủ điều kiện dùng card (sun, cooldown, lock)
+        int currentSun = hudController.getSunPoints();
+        if (!card.canUse(currentSun)) {
+            return;
+        }
+
+        // 4) trừ sun (double-check trong spendSun)
+        if (!hudController.spendSun(card.type.cost)) {
+            return;
+        }
+
+        // 5) bật cooldown card
+        card.triggerUse();
+
+        // 6) spawn plant vào ô (row, col)
+        spawnPlantFromCardAtGrid(card, row, col);
+    }
+
+    private PlantType toPlantType(ItemType itemType) {
+        switch (itemType) {
+            case SUNFLOWER:
+                return PlantType.SUNFLOWER;
+            case PEASHOOTER:
+                return PlantType.PEASHOOTER;
+            case WALLNUT:
+                return PlantType.WALLNUT;
+
+            case CHERRYBOMB:
+                return PlantType.CHERRY_BOMB;
+            case POTATOMINE:
+                return PlantType.POTATO_MINE;
+
+            // mấy thằng này chưa có PlantType tương ứng
+            case CHOMPER:
+            case REPEATER:
+            case SNOWPEA:
+            default:
+                // tạm map về PEASHOOTER cho đỡ crash, sau này làm riêng
+                return PlantType.PEASHOOTER;
+        }
+    }
+
+    private void spawnPlantFromCardAtGrid(PlantCard card, int row, int col) {
+        PlantType plantType = toPlantType(card.type);
+
+        // Tạo plant đúng ô grid
+        Plant plant = PlantFactory.createPlantAtCell(plantType, col, row);
+
+        entities.add(plant);
+        plants.add(plant);
+
+        // nếu PlantGridController có grid nội bộ thì đăng ký luôn:
+        // plantGridController.registerPlantAtCell(plant, row, col);
     }
 
     // ================== Game state ==================

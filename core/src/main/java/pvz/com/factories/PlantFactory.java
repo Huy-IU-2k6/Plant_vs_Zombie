@@ -9,9 +9,53 @@ import pvz.com.entities.plants.defenders.Wallnut;
 import pvz.com.entities.plants.bombs.CherryBomb;
 import pvz.com.entities.plants.bombs.PotatoMine;
 
+import pvz.com.managers.GridConfig;
+
 public class PlantFactory {
 
-    // ===== CÁC FACTORY CỤ THỂ (có col, row) =====
+    // =========================================================
+    // API CHÍNH: TẠO PLANT THEO Ô GRID (col, row)
+    // =========================================================
+
+    /**
+     * Tạo Plant đặt vào đúng ô grid (col, row).
+     * Factory sẽ tự tính worldX/worldY dựa vào GridConfig.
+     */
+    public static Plant createPlantAtCell(PlantType type, int col, int row) {
+        float x = GridConfig.getCellOriginX(col);
+        float y = GridConfig.getCellOriginY(row);
+        return createPlant(type, x, y, col, row);
+    }
+
+    // =========================================================
+    // MASTER FACTORY DÙNG ENUM + TOẠ ĐỘ WORLD
+    // =========================================================
+
+    /**
+     * Tạo Plant với toạ độ world (x, y) + vị trí grid (col, row).
+     * Dùng khi bạn đã tính x, y ở chỗ khác (ví dụ canh giữa custom).
+     */
+    public static Plant createPlant(PlantType type, float x, float y, int col, int row) {
+        switch (type) {
+            case SUNFLOWER:
+                return createSunflower(x, y, col, row);
+            case PEASHOOTER:
+                return createPeashooter(x, y, col, row);
+            case WALLNUT:
+                return createWallnut(x, y, col, row);
+            case CHERRY_BOMB:
+                return createCherryBomb(x, y, col, row);
+            case POTATO_MINE:
+                return createPotatoMine(x, y, col, row);
+            default:
+                throw new IllegalArgumentException("Unknown plant type: " + type);
+        }
+    }
+
+    // =========================================================
+    // CÁC FACTORY CỤ THỂ (GIỮ PUBLIC CHO DỄ DÙNG)
+    // =========================================================
+
     public static Plant createSunflower(float x, float y, int col, int row) {
         return new SunFlower(x, y, col, row);
     }
@@ -32,40 +76,16 @@ public class PlantFactory {
         return new PotatoMine(x, y, col, row);
     }
 
-    // ===== MASTER FACTORY DÙNG ENUM =====
-    public static Plant createPlant(PlantType type, float x, float y, int col, int row) {
-        switch (type) {
-            case SUNFLOWER:
-                return createSunflower(x, y, col, row);
-            case PEASHOOTER:
-                return createPeashooter(x, y, col, row);
-            case WALLNUT:
-                return createWallnut(x, y, col, row);
-            case CHERRY_BOMB:
-                return createCherryBomb(x, y, col, row);
-            case POTATO_MINE:
-                return createPotatoMine(x, y, col, row);
-            default:
-                throw new IllegalArgumentException("Unknown plant type: " + type);
-        }
-    }
-
-    // ===== (OPTIONAL) OVERLOAD CŨ KHÔNG CÓ col/row =====
-    // Nếu code cũ của bạn đang gọi createSunflower(x, y) thì:
-    // hoặc là sửa hết callsite sang dùng col,row
-    // hoặc tạm để mấy overload này cho đỡ lỗi compile:
-
-    public static Plant createSunflower(float x, float y) {
-        // Nếu constructor SunFlower(x, y, col, row) là dạng mới,
-        // bạn có thể tạm cho col,row = -1 hoặc tính sau ở chỗ spawn.
-        return new SunFlower(x, y, -1, -1);
-    }
-
-    public static Plant createPeashooter(float x, float y) {
-        return new Peashooter(x, y, -1, -1);
-    }
-
-    public static Plant createWallnut(float x, float y) {
-        return new Wallnut(x, y, -1, -1);
-    }
+    // =========================================================
+    // (OPTIONAL) NẾU MUỐN BỎ HẲN OVERLOAD CŨ
+    // =========================================================
+    // Đã bỏ mấy hàm createSunflower(x, y) / createPeashooter(x, y) dùng col,row =
+    // -1
+    // để tránh bug khó hiểu. Nếu code cũ còn gọi, sửa sang dùng:
+    //
+    // PlantFactory.createPlantAtCell(PlantType.SUNFLOWER, col, row)
+    //
+    // hoặc
+    //
+    // PlantFactory.createPlant(PlantType.SUNFLOWER, x, y, col, row)
 }
