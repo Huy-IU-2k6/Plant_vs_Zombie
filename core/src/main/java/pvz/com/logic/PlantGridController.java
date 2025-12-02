@@ -1,15 +1,12 @@
 package pvz.com.logic;
 
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Vector3;
 
 import java.util.List;
 
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
-import pvz.com.factories.PlantFactory;
 import pvz.com.managers.GridConfig;
 
 public class PlantGridController extends InputAdapter {
@@ -40,55 +37,46 @@ public class PlantGridController extends InputAdapter {
         return plantGrid;
     }
 
-    private Plant spawnPlant(Plant plant, int row, int col) {
+    /**
+     * Đánh dấu 1 ô grid đã có plant.
+     * Gọi từ chỗ khác (ví dụ GameScreen) sau khi spawn plant thành công.
+     */
+    public void registerPlantAtCell(Plant plant, int row, int col) {
         if (plant == null)
-            return null;
-        entities.add(plant);
-        plants.add(plant);
+            return;
+        if (!GridConfig.isInsideGrid(row, col))
+            return;
+
         plantGrid[row][col] = plant;
-        return plant;
+    }
+
+    /**
+     * Nếu cần sạch ô khi plant chết / bị ăn…
+     */
+    public void unregisterPlantAtCell(int row, int col) {
+        if (!GridConfig.isInsideGrid(row, col))
+            return;
+        plantGrid[row][col] = null;
+    }
+
+    public boolean isCellOccupied(int row, int col) {
+        // Nếu ngoài grid thì coi như không bị chiếm
+        if (!GridConfig.isInsideGrid(row, col)) {
+            return false;
+        }
+        return plantGrid[row][col] != null;
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        // Trước đây xử lý click trái/phải để trồng cây ở đây.
+        // Bây giờ trồng cây đã chuyển qua drag & drop card,
+        // nên không còn xử lý gì trong touchDown nữa.
         if (!enabled)
             return false;
 
-        Vector3 world = camera.unproject(new Vector3(screenX, screenY, 0));
-        float worldX = world.x;
-        float worldY = world.y;
-
-        int col = GridConfig.worldToCol(worldX);
-        int row = GridConfig.worldToRow(worldY);
-
-        if (!GridConfig.isInsideGrid(row, col)) {
-            // click ngoài lawn
-            return false;
-        }
-
-        // Nếu ô này đã có plant thì không đặt nữa
-        if (plantGrid[row][col] != null) {
-            return false;
-        }
-
-        // Tâm ô
-        float plantX = GridConfig.getCellOriginX(col);
-        float plantY = GridConfig.getCellOriginY(row);
-
-        Plant plant = null;
-
-        if (button == Input.Buttons.LEFT) {
-            plant = PlantFactory.createPeashooter(plantX, plantY, col, row);
-        } else if (button == Input.Buttons.RIGHT) {
-            plant = PlantFactory.createSunflower(plantX, plantY, col, row);
-        }
-
-        if (plant != null) {
-            spawnPlant(plant, row, col);
-            return true;
-        }
-
-        // trả false để HUD vẫn có thể xử lý tiếp nếu cần
+        // return false để event tiếp tục đi tới các InputProcessor khác
+        // (vd: SunPickupSystem nhặt sun).
         return false;
     }
 }

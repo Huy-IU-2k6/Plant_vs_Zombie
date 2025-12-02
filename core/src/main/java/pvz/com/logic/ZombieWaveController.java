@@ -11,6 +11,8 @@ public class ZombieWaveController {
 
     private static final float MIN_SPAWN_INTERVAL = 2.2f;
     private static final float MAX_SPAWN_INTERVAL = 4.0f;
+    private static final float MIN_PRE_SPAWN_OFFSET = 20f;
+    private static final float MAX_PRE_SPAWN_OFFSET = 200f;
 
     private final Array<NormalZombie> zombies = new Array<>();
     private final float worldWidth;
@@ -63,7 +65,8 @@ public class ZombieWaveController {
     }
 
     private void spawnZombieInLane(int laneIndex) {
-        float startX = worldWidth + startOffsetX + MathUtils.random(0f, 80f);
+        float randomOffset = MathUtils.random(MIN_PRE_SPAWN_OFFSET, MAX_PRE_SPAWN_OFFSET);
+        float startX = worldWidth + startOffsetX + randomOffset;
         laneIndex = MathUtils.clamp(laneIndex, 0, laneCount - 1);
 
         NormalZombie z = new NormalZombie();

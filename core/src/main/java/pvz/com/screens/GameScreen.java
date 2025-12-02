@@ -58,7 +58,7 @@ public class GameScreen implements Screen, IGameSpawner {
 
     // ===== Zombie lane config (dựa trên GridConfig) =====
     private static final int ZOMBIE_LANE_COUNT = GridConfig.ROWS;
-    private static final float ZOMBIE_START_OFFSET_X = 50f;
+    private static final float ZOMBIE_START_OFFSET_X = 200f;
 
     private enum State {
         COUNTDOWN,
@@ -216,16 +216,17 @@ public class GameScreen implements Screen, IGameSpawner {
     }
 
     private void spawnPlantFromCardAtGrid(PlantCard card, int row, int col) {
-        PlantType plantType = toPlantType(card.type);
+        if (plantGridController.isCellOccupied(row, col)) {
+            // Ô này đã có cây -> không trồng chồng
+            return;
+        }
 
-        // Tạo plant đúng ô grid
+        PlantType plantType = toPlantType(card.type);
         Plant plant = PlantFactory.createPlantAtCell(plantType, col, row);
 
         entities.add(plant);
         plants.add(plant);
-
-        // nếu PlantGridController có grid nội bộ thì đăng ký luôn:
-        // plantGridController.registerPlantAtCell(plant, row, col);
+        plantGridController.registerPlantAtCell(plant, row, col);
     }
 
     // ================== Game state ==================
@@ -273,9 +274,6 @@ public class GameScreen implements Screen, IGameSpawner {
 
         // Ưu tiên HUD trước để click vào card không bị lọt xuống world
         multiplexer.addProcessor(hudStage);
-
-        // Controller xử lý click xuống lawn (đặt cây)
-        multiplexer.addProcessor(plantGridController);
 
         // System xử lý click nhặt Sun
         multiplexer.addProcessor(sunPickupSystem);
@@ -356,11 +354,8 @@ public class GameScreen implements Screen, IGameSpawner {
     @Override
     public void spawnSun(float x, float y, int amount) {
         // Sun được spawn ra world, người chơi phải click để nhặt
-        Gdx.app.log("GameEvent", "Sun Spawn: " + x + "," + y + " amount=" + amount);
-
         Sun sun = new Sun(x, y, amount);
         entities.add(sun);
-        // KHÔNG gọi addSun() ở đây, chỉ cộng sun khi người chơi click nhặt
     }
 
     @Override

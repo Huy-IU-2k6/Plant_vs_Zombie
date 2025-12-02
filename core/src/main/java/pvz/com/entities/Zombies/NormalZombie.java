@@ -12,7 +12,7 @@ public class NormalZombie extends Zombies {
 
     // ===== CONST =====
     private static final int MAX_HEALTH = 100;
-    private static final float MOVE_SPEED = 15f;
+    private static final float MOVE_SPEED = 5f;
     private static final int FRAMES_PER_ROW = 1;
     private static final float WALK_FRAME_TIME = 0.20f;
     private static final float DIE_FRAME_TIME = 0.20f;
@@ -21,7 +21,6 @@ public class NormalZombie extends Zombies {
     // Chiều cao zombie mong muốn trong world (vừa 1 ô cỏ ~ 100)
 
     private static final float DESIRED_HEIGHT = 120f;
-
 
     // Spritesheets
     private final Texture walkSheet;
