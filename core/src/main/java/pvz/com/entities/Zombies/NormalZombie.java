@@ -12,7 +12,7 @@ public class NormalZombie extends Zombies {
 
     // ===== CONST =====
     private static final int MAX_HEALTH = 100;
-    private static final float MOVE_SPEED = 5f;
+    private static final float MOVE_SPEED = 12f;
     private static final int FRAMES_PER_ROW = 1;
     private static final float WALK_FRAME_TIME = 0.20f;
     private static final float DIE_FRAME_TIME = 0.20f;
