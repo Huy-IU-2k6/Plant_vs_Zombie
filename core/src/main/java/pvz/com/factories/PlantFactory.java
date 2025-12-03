@@ -14,87 +14,131 @@ import pvz.com.managers.GridConfig;
 public class PlantFactory {
 
     // =========================================================
+    // SCALE CHO CÁC PLANT (tương đối theo CELL)
+    // =========================================================
+
+    private static final float SUNFLOWER_SCALE_X = 0.7f;
+    private static final float SUNFLOWER_SCALE_Y = 0.8f;
+
+    private static final float PEASHOOTER_SCALE_X = 0.7f;
+    private static final float PEASHOOTER_SCALE_Y = 0.8f;
+
+    private static final float WALLNUT_SCALE_X = 0.9f;
+    private static final float WALLNUT_SCALE_Y = 0.9f;
+
+    private static final float POTATOMINE_SCALE_X = 0.7f;
+    private static final float POTATOMINE_SCALE_Y = 0.6f;
+
+    // CherryBomb dùng size riêng (gif vuông)
+    private static final float CHERRY_BOMB_WIDTH = 90f;
+    private static final float CHERRY_BOMB_HEIGHT = 90f;
+
+    // offset để CherryBomb nằm đẹp hơn trong ô
+    private static final float CHERRY_BOMB_OFFSET_X = 15f;
+    private static final float CHERRY_BOMB_OFFSET_Y = 55f;
+
+    // =========================================================
     // API CHÍNH: TẠO PLANT THEO Ô GRID (col, row)
     // =========================================================
 
     /**
      * Tạo Plant đặt vào đúng ô grid (col, row).
-     * Factory sẽ tự tính worldX/worldY dựa vào GridConfig.
+     * Tự canh giữa ô dựa theo kích thước mong muốn.
      */
     public static Plant createPlantAtCell(PlantType type, int col, int row) {
-        float x = GridConfig.getCellOriginX(col);
-        float y = GridConfig.getCellOriginY(row);
-        return createPlant(type, x, y, col, row);
-    }
-
-    // =========================================================
-    // MASTER FACTORY DÙNG ENUM + TOẠ ĐỘ WORLD
-    // =========================================================
-
-    /**
-     * Tạo Plant với toạ độ world (x, y) + vị trí grid (col, row).
-     * Dùng khi bạn đã tính x, y ở chỗ khác (ví dụ canh giữa custom).
-     */
-    public static Plant createPlant(PlantType type, float x, float y, int col, int row) {
         switch (type) {
             case SUNFLOWER:
-                return createSunflower(x, y, col, row);
+                return createSunflowerAtCell(col, row);
             case PEASHOOTER:
-                return createPeashooter(x, y, col, row);
+                return createPeashooterAtCell(col, row);
             case WALLNUT:
-                return createWallnut(x, y, col, row);
+                return createWallnutAtCell(col, row);
             case CHERRY_BOMB:
-                return createCherryBomb(x, y, col, row);
+                return createCherryBombAtCell(col, row);
             case POTATO_MINE:
-                return createPotatoMine(x, y, col, row);
+                return createPotatoMineAtCell(col, row);
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }
     }
 
     // =========================================================
-    // CÁC FACTORY CỤ THỂ (GIỮ PUBLIC CHO DỄ DÙNG)
+    // IMPLEMENT CHO TỪNG LOẠI PLANT
     // =========================================================
 
-    public static Plant createSunflower(float x, float y, int col, int row) {
+    public static Plant createSunflowerAtCell(int col, int row) {
+        float w = GridConfig.CELL_WIDTH * SUNFLOWER_SCALE_X;
+        float h = GridConfig.CELL_HEIGHT * SUNFLOWER_SCALE_Y;
+
+        float x = GridConfig.getActorXForCell(col, w);
+        float y = GridConfig.getActorYForCell(row, h);
+
         return new SunFlower(x, y, col, row);
     }
 
-    public static Plant createPeashooter(float x, float y, int col, int row) {
+    public static Plant createPeashooterAtCell(int col, int row) {
+        float w = GridConfig.CELL_WIDTH * PEASHOOTER_SCALE_X;
+        float h = GridConfig.CELL_HEIGHT * PEASHOOTER_SCALE_Y;
+
+        float x = GridConfig.getActorXForCell(col, w);
+        float y = GridConfig.getActorYForCell(row, h);
+
         return new Peashooter(x, y, col, row);
     }
 
-    public static Plant createWallnut(float x, float y, int col, int row) {
+    public static Plant createWallnutAtCell(int col, int row) {
+        float w = GridConfig.CELL_WIDTH * WALLNUT_SCALE_X;
+        float h = GridConfig.CELL_HEIGHT * WALLNUT_SCALE_Y;
+
+        float x = GridConfig.getActorXForCell(col, w);
+        float y = GridConfig.getActorYForCell(row, h);
+
         return new Wallnut(x, y, col, row);
     }
 
-    public static Plant createCherryBomb(float x, float y, int col, int row) {
-        float w = 90f;
-        float h = 90f;
+    public static Plant createCherryBombAtCell(int col, int row) {
+        float cx = GridConfig.getCellCenterX(col);
+        float cy = GridConfig.getCellCenterY(row);
 
-        float cx = GridConfig.getActorXForCell(col, w);
-        float cy = GridConfig.getActorYForCell(row, h);
+        // canh giữa rồi trừ offset nhỏ cho giống game gốc
+        float x = cx - CHERRY_BOMB_WIDTH / 2f - CHERRY_BOMB_OFFSET_X;
+        float y = cy - CHERRY_BOMB_HEIGHT / 2f - CHERRY_BOMB_OFFSET_Y;
 
-        float CHERRY_BOMB_OFFSET_Y = 55f;
-        float CHERRY_BOMB_OFFSET_X = 15f;
-
-        return new CherryBomb(cx - CHERRY_BOMB_OFFSET_X, cy - CHERRY_BOMB_OFFSET_Y, col, row);
+        return new CherryBomb(x, y, col, row);
     }
 
-    public static Plant createPotatoMine(float x, float y, int col, int row) {
+    public static Plant createPotatoMineAtCell(int col, int row) {
+        float w = GridConfig.CELL_WIDTH * POTATOMINE_SCALE_X;
+        float h = GridConfig.CELL_HEIGHT * POTATOMINE_SCALE_Y;
+
+        float x = GridConfig.getActorXForCell(col, w);
+        float y = GridConfig.getActorYForCell(row, h);
+
         return new PotatoMine(x, y, col, row);
     }
 
     // =========================================================
-    // (OPTIONAL) NẾU MUỐN BỎ HẲN OVERLOAD CŨ
+    // MASTER FACTORY DÙNG ENUM + TOẠ ĐỘ WORLD (NẾU CẦN)
     // =========================================================
-    // Đã bỏ mấy hàm createSunflower(x, y) / createPeashooter(x, y) dùng col,row =
-    // -1
-    // để tránh bug khó hiểu. Nếu code cũ còn gọi, sửa sang dùng:
-    //
-    // PlantFactory.createPlantAtCell(PlantType.SUNFLOWER, col, row)
-    //
-    // hoặc
-    //
-    // PlantFactory.createPlant(PlantType.SUNFLOWER, x, y, col, row)
+
+    /**
+     * Nếu ở chỗ khác cậu đã có sẵn x, y (muốn custom vị trí) thì dùng hàm này.
+     * Nhưng đa số trường hợp nên dùng createPlantAtCell cho đỡ lệch grid.
+     */
+    public static Plant createPlant(PlantType type, float x, float y, int col, int row) {
+        switch (type) {
+            case SUNFLOWER:
+                return new SunFlower(x, y, col, row);
+            case PEASHOOTER:
+                return new Peashooter(x, y, col, row);
+            case WALLNUT:
+                return new Wallnut(x, y, col, row);
+            case CHERRY_BOMB:
+                return new CherryBomb(x, y, col, row);
+            case POTATO_MINE:
+                return new PotatoMine(x, y, col, row);
+            default:
+                throw new IllegalArgumentException("Unknown plant type: " + type);
+        }
+    }
 }

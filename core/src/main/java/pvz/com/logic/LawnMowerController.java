@@ -3,7 +3,7 @@ package pvz.com.logic;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.entities.Zombies.NormalZombie;
+import pvz.com.entities.Zombies.Zombies;
 import pvz.com.items.LawnMower;
 import pvz.com.managers.GridConfig;
 
@@ -33,7 +33,10 @@ public class LawnMowerController {
         }
     }
 
-    public void update(float delta, Array<NormalZombie> zombies) {
+    /**
+     * zombies: list zombie hiện tại trong game (base class Zombies)
+     */
+    public void update(float delta, Array<Zombies> zombies) {
         for (int i = lawnMowers.size - 1; i >= 0; i--) {
             LawnMower mower = lawnMowers.get(i);
             mower.update(delta, zombies);
