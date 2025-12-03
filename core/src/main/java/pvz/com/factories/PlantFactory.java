@@ -69,7 +69,16 @@ public class PlantFactory {
     }
 
     public static Plant createCherryBomb(float x, float y, int col, int row) {
-        return new CherryBomb(x, y, col, row);
+        float w = 90f;
+        float h = 90f;
+
+        float cx = GridConfig.getActorXForCell(col, w);
+        float cy = GridConfig.getActorYForCell(row, h);
+
+        float CHERRY_BOMB_OFFSET_Y = 55f;
+        float CHERRY_BOMB_OFFSET_X = 15f;
+
+        return new CherryBomb(cx - CHERRY_BOMB_OFFSET_X, cy - CHERRY_BOMB_OFFSET_Y, col, row);
     }
 
     public static Plant createPotatoMine(float x, float y, int col, int row) {

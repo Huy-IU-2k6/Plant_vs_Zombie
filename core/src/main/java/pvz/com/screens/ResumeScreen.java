@@ -32,17 +32,17 @@ public class ResumeScreen implements Screen {
     private static final float SIGN_CENTER_X_RATIO = 0.05f; // giống boardCenterX = stageW * 0.20f;
     private static final float SIGN_CENTER_Y_RATIO = 0.23f; // logo ở phía trên
 
-    // Nút Back – kích thước trên layout gốc
-    private static final float BACK_BASE_W = 820f;
-    private static final float BACK_BASE_H = 460f;
+    // Nút Back – nhỏ lại chút
+    private static final float BACK_BASE_W = 650f;
+    private static final float BACK_BASE_H = 260f;
+    private static final float BACK_CENTER_Y_RATIO = 0.68f;
     private static final float BACK_CENTER_X_RATIO = 0.70f;
-    private static final float BACK_CENTER_Y_RATIO = 0.65f;
 
-    // Nút Exit – kích thước trên layout gốc
-    private static final float EXIT_BASE_W = 720f;
-    private static final float EXIT_BASE_H = 360f;
+    // Nút Exit – kéo xuống thấp hơn
+    private static final float EXIT_BASE_W = 650f;
+    private static final float EXIT_BASE_H = 260f;
+    private static final float EXIT_CENTER_Y_RATIO = 0.40f;
     private static final float EXIT_CENTER_X_RATIO = 0.70f;
-    private static final float EXIT_CENTER_Y_RATIO = 0.45f;
 
     // Texture
     private final Texture bgTex;
