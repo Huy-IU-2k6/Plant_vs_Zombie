@@ -36,7 +36,7 @@ import pvz.com.systems.RenderSystem;
 import pvz.com.systems.SunProductionSystem;
 import pvz.com.systems.PlantAttackSystem;
 import pvz.com.systems.MovementSystem;
-import pvz.com.systems.ProjectileCollisionSystem;
+import pvz.com.systems.CollisionSystem;
 import pvz.com.systems.SunPickupSystem;
 
 // ===== Logic controllers =====
@@ -84,7 +84,7 @@ public class GameScreen implements Screen, IGameSpawner {
     private final SunProductionSystem sunSystem;
     private final PlantAttackSystem attackSystem;
     private final MovementSystem movementSystem;
-    private final ProjectileCollisionSystem projectileCollisionSystem;
+    private final CollisionSystem collisionSystem;
     private final SunPickupSystem sunPickupSystem;
 
     // ===== Controllers =====
@@ -147,9 +147,10 @@ public class GameScreen implements Screen, IGameSpawner {
         sunSystem = new SunProductionSystem(this, entities); // Sunflower sinh sun
         attackSystem = new PlantAttackSystem(this); // Plant bắn đạn
         movementSystem = new MovementSystem(); // Đạn / entity di chuyển
-        projectileCollisionSystem = new ProjectileCollisionSystem(
+        collisionSystem = new CollisionSystem(
                 entities,
-                zombieWaveController); // Đạn trúng zombie
+                zombieWaveController,
+                plantGridController); // Đạn trúng zombie
         sunPickupSystem = new SunPickupSystem(
                 entities,
                 camera,
@@ -332,7 +333,7 @@ public class GameScreen implements Screen, IGameSpawner {
             attackSystem.update(plants, delta); // plant bắn đạn (spawn PeaProjectile)
 
             movementSystem.update(entities, delta); // entity có MovementComponent di chuyển
-            projectileCollisionSystem.update(delta); // đạn đâm zombie
+            collisionSystem.update(delta); // đạn đâm zombie
             sunPickupSystem.update(delta); // sun tự biến mất nếu quá lâu
 
             // render tất cả entity ECS (plant, đạn, sun...)
