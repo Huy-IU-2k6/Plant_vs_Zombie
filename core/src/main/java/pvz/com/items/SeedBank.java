@@ -30,12 +30,11 @@ public class SeedBank extends Group {
 
     // toạ độ tâm của số 50 trên texture gốc (pixel trên ảnh gốc)
     // nếu lệch chút thì chỉnh 2 số này
-    private static final float SUN_LABEL_CENTER_X = 175f;
+    private static final float SUN_LABEL_CENTER_X = 180f;
     private static final float SUN_LABEL_CENTER_Y = 25f;
 
     public SeedBank(BitmapFont font) {
         bgTex = new Texture(Gdx.files.internal("images/items/seed_bank.png"));
-        setTransform(false);
 
         // style cho text sun
         Label.LabelStyle style = new Label.LabelStyle();

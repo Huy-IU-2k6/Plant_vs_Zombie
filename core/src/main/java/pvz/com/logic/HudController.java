@@ -114,7 +114,6 @@ public class HudController {
 
         sunPoints -= cost;
         seedBank.setSunAmount(sunPoints);
-        Gdx.app.log("HUD", "spendSun: -" + cost + ", total=" + sunPoints);
         return true;
     }
 

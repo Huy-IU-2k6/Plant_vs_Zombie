@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.entities.Zombies.NormalZombie;
+import pvz.com.entities.Zombies.Zombies;
 
 public class LawnMower {
 
@@ -45,13 +45,13 @@ public class LawnMower {
         this.bounds = new Rectangle(x, y, FIXED_WIDTH, FIXED_HEIGHT);
     }
 
-    public void update(float delta, Array<NormalZombie> zombies) {
+    public void update(float delta, Array<Zombies> zombies) {
         if (used)
             return;
 
         // Chưa active thì check va chạm để trigger
         if (!active) {
-            for (NormalZombie z : zombies) {
+            for (Zombies z : zombies) {
                 if (z.isDead())
                     continue;
                 if (bounds.overlaps(z.getBounds())) {
@@ -66,11 +66,11 @@ public class LawnMower {
             x += speed * delta;
             bounds.setPosition(x, y);
 
-            for (NormalZombie z : zombies) {
+            for (Zombies z : zombies) {
                 if (z.isDead())
                     continue;
                 if (bounds.overlaps(z.getBounds())) {
-                    z.instantKillByMower(); // hoặc z.takeDamage(9999);
+                    z.instantKillByMower(); // base class Zombies phải có hàm này
                 }
             }
 

@@ -14,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class ResumeScreen implements Screen {
 
@@ -22,6 +21,28 @@ public class ResumeScreen implements Screen {
     private final Screen previousScreen;
 
     private final Stage stage;
+
+    // ==== layout gốc 1920 x 1080 ====
+    private static final float BASE_SCREEN_W = 1920f;
+    private static final float BASE_SCREEN_H = 1080f;
+
+    // Logo PVZ (board) – kích thước trên layout gốc
+    private static final float SIGN_BASE_W = 450f;
+    private static final float SIGN_BASE_H = 180f;
+    private static final float SIGN_CENTER_X_RATIO = 0.05f; // giống boardCenterX = stageW * 0.20f;
+    private static final float SIGN_CENTER_Y_RATIO = 0.23f; // logo ở phía trên
+
+    // Nút Back – nhỏ lại chút
+    private static final float BACK_BASE_W = 650f;
+    private static final float BACK_BASE_H = 260f;
+    private static final float BACK_CENTER_Y_RATIO = 0.68f;
+    private static final float BACK_CENTER_X_RATIO = 0.70f;
+
+    // Nút Exit – kéo xuống thấp hơn
+    private static final float EXIT_BASE_W = 650f;
+    private static final float EXIT_BASE_H = 260f;
+    private static final float EXIT_CENTER_Y_RATIO = 0.40f;
+    private static final float EXIT_CENTER_X_RATIO = 0.70f;
 
     // Texture
     private final Texture bgTex;
@@ -55,18 +76,17 @@ public class ResumeScreen implements Screen {
 
         // Logo / bảng
         signImage = new Image(signTex);
-        signImage.setSize(450f, 180);
         stage.addActor(signImage);
 
         // Buttons
-        backButton = createButton(backTex, 820f, 460f, new ClickListener() {
+        backButton = createButton(backTex, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(previousScreen);
             }
         });
 
-        exitButton = createButton(exitTex, 720f, 360f, new ClickListener() {
+        exitButton = createButton(exitTex, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 Gdx.app.exit();
@@ -76,14 +96,13 @@ public class ResumeScreen implements Screen {
         stage.addActor(backButton);
         stage.addActor(exitButton);
 
-        // Đặt vị trí lần đầu
+        // Đặt kích thước + vị trí lần đầu
         layoutActors();
     }
 
-    private ImageButton createButton(Texture texture, float width, float height, ClickListener listener) {
+    private ImageButton createButton(Texture texture, ClickListener listener) {
         ImageButton button = new ImageButton(
                 new TextureRegionDrawable(new TextureRegion(texture)));
-        button.setSize(width, height);
         button.addListener(listener);
         return button;
     }
@@ -98,24 +117,41 @@ public class ResumeScreen implements Screen {
         float stageW = stage.getViewport().getWorldWidth();
         float stageH = stage.getViewport().getWorldHeight();
 
-        float graveCenterX = stageW * 0.7f;
-        float boardCenterX = stageW * 0.05f;
+        // scale chung theo chiều cao màn hình so với layout gốc
+        float scale = stageH / BASE_SCREEN_H;
 
-        float boardCenterY = stageH * 0.23f; // logo ở trên cao hơn
-        float backCenterY = stageH * 0.65f; // nút Back
-        float exitCenterY = stageH * 0.45f; // nút Exit
+        // ===== Logo =====
+        float signW = SIGN_BASE_W * scale;
+        float signH = SIGN_BASE_H * scale;
+        signImage.setSize(signW, signH);
+        centerActor(
+                signImage,
+                stageW * SIGN_CENTER_X_RATIO,
+                stageH * SIGN_CENTER_Y_RATIO);
 
-        // Logo
-        centerActor(signImage, boardCenterX, boardCenterY);
+        // ===== Back button =====
+        float backW = BACK_BASE_W * scale;
+        float backH = BACK_BASE_H * scale;
+        backButton.setSize(backW, backH);
+        centerActor(
+                backButton,
+                stageW * BACK_CENTER_X_RATIO,
+                stageH * BACK_CENTER_Y_RATIO);
 
-        // Buttons
-        centerActor(backButton, graveCenterX, backCenterY);
-        centerActor(exitButton, graveCenterX, exitCenterY);
+        // ===== Exit button =====
+        float exitW = EXIT_BASE_W * scale;
+        float exitH = EXIT_BASE_H * scale;
+        exitButton.setSize(exitW, exitH);
+        centerActor(
+                exitButton,
+                stageW * EXIT_CENTER_X_RATIO,
+                stageH * EXIT_CENTER_Y_RATIO);
     }
 
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
+        layoutActors(); // phòng trường hợp show lại sau khi đổi kích thước
     }
 
     @Override
@@ -130,7 +166,7 @@ public class ResumeScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
-        layoutActors(); // resize xong đặt lại vị trí tất cả
+        layoutActors(); // resize xong đặt lại size/position theo tỉ lệ
     }
 
     @Override
