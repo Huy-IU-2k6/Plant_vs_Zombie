@@ -38,6 +38,7 @@ import pvz.com.systems.PlantAttackSystem;
 import pvz.com.systems.MovementSystem;
 import pvz.com.systems.CollisionSystem;
 import pvz.com.systems.SunPickupSystem;
+import pvz.com.systems.CleanupSystem;
 
 // ===== Logic controllers =====
 import pvz.com.logic.HudController;
@@ -86,6 +87,7 @@ public class GameScreen implements Screen, IGameSpawner {
     private final MovementSystem movementSystem;
     private final CollisionSystem collisionSystem;
     private final SunPickupSystem sunPickupSystem;
+    private final CleanupSystem cleanupSystem = new CleanupSystem(entities);
 
     // ===== Controllers =====
     private final HudController hudController;
@@ -173,40 +175,32 @@ public class GameScreen implements Screen, IGameSpawner {
         if (state != State.PLAYING)
             return;
 
-        // 1) screen -> world
         Vector2 world = viewport.unproject(new Vector2(screenX, screenY));
 
-        // 2) world -> grid (snap về ô gần nhất)
+        // Snap + kiểm tra khoảng cách an toàn
         int[] cell = GridConfig.worldToNearestCell(world.x, world.y);
         int row = cell[0];
         int col = cell[1];
 
-        if (row < 0 || col < 0 || !GridConfig.isInsideGrid(row, col)) {
-            // thả ra ngoài lawn thì bỏ
+        if (row < 0 || col < 0) {
+            // thả quá xa lawn → bỏ
             return;
         }
 
-        // 3) check đủ điều kiện (sun, cooldown, lock)
         int currentSun = hudController.getSunPoints();
         if (!card.canUse(currentSun)) {
             return;
         }
 
-        // 4) cố gắng spawn cây trước
         boolean spawned = spawnPlantFromCardAtGrid(card, row, col);
         if (!spawned) {
-            // ví dụ ô đang bị chiếm hoặc PlantFactory lỗi → không trừ sun
             return;
         }
 
-        // 5) cây đã spawn thành công → trừ sun
         if (!hudController.spendSun(card.type.cost)) {
-            // về lý thuyết không nên vào được nhánh này (vì đã canUse),
-            // nhưng vẫn check an toàn
             return;
         }
 
-        // 6) bật cooldown card
         card.triggerUse();
     }
 
@@ -339,6 +333,8 @@ public class GameScreen implements Screen, IGameSpawner {
             // render tất cả entity ECS (plant, đạn, sun...)
             batch.setProjectionMatrix(camera.combined);
             renderSystem.update(entities);
+
+            cleanupSystem.update();
         }
 
         // --- HUD (SeedBank, countdown, card, sun text...) ---
@@ -399,5 +395,9 @@ public class GameScreen implements Screen, IGameSpawner {
 
     public boolean spendSun(int cost) {
         return hudController.spendSun(cost);
+    }
+
+    public int getSunPoints() {
+        return hudController.getSunPoints();
     }
 }

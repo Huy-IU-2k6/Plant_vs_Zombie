@@ -44,6 +44,10 @@ public class Zombies extends Actor {
     // ===== COLLISION =====
     private final Rectangle hitBox = new Rectangle();
 
+    // tỉ lệ hitbox so với sprite – THAY ĐỔI Ở ĐÂY NẾU MUỐN
+    private static final float HITBOX_WIDTH_RATIO = 0.6f; // 60% chiều rộng
+    private static final float HITBOX_HEIGHT_RATIO = 0.85f; // 85% chiều cao
+
     public Zombies() {
         zombieCount++;
 
@@ -57,7 +61,6 @@ public class Zombies extends Actor {
 
         // kích thước default, subclass có thể override
         setSize(70, 100);
-        // sync hitbox với vị trí ban đầu
         updateHitBox();
     }
 
@@ -112,20 +115,34 @@ public class Zombies extends Actor {
     @Override
     protected void positionChanged() {
         super.positionChanged();
-        // bất cứ khi nào Actor di chuyển, cập nhật hitbox
         updateHitBox();
     }
 
+    /**
+     * Hitbox THU NHỎ so với sprite:
+     * - Hẹp hơn ở 2 bên (bỏ tay, biên thừa)
+     * - Thấp hơn 1 chút (bỏ phần trên đầu nếu cần)
+     */
     private void updateHitBox() {
-        hitBox.set(getX(), getY(), getWidth(), getHeight());
+        float fullW = getWidth();
+        float fullH = getHeight();
+
+        float w = fullW * HITBOX_WIDTH_RATIO;
+        float h = fullH * HITBOX_HEIGHT_RATIO;
+
+        // canh giữa theo chiều ngang
+        float x = getX() + (fullW - w) / 2f;
+
+        // cho hitbox bám từ chân lên (ít bị "ăn hụt" nếu đạn bay ngang thân)
+        float y = getY();
+
+        hitBox.set(x, y, w, h);
     }
 
-    /** Subclass có thể override nếu có trạng thái EATING riêng. */
     public boolean isEating() {
         return eating;
     }
 
-    /** Cho hệ va chạm báo là zombie đang/không ăn cây. */
     public void setEating(boolean eating) {
         this.eating = eating;
     }
@@ -144,31 +161,23 @@ public class Zombies extends Actor {
         }
     }
 
-    /** Cherry bomb: chết cháy ngay lập tức (burnt animation). */
     public void killByCherryBomb() {
         die(true);
     }
 
-    /** Bị lawn mower cán: chết bình thường, vẫn có thể chạy animation thường. */
     public void killByMower() {
         die(false);
     }
 
-    /** Nếu muốn mower giết *instant* không cần animation thì gọi hàm này. */
     public void instantKillByMower() {
         if (dead)
             return;
 
         die(false);
-        // bỏ qua animation, remove luôn
         deathTimer = 0f;
         remove();
     }
 
-    /**
-     * Hàm chết chung.
-     * burnt = true nếu chết cháy (để subclass đổi sprite/animation Burnt_Zombie).
-     */
     protected void die(boolean burnt) {
         if (dead)
             return;
@@ -181,16 +190,13 @@ public class Zombies extends Actor {
             zombieCount--;
         }
 
-        // cho subclass override hook này để đổi animation
         onDie(burnt);
 
-        // set thời gian hiện animation chết
         deathTimer = burnt ? BURN_DEATH_DURATION : NORMAL_DEATH_DURATION;
     }
 
-    /** Hook cho subclass (FlagZombie, ConeheadZombie, v.v.) đổi animation chết. */
     protected void onDie(boolean burnt) {
-        // mặc định không làm gì, subclass tự set sprite/animation nếu muốn
+        // subclass override nếu muốn
     }
 
     public boolean isDead() {
@@ -202,7 +208,7 @@ public class Zombies extends Actor {
     }
 
     public Rectangle getBounds() {
-        // đảm bảo luôn khớp vị trí hiện tại
+        // phòng trường hợp có ai đó thay đổi size ngoài act()
         updateHitBox();
         return hitBox;
     }
@@ -218,7 +224,6 @@ public class Zombies extends Actor {
         chompSound.dispose();
     }
 
-    // (optional) helper static nếu cần ở chỗ khác
     public static boolean isGameOver() {
         return gameOver;
     }

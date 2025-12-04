@@ -60,16 +60,25 @@ public class PlantCard extends Image {
             public void dragStart(InputEvent event, float x, float y, int pointer) {
                 super.dragStart(event, x, y, pointer);
 
-                // nếu đang khoá hoặc cooldown thì không cho kéo
-                if (lockedByGame || cooldownRemaining > 0f || getStage() == null) {
+                if (getStage() == null)
+                    return;
+
+                GameScreen screen = getGameScreen();
+                if (screen == null)
+                    return;
+
+                int currentSun = screen.getSunPoints();
+
+                // nếu đang khoá, cooldown hoặc không đủ sun → không cho kéo
+                if (lockedByGame || cooldownRemaining > 0f || currentSun < type.cost) {
                     return;
                 }
 
-                // tạo ghost card bám theo chuột
+                // tạo ghost card
                 dragGhost = new Image(getDrawable());
-                dragGhost.setSize(WIDTH, HEIGHT);
+                dragGhost.setSize(getWidth(), getHeight());
                 dragGhost.setOrigin(Align.center);
-                dragGhost.setColor(1f, 1f, 1f, 0.8f); // hơi trong suốt
+                dragGhost.setColor(1f, 1f, 1f, 0.8f);
 
                 getStage().addActor(dragGhost);
                 updateGhostPosition(pointer);
