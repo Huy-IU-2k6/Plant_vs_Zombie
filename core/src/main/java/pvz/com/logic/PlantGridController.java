@@ -8,6 +8,7 @@ import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
 import pvz.com.managers.GridConfig;
+import pvz.com.entities.components.GridCellComponent;
 
 public class PlantGridController extends InputAdapter {
 
@@ -48,6 +49,15 @@ public class PlantGridController extends InputAdapter {
             return;
 
         plantGrid[row][col] = plant;
+
+        // Gắn / cập nhật GridCellComponent cho plant
+        if (!plant.hasComponent(GridCellComponent.class)) {
+            plant.addComponent(new GridCellComponent(row, col));
+        } else {
+            GridCellComponent cell = plant.getComponent(GridCellComponent.class);
+            cell.row = row;
+            cell.col = col;
+        }
     }
 
     /**

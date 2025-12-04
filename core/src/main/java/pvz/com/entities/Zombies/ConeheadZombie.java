@@ -1,10 +1,12 @@
 package pvz.com.entities.Zombies;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.utils.Array;
+
+import pvz.com.managers.GifManager;
 
 public class ConeheadZombie extends Zombies {
 
@@ -16,6 +18,8 @@ public class ConeheadZombie extends Zombies {
     private static final float WALK_FRAME_TIME = 0.20f;
     private static final float EAT_FRAME_TIME = 0.25f;
     private static final float DIE_FRAME_TIME = 0.20f;
+
+    private static final float DESIRED_HEIGHT = 120f;
 
     // Textures
     private final Texture walkConeSheet;
@@ -52,48 +56,40 @@ public class ConeheadZombie extends Zombies {
         this.speed = MOVE_SPEED;
 
         // Load textures (chỉnh path cho đúng với project của bạn)
-        walkConeSheet = new Texture("ConeheadZombie.gif");
-        eatConeSheet = new Texture("ConeheadZombie_Eat.gif");
+        walkConeSheet = new Texture(Gdx.files.internal("images/Zombies/ConeheadZombie.gif"));
+        eatConeSheet = new Texture(Gdx.files.internal("images/Zombies/ConeheadZombie_Eat.gif"));
 
-        walkNormalSheet = new Texture("NormalZombieRun.gif");
-        eatNormalSheet = new Texture("NormalZombieEat.gif");
-        dieNormalSheet = new Texture("ZombieDie.gif");
+        walkNormalSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieRun.gif"));
+        eatNormalSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieEat.gif"));
+        dieNormalSheet = new Texture(Gdx.files.internal("images/Zombies/ZombieDie.gif"));
 
-        burntZombieSheet = new Texture("BurntZombie.gif");
+        burntZombieSheet = new Texture(Gdx.files.internal("images/Zombies/BurntZombie.gif"));
 
-        // Build animations
-        walkConeAnim = createAnim(walkConeSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
-        eatConeAnim = createAnim(eatConeSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
+        // Build animations bằng GifManager
+        walkConeAnim = GifManager.createAnim(
+                walkConeSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
+        eatConeAnim = GifManager.createAnim(
+                eatConeSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        walkNormalAnim = createAnim(walkNormalSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
-        eatNormalAnim = createAnim(eatNormalSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
-        dieNormalAnim = createAnim(dieNormalSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
+        walkNormalAnim = GifManager.createAnim(
+                walkNormalSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
+        eatNormalAnim = GifManager.createAnim(
+                eatNormalSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
+        dieNormalAnim = GifManager.createAnim(
+                dieNormalSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
 
-        burntAnim = createAnim(burntZombieSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
+        burntAnim = GifManager.createAnim(
+                burntZombieSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
 
-        // Set actor size to first cone frame
+        // Scale chiều cao giống NormalZombie
         TextureRegion first = walkConeAnim.getKeyFrame(0f);
-        setSize(first.getRegionWidth(), first.getRegionHeight());
-    }
+        float originalW = first.getRegionWidth();
+        float originalH = first.getRegionHeight();
 
-    private Animation<TextureRegion> createAnim(Texture sheet,
-            int frameCount,
-            float frameDuration,
-            Animation.PlayMode playMode) {
+        float scale = DESIRED_HEIGHT / originalH;
+        float desiredWidth = originalW * scale;
 
-        int frameWidth = sheet.getWidth() / frameCount;
-        int frameHeight = sheet.getHeight();
-
-        TextureRegion[][] tmp = TextureRegion.split(sheet, frameWidth, frameHeight);
-
-        Array<TextureRegion> frames = new Array<>(frameCount);
-        for (int i = 0; i < frameCount; i++) {
-            frames.add(tmp[0][i]);
-        }
-
-        Animation<TextureRegion> anim = new Animation<>(frameDuration, frames);
-        anim.setPlayMode(playMode);
-        return anim;
+        setSize(desiredWidth, DESIRED_HEIGHT);
     }
 
     @Override
@@ -159,7 +155,13 @@ public class ConeheadZombie extends Zombies {
                 stateTime = 0f;
 
                 TextureRegion first = walkNormalAnim.getKeyFrame(0f);
-                setSize(first.getRegionWidth(), first.getRegionHeight());
+                float originalW = first.getRegionWidth();
+                float originalH = first.getRegionHeight();
+
+                float scale = DESIRED_HEIGHT / originalH;
+                float desiredWidth = originalW * scale;
+
+                setSize(desiredWidth, DESIRED_HEIGHT);
             }
             return;
         }
