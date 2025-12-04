@@ -9,6 +9,7 @@ import pvz.com.entities.components.BoundsComponent;
 import pvz.com.entities.components.DamageComponent;
 import pvz.com.entities.components.PositionComponent;
 import pvz.com.entities.components.ProjectileTagComponent;
+import pvz.com.entities.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.Zombies.Zombies;
 import pvz.com.logic.ZombieWaveController;
 
@@ -52,7 +53,13 @@ public class ProjectileCollisionSystem {
                 if (pBounds.bounds.overlaps(zRect)) {
                     // Trừ máu bằng API sẵn có
                     z.takeDamage(damage.amount);
-
+                    if (projectile instanceof FrozenPeaProjectile) {
+                        // Lấy component Effect từ Zombie (Bạn cần đảm bảo Zombie có component này khi khởi tạo)
+                        // Vì NormalZombie của bạn đang là OOP thuần (chưa full ECS), 
+                        // bạn có thể thêm hàm applySlow() vào class NormalZombie.
+             
+                        z.applySlow(3.0f, 0.5f); // Làm chậm 3 giây, giảm 50% tốc độ
+        }
                     // Đạn biến mất
                     toRemove.add(projectile);
                     break; // viên đạn này xong rồi

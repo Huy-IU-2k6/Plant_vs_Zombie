@@ -5,6 +5,7 @@ import pvz.com.entities.plants.PlantType;
 
 import pvz.com.entities.plants.producers.SunFlower;
 import pvz.com.entities.plants.shooters.Peashooter;
+import pvz.com.entities.plants.shooters.SnowPea;
 import pvz.com.entities.plants.defenders.Wallnut;
 import pvz.com.entities.plants.bombs.CherryBomb;
 import pvz.com.entities.plants.bombs.PotatoMine;
@@ -31,6 +32,9 @@ public class PlantFactory {
     public static Plant createPotatoMine(float x, float y, int col, int row) {
         return new PotatoMine(x, y, col, row);
     }
+    public static Plant createSnowPea(float x, float y, int col, int row) {
+        return new SnowPea(x, y, col, row);
+    }
 
     // ===== MASTER FACTORY DÙNG ENUM =====
     public static Plant createPlant(PlantType type, float x, float y, int col, int row) {
@@ -45,6 +49,8 @@ public class PlantFactory {
                 return createCherryBomb(x, y, col, row);
             case POTATO_MINE:
                 return createPotatoMine(x, y, col, row);
+            case SNOW_PEA: // <--- Thêm case này
+                return createSnowPea(x, y, col, row);
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }
