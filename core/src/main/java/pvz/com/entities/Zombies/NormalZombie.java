@@ -11,27 +11,25 @@ import pvz.com.managers.GifManager;
 public class NormalZombie extends Zombies {
 
     // ===== CONST =====
-    private static final int MAX_HEALTH = 100;
-    private static final float MOVE_SPEED = 15f;
+    private static final int BODY_HEALTH = 100;
+    private static final float MOVE_SPEED = 12f;
     private static final int FRAMES_PER_ROW = 1;
     private static final float WALK_FRAME_TIME = 0.20f;
     private static final float DIE_FRAME_TIME = 0.20f;
     private static final float EAT_FRAME_TIME = 0.25f;
 
     // Chiều cao zombie mong muốn trong world (vừa 1 ô cỏ ~ 100)
-
     private static final float DESIRED_HEIGHT = 120f;
-
 
     // Spritesheets
     private final Texture walkSheet;
-    private final Texture dyingSheet;
+    private final Texture dieSheet;
     private final Texture eatSheet;
 
     // Animations
-    private final Animation<TextureRegion> walkAnimation;
-    private final Animation<TextureRegion> dyingAnimation;
-    private final Animation<TextureRegion> eatAnimation;
+    private final Animation<TextureRegion> walkAnim;
+    private final Animation<TextureRegion> dieAnim;
+    private final Animation<TextureRegion> eatAnim;
 
     // State
     private float stateTime = 0f;
@@ -43,18 +41,18 @@ public class NormalZombie extends Zombies {
 
         // ===== Load GIFs =====
         walkSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieRun.gif"));
-        dyingSheet = new Texture(Gdx.files.internal("images/Zombies/ZombieDie.gif"));
+        dieSheet = new Texture(Gdx.files.internal("images/Zombies/ZombieDie.gif"));
         eatSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieEat.gif"));
 
-        walkAnimation = GifManager.createAnim(
+        walkAnim = GifManager.createAnim(
                 walkSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
-        dyingAnimation = GifManager.createAnim(
-                dyingSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
-        eatAnimation = GifManager.createAnim(
+        dieAnim = GifManager.createAnim(
+                dieSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
+        eatAnim = GifManager.createAnim(
                 eatSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
         // ===== Set size với scale thay vì size gốc =====
-        TextureRegion firstFrame = walkAnimation.getKeyFrame(0f);
+        TextureRegion firstFrame = walkAnim.getKeyFrame(0f);
         float originalW = firstFrame.getRegionWidth();
         float originalH = firstFrame.getRegionHeight();
 
@@ -64,7 +62,7 @@ public class NormalZombie extends Zombies {
         setSize(desiredWidth, DESIRED_HEIGHT);
 
         // ===== Health & speed =====
-        this.health = MAX_HEALTH;
+        this.health = BODY_HEALTH;
         this.speed = MOVE_SPEED;
     }
 
@@ -74,7 +72,7 @@ public class NormalZombie extends Zombies {
         if (isDying) {
             stateTime += delta;
 
-            if (dyingAnimation.isAnimationFinished(stateTime)) {
+            if (dieAnim.isAnimationFinished(stateTime)) {
                 dead = true;
                 speed = 0f;
                 if (zombieCount > 0) {
@@ -85,14 +83,8 @@ public class NormalZombie extends Zombies {
             return;
         }
 
-        // Cập nhật trạng thái ăn (sau này thay isTouchingPlant bằng va chạm thật)
-        boolean touchingPlant = isTouchingPlant();
-        if (touchingPlant != isEating) {
-            isEating = touchingPlant;
-            stateTime = 0f;
-        }
-
-        // Logic chung: di chuyển, sound, gameOver, ...
+        // Không tự xử lý isEating ở đây nữa.
+        // CollisionSystem sẽ gọi setEating(true/false).
         super.act(delta);
 
         // Cập nhật thời gian animation
@@ -108,11 +100,11 @@ public class NormalZombie extends Zombies {
         Animation<TextureRegion> currentAnim;
 
         if (isDying) {
-            currentAnim = dyingAnimation;
+            currentAnim = dieAnim;
         } else if (isEating) {
-            currentAnim = eatAnimation;
+            currentAnim = eatAnim;
         } else {
-            currentAnim = walkAnimation;
+            currentAnim = walkAnim;
         }
 
         TextureRegion frame = currentAnim.getKeyFrame(stateTime);
@@ -160,14 +152,29 @@ public class NormalZombie extends Zombies {
         return isEating;
     }
 
-    // Tạm thời stub, bạn thay bằng logic va chạm plant sau
-    private boolean isTouchingPlant() {
-        return false;
+    public void setEating(boolean eating) {
+        if (isDying || dead)
+            return;
+
+        if (this.isEating == eating) {
+            return; // không đổi gì thì thôi
+        }
+
+        this.isEating = eating;
+        stateTime = 0f; // reset lại anim để chuyển mượt hơn
+
+        if (eating) {
+            // Đứng lại, để Zombies.act() không moveBy nữa
+            this.speed = 0f;
+        } else {
+            // Đi tiếp như bình thường
+            this.speed = MOVE_SPEED;
+        }
     }
 
     public void dispose() {
         walkSheet.dispose();
-        dyingSheet.dispose();
+        dieSheet.dispose();
         eatSheet.dispose();
     }
 }

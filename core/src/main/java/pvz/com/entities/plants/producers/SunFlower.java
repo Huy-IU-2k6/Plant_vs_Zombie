@@ -20,8 +20,8 @@ public class SunFlower extends Plant {
                 GridConfig.CELL_HEIGHT * SCALE_Y);
 
         // Hình ảnh
-        this.addComponent(new SpriteComponent("images/Plants/sunflowerani.gif"));
-        
+        this.addComponent(new SpriteComponent("images/Plants/SunFlower.gif"));
+
         // Trạng thái (IDLE -> PRODUCE -> IDLE)
         this.addComponent(new StateComponent(EntityState.IDLE));
 

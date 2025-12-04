@@ -25,7 +25,7 @@ public class Zombies extends Actor {
     protected float speed = 20f;
     protected int health = 100;
 
-    // dead = đã chết, đang nằm trong animation chết, chuẩn bị bị remove
+    // dead = đã chết, đang trong animation chết, chuẩn bị bị remove
     protected boolean dead = false;
 
     // thời gian hiển thị animation chết trước khi remove
@@ -33,6 +33,9 @@ public class Zombies extends Actor {
     private static final float BURN_DEATH_DURATION = 1.0f;
     private float deathTimer = 0f;
     private boolean burntDeath = false;
+
+    // ===== STATE =====
+    protected boolean eating = false;
 
     // ===== TIMERS =====
     private float soundTimer = 0f;
@@ -44,6 +47,7 @@ public class Zombies extends Actor {
     public Zombies() {
         zombieCount++;
 
+        // âm thanh spawn
         comingZombieSound.play(0.8f);
         groanSound.play(0.6f);
 
@@ -51,7 +55,10 @@ public class Zombies extends Actor {
             brainzSound.play(0.7f);
         }
 
+        // kích thước default, subclass có thể override
         setSize(70, 100);
+        // sync hitbox với vị trí ban đầu
+        updateHitBox();
     }
 
     @Override
@@ -72,8 +79,7 @@ public class Zombies extends Actor {
 
         // ----- ZOMBIE CÒN SỐNG: di chuyển, âm thanh, cắn cây -----
         moveBy(-speed * delta, 0);
-
-        hitBox.set(getX(), getY(), getWidth(), getHeight());
+        // hitBox sẽ được update trong positionChanged()
 
         // random tiếng rên
         soundTimer += delta;
@@ -103,9 +109,25 @@ public class Zombies extends Actor {
         }
     }
 
-    /** Subclass override nếu có trạng thái EATING riêng. */
+    @Override
+    protected void positionChanged() {
+        super.positionChanged();
+        // bất cứ khi nào Actor di chuyển, cập nhật hitbox
+        updateHitBox();
+    }
+
+    private void updateHitBox() {
+        hitBox.set(getX(), getY(), getWidth(), getHeight());
+    }
+
+    /** Subclass có thể override nếu có trạng thái EATING riêng. */
     public boolean isEating() {
-        return false;
+        return eating;
+    }
+
+    /** Cho hệ va chạm báo là zombie đang/không ăn cây. */
+    public void setEating(boolean eating) {
+        this.eating = eating;
     }
 
     // ======================================================================
@@ -127,7 +149,7 @@ public class Zombies extends Actor {
         die(true);
     }
 
-    /** Bị lawn mower cán: có thể dùng die(false) (cho phép animation thường). */
+    /** Bị lawn mower cán: chết bình thường, vẫn có thể chạy animation thường. */
     public void killByMower() {
         die(false);
     }
@@ -180,6 +202,8 @@ public class Zombies extends Actor {
     }
 
     public Rectangle getBounds() {
+        // đảm bảo luôn khớp vị trí hiện tại
+        updateHitBox();
         return hitBox;
     }
 
@@ -192,5 +216,14 @@ public class Zombies extends Actor {
         groanSound.dispose();
         brainzSound.dispose();
         chompSound.dispose();
+    }
+
+    // (optional) helper static nếu cần ở chỗ khác
+    public static boolean isGameOver() {
+        return gameOver;
+    }
+
+    public static int getZombieCount() {
+        return zombieCount;
     }
 }

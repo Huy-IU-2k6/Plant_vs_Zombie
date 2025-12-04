@@ -17,90 +17,105 @@ public class BucketheadZombie extends Zombies {
     private static final int BUCKET_HEALTH = 300; // Bucket HP
     private static final float MOVE_SPEED = 45f;
 
-    // tuỳ spritesheet của bạn, hiện đang giả sử 4 frame trên 1 hàng
-    private static final int FRAME_COUNT = 4;
+    // Tuỳ spritesheet của bạn, hiện đang giả sử 4 frame trên 1 hàng
+    private static final int FRAMES_PER_ROW = 4;
     private static final float WALK_FRAME_TIME = 0.15f;
-    private static final float ATTACK_FRAME_TIME = 0.15f;
+    private static final float EAT_FRAME_TIME = 0.15f;
     private static final float BURNT_FRAME_TIME = 0.15f;
 
+    // Chiều cao mong muốn (đồng bộ với NormalZombie)
+    private static final float DESIRED_HEIGHT = 120f;
+
     // ---------- STATE ----------
-    private int bucketHP;
+    private int bucketHealth;
     private boolean bucketLost = false;
 
     private boolean isEating = false;
     private boolean isBurnt = false;
 
-    private float animationTimer = 0f;
+    private float stateTime = 0f;
 
     // ---------- TEXTURES ----------
     private final Texture bucketWalkSheet;
-    private final Texture bucketAttackSheet;
+    private final Texture bucketEatSheet;
 
     private final Texture normalWalkSheet;
-    private final Texture normalAttackSheet;
+    private final Texture normalEatSheet;
 
     private final Texture burntSheet;
 
     // ---------- ANIMATIONS ----------
     private final Animation<TextureRegion> walkAnim;
-    private final Animation<TextureRegion> attackAnim;
+    private final Animation<TextureRegion> eatAnim;
 
     private final Animation<TextureRegion> normalWalkAnim;
-    private final Animation<TextureRegion> normalAttackAnim;
+    private final Animation<TextureRegion> normalEatAnim;
 
     private final Animation<TextureRegion> burntAnim;
 
     // ---------- SOUNDS ----------
     private final Sound groanSound;
 
-    public BucketheadZombie(float x, float y) {
-        setPosition(x, y);
+    public BucketheadZombie() {
+        super();
 
         this.health = BODY_HEALTH;
-        this.bucketHP = BUCKET_HEALTH;
+        this.bucketHealth = BUCKET_HEALTH;
         this.speed = MOVE_SPEED;
 
         // --------- LOAD TEXTURES ----------
-        // Chỉnh path cho đúng với project của bạn
-        bucketWalkSheet = new Texture(Gdx.files.internal("BucketheadZombieRun.gif"));
-        bucketAttackSheet = new Texture(Gdx.files.internal("BucketheadZombieAttack.gif"));
+        bucketWalkSheet = new Texture(
+                Gdx.files.internal("images/Zombies/BucketheadZombieRun.gif"));
+        bucketEatSheet = new Texture(
+                Gdx.files.internal("images/Zombies/BucketheadZombieAttack.gif"));
 
-        normalWalkSheet = new Texture(Gdx.files.internal("NormalZombieRun.gif"));
-        normalAttackSheet = new Texture(Gdx.files.internal("NormalZombieAttack.gif"));
+        normalWalkSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieRun.gif"));
+        normalEatSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieEat.gif"));
 
-        burntSheet = new Texture(Gdx.files.internal("BurntZombie.gif"));
+        burntSheet = new Texture(
+                Gdx.files.internal("images/Zombies/BurntZombie.gif"));
 
         // --------- CREATE ANIMATIONS ----------
         walkAnim = GifManager.createAnim(
                 bucketWalkSheet,
-                FRAME_COUNT,
+                FRAMES_PER_ROW,
                 WALK_FRAME_TIME,
                 PlayMode.LOOP);
 
-        attackAnim = GifManager.createAnim(
-                bucketAttackSheet,
-                FRAME_COUNT,
-                ATTACK_FRAME_TIME,
+        eatAnim = GifManager.createAnim(
+                bucketEatSheet,
+                FRAMES_PER_ROW,
+                EAT_FRAME_TIME,
                 PlayMode.LOOP);
 
         normalWalkAnim = GifManager.createAnim(
                 normalWalkSheet,
-                FRAME_COUNT,
+                FRAMES_PER_ROW,
                 WALK_FRAME_TIME,
                 PlayMode.LOOP);
 
-        normalAttackAnim = GifManager.createAnim(
-                normalAttackSheet,
-                FRAME_COUNT,
-                ATTACK_FRAME_TIME,
+        normalEatAnim = GifManager.createAnim(
+                normalEatSheet,
+                FRAMES_PER_ROW,
+                EAT_FRAME_TIME,
                 PlayMode.LOOP);
 
         burntAnim = GifManager.createAnim(
                 burntSheet,
-                FRAME_COUNT,
+                FRAMES_PER_ROW,
                 BURNT_FRAME_TIME,
                 PlayMode.NORMAL // cháy 1 lần rồi thôi
         );
+
+        // --------- SCALE THE ZOMBIE HEIGHT ----------
+        TextureRegion firstFrame = walkAnim.getKeyFrame(0f);
+        float originalW = firstFrame.getRegionWidth();
+        float originalH = firstFrame.getRegionHeight();
+
+        float scale = DESIRED_HEIGHT / originalH;
+        float desiredWidth = originalW * scale;
+
+        setSize(desiredWidth, DESIRED_HEIGHT);
 
         // Zombie groan sound
         groanSound = Gdx.audio.newSound(Gdx.files.internal("sounds/groan.wav"));
@@ -117,9 +132,9 @@ public class BucketheadZombie extends Zombies {
 
         // Damage bucket trước
         if (!bucketLost) {
-            bucketHP -= dmg;
+            bucketHealth -= dmg;
 
-            if (bucketHP <= 0) {
+            if (bucketHealth <= 0) {
                 bucketLost = true; // không cần sound
             }
             return;
@@ -162,7 +177,7 @@ public class BucketheadZombie extends Zombies {
             zombieCount--;
         }
 
-        animationTimer = 0f;
+        stateTime = 0f;
         // không remove ngay, chờ burntAnim xong trong draw()
     }
 
@@ -173,7 +188,7 @@ public class BucketheadZombie extends Zombies {
     public void act(float delta) {
         super.act(delta); // xử lý move, sound, gameOver ở base
 
-        animationTimer += delta;
+        stateTime += delta;
 
         // Khi cháy hoặc dead thì không cần xử lý thêm
         if (isBurnt || dead)
@@ -189,10 +204,10 @@ public class BucketheadZombie extends Zombies {
 
         // Burnt zombie death animation
         if (isBurnt) {
-            frame = burntAnim.getKeyFrame(animationTimer, false);
-            batch.draw(frame, getX(), getY());
+            frame = burntAnim.getKeyFrame(stateTime, false);
+            batch.draw(frame, getX(), getY(), getWidth(), getHeight());
 
-            if (burntAnim.isAnimationFinished(animationTimer)) {
+            if (burntAnim.isAnimationFinished(stateTime)) {
                 remove();
             }
             return;
@@ -203,15 +218,15 @@ public class BucketheadZombie extends Zombies {
 
         // Buckethead animations
         if (!bucketLost) {
-            frame = (isEating ? attackAnim : walkAnim)
-                    .getKeyFrame(animationTimer, true);
+            frame = (isEating ? eatAnim : walkAnim)
+                    .getKeyFrame(stateTime, true);
         } else {
             // After bucket breaks → normal zombie anims
-            frame = (isEating ? normalAttackAnim : normalWalkAnim)
-                    .getKeyFrame(animationTimer, true);
+            frame = (isEating ? normalEatAnim : normalWalkAnim)
+                    .getKeyFrame(stateTime, true);
         }
 
-        batch.draw(frame, getX(), getY());
+        batch.draw(frame, getX(), getY(), getWidth(), getHeight());
     }
 
     // ------------------------------------------------------
@@ -228,5 +243,14 @@ public class BucketheadZombie extends Zombies {
     @Override
     public boolean isEating() {
         return isEating;
+    }
+
+    public void dispose() {
+        bucketWalkSheet.dispose();
+        bucketEatSheet.dispose();
+        normalWalkSheet.dispose();
+        normalEatSheet.dispose();
+        burntSheet.dispose();
+        groanSound.dispose();
     }
 }
