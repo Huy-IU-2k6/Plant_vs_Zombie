@@ -5,9 +5,11 @@ import pvz.com.entities.plants.PlantType;
 
 import pvz.com.entities.plants.producers.SunFlower;
 import pvz.com.entities.plants.shooters.Peashooter;
+import pvz.com.entities.plants.shooters.SnowPea;
 import pvz.com.entities.plants.defenders.Wallnut;
 import pvz.com.entities.plants.bombs.CherryBomb;
 import pvz.com.entities.plants.bombs.PotatoMine;
+import pvz.com.entities.plants.shooters.SnowPea;
 
 import pvz.com.managers.GridConfig;
 
@@ -32,7 +34,9 @@ public class PlantFactory {
     // CherryBomb dùng size riêng (gif vuông)
     private static final float CHERRY_BOMB_WIDTH = 90f;
     private static final float CHERRY_BOMB_HEIGHT = 90f;
-
+    
+    private static final float SNOWPEA_SCALE_X = 0.7f;
+    private static final float SNOWPEA_SCALE_Y = 0.8f;
     // offset để CherryBomb nằm đẹp hơn trong ô
     private static final float CHERRY_BOMB_OFFSET_X = 15f;
     private static final float CHERRY_BOMB_OFFSET_Y = 55f;
@@ -57,6 +61,8 @@ public class PlantFactory {
                 return createCherryBombAtCell(col, row);
             case POTATO_MINE:
                 return createPotatoMineAtCell(col, row);
+            case SNOW_PEA: // [FIX] Thêm case SnowPea
+                return createSnowPeaAtCell(col, row);
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }
@@ -116,6 +122,13 @@ public class PlantFactory {
 
         return new PotatoMine(x, y, col, row);
     }
+    public static Plant createSnowPeaAtCell(int col, int row) {
+        float w = GridConfig.CELL_WIDTH * SNOWPEA_SCALE_X;
+        float h = GridConfig.CELL_HEIGHT * SNOWPEA_SCALE_Y;
+        float x = GridConfig.getActorXForCell(col, w);
+        float y = GridConfig.getActorYForCell(row, h);
+        return new SnowPea(x, y, col, row);
+    }
 
     // =========================================================
     // MASTER FACTORY DÙNG ENUM + TOẠ ĐỘ WORLD (NẾU CẦN)
@@ -137,6 +150,8 @@ public class PlantFactory {
                 return new CherryBomb(x, y, col, row);
             case POTATO_MINE:
                 return new PotatoMine(x, y, col, row);
+            case SNOW_PEA: // [FIX] Thêm case SnowPea vào đây luôn
+                return new SnowPea(x, y, col, row);
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }

@@ -177,4 +177,5 @@ public class NormalZombie extends Zombies {
         dieSheet.dispose();
         eatSheet.dispose();
     }
+    
 }

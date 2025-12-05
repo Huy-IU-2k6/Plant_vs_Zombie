@@ -29,6 +29,7 @@ import pvz.com.entities.plants.PlantType;
 import pvz.com.factories.PlantFactory;
 import pvz.com.entities.suns.Sun;
 import pvz.com.entities.components.PlantDamageType;
+import pvz.com.entities.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.projectiles.PeaProjectile;
 
 import pvz.com.systems.IGameSpawner;
@@ -389,6 +390,10 @@ public class GameScreen implements Screen, IGameSpawner {
             Entity pea = new PeaProjectile(x, y, damage);
             entities.add(pea);
         }
+        else if (projectileClass == FrozenPeaProjectile.class) {
+        Entity frozenPea = new FrozenPeaProjectile(x, y, damage);
+        entities.add(frozenPea);
+    }
         // sau này nếu có nhiều loại đạn thì thêm else-if ở đây
     }
 

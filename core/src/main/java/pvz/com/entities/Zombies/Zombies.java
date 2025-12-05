@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-
+import com.badlogic.gdx.graphics.Color;
 public class Zombies extends Actor {
 
     // ===== STATIC STATE =====
@@ -24,6 +24,10 @@ public class Zombies extends Actor {
     // ===== CONFIG =====
     protected float speed = 20f;
     protected int health = 100;
+    protected float baseSpeed = 20f; 
+    protected boolean isSlowed = false; 
+    protected float slowTimer = 0f;     
+    // dead = đã chết, đang nằm trong animation chết, chuẩn bị bị remove
 
     // dead = đã chết, đang trong animation chết, chuẩn bị bị remove
     protected boolean dead = false;
@@ -57,6 +61,7 @@ public class Zombies extends Actor {
 
         // kích thước default, subclass có thể override
         setSize(70, 100);
+        this.speed = baseSpeed;
         // sync hitbox với vị trí ban đầu
         updateHitBox();
     }
@@ -76,6 +81,16 @@ public class Zombies extends Actor {
             }
             return;
         }
+                if (isSlowed) {
+                    slowTimer -= delta;
+            // Nếu hết thời gian làm chậm
+            if (slowTimer <= 0) {
+                isSlowed = false;
+                this.speed = this.baseSpeed; // Trả lại tốc độ gốc
+                this.setColor(Color.WHITE);  // Trả lại màu trắng bình thường
+            }
+        }
+
 
         // ----- ZOMBIE CÒN SỐNG: di chuyển, âm thanh, cắn cây -----
         moveBy(-speed * delta, 0);
@@ -107,6 +122,7 @@ public class Zombies extends Actor {
         if (getX() < 0) {
             gameOver = true;
         }
+        
     }
 
     @Override
@@ -217,6 +233,24 @@ public class Zombies extends Actor {
         brainzSound.dispose();
         chompSound.dispose();
     }
+    public void applySlow(float duration, float factor) {
+    // 1. Nếu zombie đã chết thì không làm gì cả
+    if (dead) return;
+
+    // 2. Kích hoạt trạng thái bị làm chậm
+    this.isSlowed = true;
+    
+    // 3. Gán thời gian (nếu đang bị chậm rồi thì reset lại thời gian mới)
+    this.slowTimer = duration;
+
+    // 4. Tính toán tốc độ mới
+    // LƯU Ý: Phải nhân từ baseSpeed (tốc độ gốc), không nhân trực tiếp vào this.speed
+    // để tránh trường hợp bị nhân chồng chéo (0.5 * 0.5 * ...) khiến zombie đứng yên.
+    this.speed = this.baseSpeed * factor;
+
+    // 5. Đổi màu Zombie sang xanh nhạt để người chơi nhận biết
+    // (R=0.5, G=0.5, B=1.0, Alpha=1.0)
+    this.setColor(0.5f, 0.5f, 1f, 1f);}
 
     // (optional) helper static nếu cần ở chỗ khác
     public static boolean isGameOver() {
