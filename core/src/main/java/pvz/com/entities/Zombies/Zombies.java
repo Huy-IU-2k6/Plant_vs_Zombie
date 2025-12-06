@@ -1,25 +1,19 @@
 package pvz.com.entities.Zombies;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.graphics.Color;
 public class Zombies extends Actor {
+    // ===== STATE =====
+    private boolean eating = false;
 
     // ===== STATIC STATE =====
     protected static boolean gameOver = false;
     protected static int zombieCount = 0;
 
-    // ===== SOUNDS =====
-    private static final Sound comingZombieSound = Gdx.audio.newSound(
-            Gdx.files.internal("sounds/zombies_are_coming.wav"));
-    private static final Sound groanSound = Gdx.audio.newSound(
-            Gdx.files.internal("sounds/groan.wav"));
-    private static final Sound brainzSound = Gdx.audio.newSound(
-            Gdx.files.internal("sounds/brainz.wav"));
-    private static final Sound chompSound = Gdx.audio.newSound(
-            Gdx.files.internal("sounds/chomp.wav"));
+    // ===== COMPOSITION =====
+    protected final ZombieSounds zombieSounds = new ZombieSounds(Zombies.this);
+    protected ZombieBounds zombieBounds;
 
     // ===== CONFIG =====
     protected float speed = 20f;
@@ -38,32 +32,16 @@ public class Zombies extends Actor {
     private float deathTimer = 0f;
     private boolean burntDeath = false;
 
-    // ===== STATE =====
-    protected boolean eating = false;
-
-    // ===== TIMERS =====
-    private float soundTimer = 0f;
-    private float chompTimer = 0f;
-
-    // ===== COLLISION =====
-    private final Rectangle hitBox = new Rectangle();
-
     public Zombies() {
         zombieCount++;
 
-        // âm thanh spawn
-        comingZombieSound.play(0.8f);
-        groanSound.play(0.6f);
-
-        if (Math.random() < 0.3f) {
-            brainzSound.play(0.7f);
-        }
-
         // kích thước default, subclass có thể override
         setSize(70, 100);
-        this.speed = baseSpeed;
-        // sync hitbox với vị trí ban đầu
-        updateHitBox();
+
+        // tạo hitbox dựa theo size ban đầu
+        zombieBounds = new ZombieBounds(getWidth(), getHeight());
+        // sync lần đầu
+        zombieBounds.update(getX(), getY(), getWidth(), getHeight());
     }
 
     @Override
@@ -72,6 +50,9 @@ public class Zombies extends Actor {
 
         if (gameOver)
             return;
+
+        // update âm thanh
+        zombieSounds.act(delta);
 
         // ----- ĐANG CHẾT: chỉ đếm timer, hết thì remove -----
         if (dead) {
@@ -92,31 +73,9 @@ public class Zombies extends Actor {
         }
 
 
-        // ----- ZOMBIE CÒN SỐNG: di chuyển, âm thanh, cắn cây -----
+        // ----- ZOMBIE CÒN SỐNG: di chuyển -----
         moveBy(-speed * delta, 0);
         // hitBox sẽ được update trong positionChanged()
-
-        // random tiếng rên
-        soundTimer += delta;
-        if (soundTimer > 4f) {
-            double r = Math.random();
-            if (r < 0.7)
-                groanSound.play(0.5f);
-            else
-                brainzSound.play(0.6f);
-            soundTimer = 0f;
-        }
-
-        // tiếng cắn khi đang ăn
-        if (isEating()) {
-            chompTimer += delta;
-            if (chompTimer > 0.85f) {
-                chompSound.play(0.7f);
-                chompTimer = 0f;
-            }
-        } else {
-            chompTimer = 0f;
-        }
 
         // chạm nhà -> thua
         if (getX() < 0) {
@@ -128,22 +87,10 @@ public class Zombies extends Actor {
     @Override
     protected void positionChanged() {
         super.positionChanged();
-        // bất cứ khi nào Actor di chuyển, cập nhật hitbox
-        updateHitBox();
-    }
-
-    private void updateHitBox() {
-        hitBox.set(getX(), getY(), getWidth(), getHeight());
-    }
-
-    /** Subclass có thể override nếu có trạng thái EATING riêng. */
-    public boolean isEating() {
-        return eating;
-    }
-
-    /** Cho hệ va chạm báo là zombie đang/không ăn cây. */
-    public void setEating(boolean eating) {
-        this.eating = eating;
+        // mỗi khi Actor đổi vị trí -> cập nhật hitbox
+        if (zombieBounds != null) {
+            zombieBounds.update(getX(), getY(), getWidth(), getHeight());
+        }
     }
 
     // ======================================================================
@@ -160,31 +107,23 @@ public class Zombies extends Actor {
         }
     }
 
-    /** Cherry bomb: chết cháy ngay lập tức (burnt animation). */
     public void killByCherryBomb() {
         die(true);
     }
 
-    /** Bị lawn mower cán: chết bình thường, vẫn có thể chạy animation thường. */
     public void killByMower() {
         die(false);
     }
 
-    /** Nếu muốn mower giết *instant* không cần animation thì gọi hàm này. */
     public void instantKillByMower() {
         if (dead)
             return;
 
         die(false);
-        // bỏ qua animation, remove luôn
         deathTimer = 0f;
         remove();
     }
 
-    /**
-     * Hàm chết chung.
-     * burnt = true nếu chết cháy (để subclass đổi sprite/animation Burnt_Zombie).
-     */
     protected void die(boolean burnt) {
         if (dead)
             return;
@@ -193,20 +132,20 @@ public class Zombies extends Actor {
         burntDeath = burnt;
         speed = 0f;
 
+        // dừng trạng thái đang ăn (nếu có) để tắt tiếng chomp
+        setEating(false);
+
         if (zombieCount > 0) {
             zombieCount--;
         }
 
-        // cho subclass override hook này để đổi animation
         onDie(burnt);
 
-        // set thời gian hiện animation chết
         deathTimer = burnt ? BURN_DEATH_DURATION : NORMAL_DEATH_DURATION;
     }
 
-    /** Hook cho subclass (FlagZombie, ConeheadZombie, v.v.) đổi animation chết. */
     protected void onDie(boolean burnt) {
-        // mặc định không làm gì, subclass tự set sprite/animation nếu muốn
+        // subclass override nếu muốn (đổi animation chết, v.v.)
     }
 
     public boolean isDead() {
@@ -217,42 +156,26 @@ public class Zombies extends Actor {
         return burntDeath;
     }
 
+    // ======================================================================
+    // COLLISION API
+    // ======================================================================
+
     public Rectangle getBounds() {
-        // đảm bảo luôn khớp vị trí hiện tại
-        updateHitBox();
-        return hitBox;
+        return zombieBounds != null ? zombieBounds.getBounds() : null;
+    }
+
+    public boolean isEating() {
+        return eating;
+    }
+
+    public void setEating(boolean eating) {
+        this.eating = eating;
     }
 
     // ======================================================================
     // CLEANUP
     // ======================================================================
 
-    public static void disposeAll() {
-        comingZombieSound.dispose();
-        groanSound.dispose();
-        brainzSound.dispose();
-        chompSound.dispose();
-    }
-    public void applySlow(float duration, float factor) {
-    // 1. Nếu zombie đã chết thì không làm gì cả
-    if (dead) return;
-
-    // 2. Kích hoạt trạng thái bị làm chậm
-    this.isSlowed = true;
-    
-    // 3. Gán thời gian (nếu đang bị chậm rồi thì reset lại thời gian mới)
-    this.slowTimer = duration;
-
-    // 4. Tính toán tốc độ mới
-    // LƯU Ý: Phải nhân từ baseSpeed (tốc độ gốc), không nhân trực tiếp vào this.speed
-    // để tránh trường hợp bị nhân chồng chéo (0.5 * 0.5 * ...) khiến zombie đứng yên.
-    this.speed = this.baseSpeed * factor;
-
-    // 5. Đổi màu Zombie sang xanh nhạt để người chơi nhận biết
-    // (R=0.5, G=0.5, B=1.0, Alpha=1.0)
-    this.setColor(0.5f, 0.5f, 1f, 1f);}
-
-    // (optional) helper static nếu cần ở chỗ khác
     public static boolean isGameOver() {
         return gameOver;
     }

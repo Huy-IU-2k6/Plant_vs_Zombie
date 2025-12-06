@@ -9,6 +9,9 @@ import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
 import pvz.com.managers.GridConfig;
 import pvz.com.entities.components.GridCellComponent;
+import com.badlogic.gdx.math.Vector3;
+import pvz.com.entities.plants.PlantType;
+import pvz.com.factories.PlantFactory;
 
 public class PlantGridController extends InputAdapter {
 
@@ -58,6 +61,44 @@ public class PlantGridController extends InputAdapter {
             cell.row = row;
             cell.col = col;
         }
+    }
+
+    public Plant placePlantFromDrag(float screenX, float screenY, PlantType type) {
+        if (!enabled)
+            return null;
+
+        // 1. convert từ toạ độ screen sang world (theo camera game)
+        Vector3 world = new Vector3(screenX, screenY, 0);
+        camera.unproject(world);
+
+        float worldX = world.x;
+        float worldY = world.y;
+
+        // 2. chuyển world -> cell
+        int col = GridConfig.worldToCol(worldX);
+        int row = GridConfig.worldToRow(worldY);
+
+        if (!GridConfig.isInsideGrid(row, col)) {
+            // thả ngoài bãi cỏ
+            return null;
+        }
+
+        // 3. check ô đã có plant chưa
+        if (isCellOccupied(row, col)) {
+            return null;
+        }
+
+        // 4. tạo plant đúng cell (tự canh giữa ô)
+        Plant plant = PlantFactory.createPlantAtCell(type, col, row);
+
+        // 5. đưa vào list entity / plants
+        entities.add(plant);
+        plants.add(plant);
+
+        // 6. đăng ký vào grid
+        registerPlantAtCell(plant, row, col);
+
+        return plant;
     }
 
     /**

@@ -19,20 +19,22 @@ public class RenderSystem {
         batch.begin();
 
         for (Entity entity : entities) {
+            // KHÔNG vẽ entity đã đánh dấu xóa
+            if (entity.markedForRemoval)
+                continue;
+
             SpriteComponent sprite = entity.getComponent(SpriteComponent.class);
-            PositionComponent position = entity.getComponent(PositionComponent.class); // <- đúng
+            PositionComponent position = entity.getComponent(PositionComponent.class);
             SizeComponent size = entity.getComponent(SizeComponent.class);
 
             if (sprite != null && position != null) {
                 if (size != null) {
-                    // dùng width/height từ ECS
                     sprite.sprite.setBounds(
                             position.x,
                             position.y,
                             size.width,
                             size.height);
                 } else {
-                    // fallback: không có SizeComponent thì chỉ set vị trí
                     sprite.sprite.setPosition(position.x, position.y);
                 }
 
@@ -41,5 +43,6 @@ public class RenderSystem {
         }
 
         batch.end();
+
     }
 }
