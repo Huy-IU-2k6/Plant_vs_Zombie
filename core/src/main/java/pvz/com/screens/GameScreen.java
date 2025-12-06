@@ -8,7 +8,6 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -17,37 +16,20 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import java.util.ArrayList;
 import java.util.List;
 
-import pvz.com.items.PlantCard;
-import pvz.com.managers.BackgroundManager;
-import pvz.com.managers.GridConfig;
-
-// ===== ECS imports =====
 import pvz.com.entities.Entity;
-import pvz.com.items.ItemType;
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.plants.PlantType;
-import pvz.com.factories.PlantFactory;
-import pvz.com.entities.suns.Sun;
-import pvz.com.entities.components.PlantDamageType;
-import pvz.com.entities.projectiles.PeaProjectile;
-
-import pvz.com.systems.IGameSpawner;
-import pvz.com.systems.RenderSystem;
-import pvz.com.systems.SunProductionSystem;
-import pvz.com.systems.PlantAttackSystem;
-import pvz.com.systems.MovementSystem;
-import pvz.com.systems.CollisionSystem;
-import pvz.com.systems.SunPickupSystem;
-import pvz.com.systems.CleanupSystem;
-
-// ===== Logic controllers =====
+import pvz.com.items.PlantCard;
+import pvz.com.logic.GameWorld;
 import pvz.com.logic.HudController;
 import pvz.com.logic.LawnMowerController;
 import pvz.com.logic.PlantGridController;
+import pvz.com.logic.PlantPlacementController;
 import pvz.com.logic.WorldRenderer;
 import pvz.com.logic.ZombieWaveController;
+import pvz.com.managers.BackgroundManager;
+import pvz.com.managers.GridConfig;
 
-public class GameScreen implements Screen, IGameSpawner {
+public class GameScreen implements Screen {
 
     // ===== World & layout =====
     private static final float WORLD_WIDTH = 800f;
@@ -57,8 +39,8 @@ public class GameScreen implements Screen, IGameSpawner {
     private static final float COUNTDOWN_DURATION = 6f;
     private static final int INITIAL_SUN = 150;
 
-    // Độ dài 1 màn zombie (phải match với ZombieWaveController nếu bạn dùng
-    // overload có levelDuration)
+    // Độ dài 1 màn zombie (phải match với ZombieWaveController nếu dùng
+    // levelDuration)
     private static final float LEVEL_DURATION = 240f; // 4 phút
 
     // ===== Zombie lane config (dựa trên GridConfig) =====
@@ -77,17 +59,9 @@ public class GameScreen implements Screen, IGameSpawner {
     private final OrthographicCamera camera;
     private final Viewport viewport;
 
-    // ===== ECS: plants, projectiles, systems =====
+    // ===== ECS data (được GameWorld sử dụng) =====
     private final List<Entity> entities = new ArrayList<>();
     private final List<Plant> plants = new ArrayList<>();
-
-    private final RenderSystem renderSystem;
-    private final SunProductionSystem sunSystem;
-    private final PlantAttackSystem attackSystem;
-    private final MovementSystem movementSystem;
-    private final CollisionSystem collisionSystem;
-    private final SunPickupSystem sunPickupSystem;
-    private final CleanupSystem cleanupSystem = new CleanupSystem(entities);
 
     // ===== Controllers =====
     private final HudController hudController;
@@ -96,162 +70,107 @@ public class GameScreen implements Screen, IGameSpawner {
     private final ZombieWaveController zombieWaveController;
     private final WorldRenderer worldRenderer;
 
+    // ===== World / logic tách riêng =====
+    private final GameWorld gameWorld;
+    private final PlantPlacementController plantPlacementController;
+
     private State state = State.COUNTDOWN;
 
     public GameScreen(Game game) {
         this.game = game;
 
         // --- core ---
-        batch = new SpriteBatch();
+        this.batch = new SpriteBatch();
 
         // HUD stage (UI)
-        hudStage = new Stage(new ScreenViewport());
-        // để PlantCard lấy được GameScreen từ Stage
-        hudStage.getRoot().setUserObject(this);
+        this.hudStage = new Stage(new ScreenViewport());
+        // để PlantCard lấy được GameScreen từ Stage (userObject)
+        this.hudStage.getRoot().setUserObject(this);
 
         // Camera + viewport world 800x600
-        camera = new OrthographicCamera();
-        viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+        this.camera = new OrthographicCamera();
+        this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
         camera.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0f);
         camera.update();
 
         // ===== Controllers =====
-        hudController = new HudController(hudStage, COUNTDOWN_DURATION, INITIAL_SUN);
+        this.hudController = new HudController(hudStage, COUNTDOWN_DURATION, INITIAL_SUN);
 
-        plantGridController = new PlantGridController(entities, plants, camera);
+        // PlantGridController dùng cùng list entities/plants với GameWorld
+        this.plantGridController = new PlantGridController(entities, plants, camera);
         plantGridController.setEnabled(false);
 
-        lawnMowerController = new LawnMowerController(
+        this.lawnMowerController = new LawnMowerController(
                 ZOMBIE_LANE_COUNT,
                 WORLD_WIDTH,
                 180f // khoảng cách mower spawn từ mép trái
         );
 
-        // ZombieWaveController mới: tự quản lý levelDuration, nhiều loại zombie, tăng
-        // khó theo time
-        zombieWaveController = new ZombieWaveController(
+        this.zombieWaveController = new ZombieWaveController(
                 WORLD_WIDTH,
                 ZOMBIE_LANE_COUNT,
                 ZOMBIE_START_OFFSET_X,
                 90, // tổng số zombie của màn (tuỳ bạn tune)
-                LEVEL_DURATION // thời lượng màn
-        );
+                LEVEL_DURATION);
 
         BackgroundManager backgroundManager = new BackgroundManager();
-        worldRenderer = new WorldRenderer(
+        this.worldRenderer = new WorldRenderer(
                 backgroundManager,
                 viewport,
                 lawnMowerController,
                 zombieWaveController);
 
-        // ===== ECS init =====
-        renderSystem = new RenderSystem(batch);
-        sunSystem = new SunProductionSystem(this, entities); // Sunflower sinh sun
-        attackSystem = new PlantAttackSystem(this); // Plant bắn đạn
-        movementSystem = new MovementSystem(); // Đạn / entity di chuyển
-        collisionSystem = new CollisionSystem(
+        // GameWorld: chứa toàn bộ ECS (systems, spawn, pickup sun...)
+        this.gameWorld = new GameWorld(
+                hudController,
                 entities,
-                zombieWaveController,
-                plantGridController); // Đạn trúng zombie
-        sunPickupSystem = new SunPickupSystem(
-                entities,
+                plants,
                 camera,
-                this); // Click nhặt sun + timeout
+                zombieWaveController,
+                plantGridController,
+                batch);
+
+        // Controller đặt cây bằng card (click/drag)
+        this.plantPlacementController = new PlantPlacementController(
+                viewport,
+                hudController,
+                plantGridController,
+                gameWorld);
+    }
+
+    // ================== Helper ==================
+
+    private boolean isPlaying() {
+        return state == State.PLAYING;
+    }
+
+    private boolean isCountdown() {
+        return state == State.COUNTDOWN;
     }
 
     // ================== HUD interaction ==================
 
-    /** Được PlantCard gọi khi người chơi click 1 card. */
+    /**
+     * Được PlantCard gọi khi người chơi click 1 card (mode click-to-place).
+     * Stage HUD sẽ lấy GameScreen qua getRoot().getUserObject().
+     */
     public void onPlantCardClicked(PlantCard card) {
-        // Chỉ xử lý sun cho card click (nếu bạn còn dùng mode click-to-place)
-        if (!hudController.spendSun(card.type.cost))
-            return;
-
-        card.triggerUse();
+        plantPlacementController.handleCardClicked(card, isPlaying());
     }
 
-    /** Được PlantCard gọi khi người chơi kéo card và thả ra màn hình. */
+    /**
+     * Được PlantCard gọi khi người chơi kéo card và thả ra màn hình.
+     */
     public void onPlantCardDragged(PlantCard card, float screenX, float screenY) {
-        if (state != State.PLAYING)
-            return;
-
-        Vector2 world = viewport.unproject(new Vector2(screenX, screenY));
-
-        // Snap + kiểm tra khoảng cách an toàn
-        int[] cell = GridConfig.worldToNearestCell(world.x, world.y);
-        int row = cell[0];
-        int col = cell[1];
-
-        if (row < 0 || col < 0) {
-            // thả quá xa lawn → bỏ
-            return;
-        }
-
-        int currentSun = hudController.getSunPoints();
-        if (!card.canUse(currentSun)) {
-            return;
-        }
-
-        boolean spawned = spawnPlantFromCardAtGrid(card, row, col);
-        if (!spawned) {
-            return;
-        }
-
-        if (!hudController.spendSun(card.type.cost)) {
-            return;
-        }
-
-        card.triggerUse();
-    }
-
-    private PlantType toPlantType(ItemType itemType) {
-        switch (itemType) {
-            case SUNFLOWER:
-                return PlantType.SUNFLOWER;
-            case PEASHOOTER:
-                return PlantType.PEASHOOTER;
-            case WALLNUT:
-                return PlantType.WALLNUT;
-
-            case CHERRYBOMB:
-                return PlantType.CHERRY_BOMB;
-            case POTATOMINE:
-                return PlantType.POTATO_MINE;
-
-            // mấy thằng này chưa có PlantType tương ứng
-            case CHOMPER:
-            case REPEATER:
-            case SNOWPEA:
-            default:
-                // tạm map về PEASHOOTER cho đỡ crash, sau này làm riêng
-                return PlantType.PEASHOOTER;
-        }
-    }
-
-    private boolean spawnPlantFromCardAtGrid(PlantCard card, int row, int col) {
-        if (plantGridController.isCellOccupied(row, col)) {
-            // Ô này đã có cây -> không trồng chồng
-            return false;
-        }
-
-        PlantType plantType = toPlantType(card.type);
-        Plant plant = PlantFactory.createPlantAtCell(plantType, col, row);
-        if (plant == null) {
-            // phòng trường hợp PlantFactory lỗi
-            return false;
-        }
-
-        entities.add(plant);
-        plants.add(plant);
-        plantGridController.registerPlantAtCell(plant, row, col);
-        return true;
+        plantPlacementController.handleCardDragged(card, screenX, screenY, isPlaying());
     }
 
     // ================== Game state ==================
 
     private void updateState(float delta) {
-        if (state != State.COUNTDOWN)
+        if (!isCountdown()) {
             return;
+        }
 
         if (hudController.isCountdownFinished()) {
             state = State.PLAYING;
@@ -265,13 +184,18 @@ public class GameScreen implements Screen, IGameSpawner {
     }
 
     private void updateGame(float delta) {
-        if (state != State.PLAYING)
+        if (!isPlaying()) {
             return;
+        }
 
         // logic thuần "thế giới" (zombie, mower, wave...)
         zombieWaveController.update(delta);
         lawnMowerController.update(delta, zombieWaveController.getZombies());
-        // TODO: check va chạm plant, bullet... nếu dùng thêm ECS cho zombie
+        // TODO: check va chạm plant, bullet... nếu zombie cũng dùng ECS
+    }
+
+    public GameWorld getGameWorld() {
+        return gameWorld;
     }
 
     private void handleEscape() {
@@ -286,15 +210,14 @@ public class GameScreen implements Screen, IGameSpawner {
     public void show() {
         // Dùng InputMultiplexer để:
         // - HUD (SeedBank, Countdown, button...) vẫn nhận input
-        // - Click xuống world để đặt cây theo grid (hiện tại dùng drag từ PlantCard)
-        // - Click vào Sun rớt để nhặt
+        // - System xử lý click nhặt Sun (SunPickupSystem)
         InputMultiplexer multiplexer = new InputMultiplexer();
 
         // Ưu tiên HUD trước để click vào card không bị lọt xuống world
         multiplexer.addProcessor(hudStage);
 
-        // System xử lý click nhặt Sun
-        multiplexer.addProcessor(sunPickupSystem);
+        // SunPickupSystem (InputProcessor) lấy từ GameWorld
+        multiplexer.addProcessor(gameWorld.getSunPickupSystem());
 
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -315,26 +238,14 @@ public class GameScreen implements Screen, IGameSpawner {
 
         // --- world (background, zombie, mower, HUD countdown, ...) ---
         batch.begin();
-        boolean isCountdown = (state == State.COUNTDOWN);
-        boolean isPlaying = (state == State.PLAYING);
-        worldRenderer.render(batch, isCountdown, isPlaying);
+        worldRenderer.render(batch, isCountdown(), isPlaying());
         batch.end();
 
         // --- ECS (plants, projectiles, sun system, attack system) ---
-        if (state == State.PLAYING) {
-            // update hệ thống logic ECS
-            sunSystem.update(delta); // sunflower sinh sun
-            attackSystem.update(plants, delta); // plant bắn đạn (spawn PeaProjectile)
-
-            movementSystem.update(entities, delta); // entity có MovementComponent di chuyển
-            collisionSystem.update(delta); // đạn đâm zombie
-            sunPickupSystem.update(delta); // sun tự biến mất nếu quá lâu
-
-            // render tất cả entity ECS (plant, đạn, sun...)
+        gameWorld.update(delta, isPlaying());
+        if (isPlaying()) {
             batch.setProjectionMatrix(camera.combined);
-            renderSystem.update(entities);
-
-            cleanupSystem.update();
+            gameWorld.render(batch);
         }
 
         // --- HUD (SeedBank, countdown, card, sun text...) ---
@@ -367,37 +278,5 @@ public class GameScreen implements Screen, IGameSpawner {
 
     @Override
     public void hide() {
-    }
-
-    // ================== IGameSpawner (cho ECS gọi ngược lại) ==================
-
-    @Override
-    public void spawnSun(float x, float y, int amount) {
-        // Sun được spawn ra world, người chơi phải click để nhặt
-        Sun sun = new Sun(x, y, amount);
-        entities.add(sun);
-    }
-
-    @Override
-    public void spawnProjectile(float x, float y, int damage,
-            PlantDamageType type, Class<?> projectileClass) {
-        if (projectileClass == PeaProjectile.class) {
-            Entity pea = new PeaProjectile(x, y, damage);
-            entities.add(pea);
-        }
-        // sau này nếu có nhiều loại đạn thì thêm else-if ở đây
-    }
-
-    // convenience cho chỗ khác gọi nếu cần
-    public void addSun(int amount) {
-        hudController.addSun(amount);
-    }
-
-    public boolean spendSun(int cost) {
-        return hudController.spendSun(cost);
-    }
-
-    public int getSunPoints() {
-        return hudController.getSunPoints();
     }
 }
