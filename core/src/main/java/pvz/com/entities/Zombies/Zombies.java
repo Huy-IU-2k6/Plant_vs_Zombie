@@ -2,7 +2,7 @@ package pvz.com.entities.Zombies;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-
+import com.badlogic.gdx.graphics.Color;
 public class Zombies extends Actor {
     // ===== STATE =====
     private boolean eating = false;
@@ -18,6 +18,10 @@ public class Zombies extends Actor {
     // ===== CONFIG =====
     protected float speed = 20f;
     protected int health = 100;
+    protected float baseSpeed = 20f; 
+    protected boolean isSlowed = false; 
+    protected float slowTimer = 0f;     
+    // dead = đã chết, đang nằm trong animation chết, chuẩn bị bị remove
 
     // dead = đã chết, đang trong animation chết, chuẩn bị bị remove
     protected boolean dead = false;
@@ -58,6 +62,16 @@ public class Zombies extends Actor {
             }
             return;
         }
+                if (isSlowed) {
+                    slowTimer -= delta;
+            // Nếu hết thời gian làm chậm
+            if (slowTimer <= 0) {
+                isSlowed = false;
+                this.speed = this.baseSpeed; // Trả lại tốc độ gốc
+                this.setColor(Color.WHITE);  // Trả lại màu trắng bình thường
+            }
+        }
+
 
         // ----- ZOMBIE CÒN SỐNG: di chuyển -----
         moveBy(-speed * delta, 0);
@@ -67,6 +81,7 @@ public class Zombies extends Actor {
         if (getX() < 0) {
             gameOver = true;
         }
+        
     }
 
     @Override
