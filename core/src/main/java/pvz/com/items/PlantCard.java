@@ -45,6 +45,10 @@ public class PlantCard extends Image {
         updateStateUI();
     }
 
+    /**
+     * Lấy GameScreen đang gắn vào stage.root.userObject
+     * (GameScreen là nơi giữ GameWorld + PlantPlacementController).
+     */
     private GameScreen getGameScreen() {
         if (getStage() == null)
             return null;
@@ -67,7 +71,10 @@ public class PlantCard extends Image {
                 if (screen == null)
                     return;
 
-                int currentSun = screen.getSunPoints();
+                // Lấy sun từ GameWorld (GameWorld -> HudController)
+                int currentSun = screen
+                        .getGameWorld()
+                        .getSunPoints();
 
                 // nếu đang khoá, cooldown hoặc không đủ sun → không cho kéo
                 if (lockedByGame || cooldownRemaining > 0f || currentSun < type.cost) {
