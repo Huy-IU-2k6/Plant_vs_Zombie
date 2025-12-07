@@ -10,8 +10,14 @@ import pvz.com.items.SeedBank;
 import pvz.com.managers.FontManager;
 import pvz.com.items.CountdownActor;
 
+import pvz.com.managers.HudLayoutConfig;
+
 public class HudController {
 
+    private static final float COUNTDOWN_POS_X_RATIO = HudLayoutConfig.getCountdownPosXRatio();
+    private static final float COUNTDOWN_POS_Y_RATIO = HudLayoutConfig.getCountdownPosYRatio();
+
+    // ===== FIELDS =====
     private final Stage hudStage;
 
     private final SeedBank seedBank;
@@ -34,19 +40,15 @@ public class HudController {
         seedBank.setSunAmount(initialSun); // sync số sun ban đầu
         hudStage.addActor(seedBank);
 
-        // sau khi tạo stage / viewport
-        float worldWidth = hudStage.getViewport().getWorldWidth();
-        float worldHeight = hudStage.getViewport().getWorldHeight();
-
-        seedBank.updateLayout(worldWidth, worldHeight);
-
         // Countdown
-        countdown = new CountdownActor(countdownDuration, hudFont);
-        countdown.setPosition(400f, 500f);
+        countdown = new CountdownActor(countdownDuration);
         hudStage.addActor(countdown);
 
         // Plant cards
         createPlantCards();
+
+        // Layout ban đầu
+        updateHudLayout();
     }
 
     private void createPlantCards() {
@@ -57,12 +59,29 @@ public class HudController {
         }
     }
 
-    public void resize(int width, int height) {
-        hudStage.getViewport().update(width, height, true);
+    /**
+     * Cập nhật toàn bộ layout HUD theo worldWidth/worldHeight hiện tại:
+     * - SeedBank.
+     * - Countdown.
+     */
+    private void updateHudLayout() {
         float worldWidth = hudStage.getViewport().getWorldWidth();
         float worldHeight = hudStage.getViewport().getWorldHeight();
 
+        // SeedBank tự xử lý layout nội bộ
         seedBank.updateLayout(worldWidth, worldHeight);
+
+        // Countdown position scale theo kích thước world
+        if (countdown != null) {
+            float countdownX = worldWidth * COUNTDOWN_POS_X_RATIO;
+            float countdownY = worldHeight * COUNTDOWN_POS_Y_RATIO;
+            countdown.setPosition(countdownX, countdownY);
+        }
+    }
+
+    public void resize(int width, int height) {
+        hudStage.getViewport().update(width, height, true);
+        updateHudLayout();
     }
 
     // ===== Countdown =====
@@ -87,8 +106,6 @@ public class HudController {
     }
 
     // ===== Sun HUD =====
-    // Chỉ lưu logic sunPoints, việc vẽ giao cho SeedBank
-
     public void addSun(int amount) {
         sunPoints += amount;
         seedBank.setSunAmount(sunPoints);
@@ -117,6 +134,5 @@ public class HudController {
 
     public void dispose() {
         seedBank.dispose();
-        // hudFont do FontManager quản lý, không dispose ở đây
     }
 }

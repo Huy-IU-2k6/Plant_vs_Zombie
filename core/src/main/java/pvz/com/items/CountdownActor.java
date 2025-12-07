@@ -3,14 +3,18 @@ package pvz.com.items;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+
+import pvz.com.managers.FontManager;
 
 public class CountdownActor extends Actor {
-    private float timeLeft; // tính bằng giây
-    private BitmapFont font;
 
-    public CountdownActor(float startTime, BitmapFont font) {
+    private float timeLeft; // tính bằng giây
+    private final BitmapFont font;
+
+    public CountdownActor(float startTime) {
         this.timeLeft = startTime;
-        this.font = font;
+        this.font = FontManager.getPvzFont(); // <-- dùng FontManager
     }
 
     @Override
@@ -19,12 +23,36 @@ public class CountdownActor extends Actor {
         timeLeft -= delta;
         if (timeLeft < 0)
             timeLeft = 0;
-        // nếu timeLeft == 0 -> báo GameScreen bắt đầu spawn zombie chẳng hạn
+        // nếu timeLeft == 0 -> có thể báo GameScreen bắt đầu spawn zombie
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        font.draw(batch, "READY: " + (int) timeLeft, getX(), getY());
+        Stage stage = getStage();
+        if (stage == null)
+            return;
+
+        float worldWidth = stage.getViewport().getWorldWidth();
+        float worldHeight = stage.getViewport().getWorldHeight();
+
+        // ===== SCALE FONT THEO TỶ LỆ MÀN HÌNH (dùng FontManager) =====
+        float fontScale = FontManager.computeHudFontScale(worldWidth, worldHeight);
+
+        // Lưu scale cũ (vì font dùng chung nhiều chỗ)
+        float oldScaleX = font.getData().scaleX;
+        float oldScaleY = font.getData().scaleY;
+
+        font.getData().setScale(fontScale);
+
+        // ===== VỊ TRÍ: DÙNG WORLD COORD TRỰC TIẾP =====
+        // HudController / HudLayoutConfig sẽ setPosition() sẵn
+        float drawX = getX();
+        float drawY = getY();
+
+        font.draw(batch, "READY: " + (int) timeLeft, drawX, drawY);
+
+        // khôi phục scale cũ cho các chỗ khác dùng font này
+        font.getData().setScale(oldScaleX, oldScaleY);
     }
 
     public boolean isFinished() {

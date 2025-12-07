@@ -10,28 +10,33 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 
+import pvz.com.managers.HudLayoutConfig;
+
 public class SeedBank extends Group {
 
     private final Texture bgTex;
     private final Array<PlantCard> cards = new Array<>();
 
-    private static final float SAFE_PADDING_LEFT = 310f;
-    private static final float SAFE_PADDING_RIGHT = 30f;
-    private static final float PADDING_TOP = 10f;
-    private static final float PADDING_BOTTOM = 10f;
-    private static final float CARD_GAP_X = 5f;
+    private static final float TRAY_WIDTH_RATIO = HudLayoutConfig.SEEDBANK_WIDTH_RATIO;
+    private static final float TRAY_MARGIN_LEFT = HudLayoutConfig.SEEDBANK_MARGIN_LEFT;
+    private static final float TRAY_MARGIN_TOP = HudLayoutConfig.SEEDBANK_MARGIN_TOP;
 
-    private static final float CARD_HEIGHT_RATIO = 0.9f;
+    private static final float SAFE_PADDING_LEFT = HudLayoutConfig.SEEDBANK_SAFE_PADDING_LEFT;
+    private static final float SAFE_PADDING_RIGHT = HudLayoutConfig.SEEDBANK_SAFE_PADDING_RIGHT;
+    private static final float PADDING_TOP = HudLayoutConfig.SEEDBANK_PADDING_TOP;
+    private static final float PADDING_BOTTOM = HudLayoutConfig.SEEDBANK_PADDING_BOTTOM;
+    private static final float CARD_GAP_X = HudLayoutConfig.SEEDBANK_CARD_GAP_X;
+    private static final float CARD_HEIGHT_RATIO = HudLayoutConfig.SEEDBANK_CARD_HEIGHT_RATIO;
+
+    private static final float SUN_LABEL_CENTER_X = HudLayoutConfig.SUN_LABEL_CENTER_X;
+    private static final float SUN_LABEL_CENTER_Y = HudLayoutConfig.SUN_LABEL_CENTER_Y;
+
+    // tỉ lệ chiều rộng / chiều cao card (dựa theo kích thước gốc)
     private static final float CARD_ASPECT = PlantCard.WIDTH / PlantCard.HEIGHT;
 
     // ==== SUN HUD ====
     private int sunAmount = 0;
     private final Label sunLabel;
-
-    // toạ độ tâm của số 50 trên texture gốc (pixel trên ảnh gốc)
-    // nếu lệch chút thì chỉnh 2 số này
-    private static final float SUN_LABEL_CENTER_X = 180f;
-    private static final float SUN_LABEL_CENTER_Y = 25f;
 
     public SeedBank(BitmapFont font) {
         bgTex = new Texture(Gdx.files.internal("images/items/seed_bank.png"));
@@ -95,50 +100,47 @@ public class SeedBank extends Group {
         float scaleX = getWidth() / bgTex.getWidth();
         float scaleY = getHeight() / bgTex.getHeight();
 
-        float padLeft = SAFE_PADDING_LEFT * scaleX;
-        float padRight = SAFE_PADDING_RIGHT * scaleX;
-        float gapX = CARD_GAP_X * scaleX;
+        float innerPadLeft = SAFE_PADDING_LEFT * scaleX;
+        float innerPadRight = SAFE_PADDING_RIGHT * scaleX;
+        float cardGapX = CARD_GAP_X * scaleX;
 
-        float innerW = getWidth() - padLeft - padRight;
-        float innerH = getHeight() - (PADDING_TOP + PADDING_BOTTOM) * scaleY;
+        float innerWidth = getWidth() - innerPadLeft - innerPadRight;
+        float innerHeight = getHeight() - (PADDING_TOP + PADDING_BOTTOM) * scaleY;
 
-        float cardH = innerH * CARD_HEIGHT_RATIO;
-        float cardW = cardH * CARD_ASPECT;
+        float cardHeight = innerHeight * CARD_HEIGHT_RATIO;
+        float cardWidth = cardHeight * CARD_ASPECT;
 
-        float totalW = cards.size * cardW + (cards.size - 1) * gapX;
-        if (totalW > innerW) {
-            cardW = (innerW - (cards.size - 1) * gapX) / cards.size;
-            cardH = cardW / CARD_ASPECT;
+        float totalCardsWidth = cards.size * cardWidth + (cards.size - 1) * cardGapX;
+        if (totalCardsWidth > innerWidth) {
+            cardWidth = (innerWidth - (cards.size - 1) * cardGapX) / cards.size;
+            cardHeight = cardWidth / CARD_ASPECT;
         }
 
-        float baseY = PADDING_BOTTOM * scaleY + (innerH - cardH) / 2f;
+        float baseY = PADDING_BOTTOM * scaleY + (innerHeight - cardHeight) / 2f;
 
         for (int i = 0; i < cards.size; i++) {
             PlantCard card = cards.get(i);
-            float x = padLeft + i * (cardW + gapX);
-            card.setBounds(x, baseY, cardW, cardH);
+            float x = innerPadLeft + i * (cardWidth + cardGapX);
+            card.setBounds(x, baseY, cardWidth, cardHeight);
         }
     }
 
     public void updateLayout(float worldWidth, float worldHeight) {
         // kích thước ảnh gốc
-        float texW = bgTex.getWidth();
-        float texH = bgTex.getHeight();
-        float aspect = texH / texW;
+        float textureWidth = bgTex.getWidth();
+        float textureHeight = bgTex.getHeight();
+        float trayAspect = textureHeight / textureWidth;
 
-        // cho SeedBank chiếm 90% chiều ngang màn hình
-        float trayW = worldWidth * 0.4f;
-        float trayH = trayW * aspect;
+        // cho SeedBank chiếm TRAY_WIDTH_RATIO chiều ngang màn hình
+        float trayWidth = worldWidth * TRAY_WIDTH_RATIO;
+        float trayHeight = trayWidth * trayAspect;
 
-        setSize(trayW, trayH);
+        setSize(trayWidth, trayHeight);
 
-        // canh trái + cách mép trên một đoạn
-        float marginLeft = 50f;
-        float marginTop = 20f;
-
+        // canh trái + cách mép trên một đoạn (dùng constant)
         setPosition(
-                marginLeft,
-                worldHeight - trayH - marginTop);
+                TRAY_MARGIN_LEFT,
+                worldHeight - trayHeight - TRAY_MARGIN_TOP);
     }
 
     @Override
