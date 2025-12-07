@@ -1,4 +1,4 @@
-package pvz.com.ui;
+package pvz.com.items;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
