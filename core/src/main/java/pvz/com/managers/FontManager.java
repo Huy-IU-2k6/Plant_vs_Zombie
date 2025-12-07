@@ -8,26 +8,30 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 
 public class FontManager {
 
+    // Size chuẩn ở base resolution (ví dụ 1920x1080)
+    private static final int BASE_FONT_SIZE = 50;
+
     private static BitmapFont pvzFont;
 
     private FontManager() {
         // chặn new FontManager()
     }
 
+    /** Font PVZ gốc, không scale theo màn hình */
     public static BitmapFont getPvzFont() {
         if (pvzFont == null) {
-            createPvzFont();
+            createBasePvzFont();
         }
         return pvzFont;
     }
 
-    private static void createPvzFont() {
+    private static void createBasePvzFont() {
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(
-                // chỉnh lại path cho đúng với project của bạn
                 Gdx.files.internal("fonts/HouseofTerror/HouseofTerror Regular.ttf"));
+
         FreeTypeFontGenerator.FreeTypeFontParameter param = new FreeTypeFontGenerator.FreeTypeFontParameter();
 
-        param.size = 50;
+        param.size = BASE_FONT_SIZE;
 
         // Màu chữ kem
         param.color = new Color(0xFBE3B5FF);
@@ -48,6 +52,25 @@ public class FontManager {
         // Giảm răng cưa khi scale
         Texture tex = pvzFont.getRegion().getTexture();
         tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+    }
+
+    /**
+     * Tính scale cho HUD text dựa trên worldWidth/Height.
+     * Mặc định dùng min(scaleX, scaleY) để không méo chữ.
+     */
+    public static float computeHudFontScale(float worldWidth, float worldHeight) {
+        float scaleX = HudLayoutConfig.getScaleX(worldWidth);
+        float scaleY = HudLayoutConfig.getScaleY(worldHeight);
+        return Math.min(scaleX, scaleY);
+    }
+
+    /**
+     * Helper nếu muốn apply trực tiếp scale vào font.
+     * (ở CountdownActor mình vẫn làm thủ công để restore scale cũ)
+     */
+    public static void applyHudScale(BitmapFont font, float worldWidth, float worldHeight) {
+        float scale = computeHudFontScale(worldWidth, worldHeight);
+        font.getData().setScale(scale);
     }
 
     public static void dispose() {
