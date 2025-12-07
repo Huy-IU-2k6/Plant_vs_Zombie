@@ -8,14 +8,9 @@ import pvz.com.items.ItemType;
 import pvz.com.items.PlantCard;
 import pvz.com.items.SeedBank;
 import pvz.com.managers.FontManager;
-import pvz.com.ui.CountdownActor;
+import pvz.com.items.CountdownActor;
 
 public class HudController {
-
-    // ===== SeedBank layout =====
-    private static final float SEED_BANK_HEIGHT = 110f;
-    private static final float SEED_BANK_MARGIN_TOP = 20f;
-    private static final float SEED_BANK_MARGIN_LEFT = 50f;
 
     private final Stage hudStage;
 
@@ -35,10 +30,15 @@ public class HudController {
 
         // SeedBank
         seedBank = new SeedBank(hudFont);
-        layoutSeedBank();
         seedBank.setVisible(false);
         seedBank.setSunAmount(initialSun); // sync số sun ban đầu
         hudStage.addActor(seedBank);
+
+        // sau khi tạo stage / viewport
+        float worldWidth = hudStage.getViewport().getWorldWidth();
+        float worldHeight = hudStage.getViewport().getWorldHeight();
+
+        seedBank.updateLayout(worldWidth, worldHeight);
 
         // Countdown
         countdown = new CountdownActor(countdownDuration, hudFont);
@@ -47,22 +47,6 @@ public class HudController {
 
         // Plant cards
         createPlantCards();
-    }
-
-    private void layoutSeedBank() {
-        float hudH = hudStage.getViewport().getWorldHeight();
-
-        float originalW = seedBank.getWidth();
-        float originalH = seedBank.getHeight();
-
-        float scale = SEED_BANK_HEIGHT / originalH;
-        float trayW = originalW * scale;
-        float trayH = originalH * scale;
-
-        seedBank.setSize(trayW, trayH);
-        seedBank.setPosition(
-                SEED_BANK_MARGIN_LEFT,
-                hudH - trayH - SEED_BANK_MARGIN_TOP);
     }
 
     private void createPlantCards() {
@@ -75,7 +59,10 @@ public class HudController {
 
     public void resize(int width, int height) {
         hudStage.getViewport().update(width, height, true);
-        layoutSeedBank();
+        float worldWidth = hudStage.getViewport().getWorldWidth();
+        float worldHeight = hudStage.getViewport().getWorldHeight();
+
+        seedBank.updateLayout(worldWidth, worldHeight);
     }
 
     // ===== Countdown =====

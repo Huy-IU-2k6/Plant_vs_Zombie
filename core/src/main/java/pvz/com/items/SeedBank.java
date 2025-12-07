@@ -120,6 +120,27 @@ public class SeedBank extends Group {
         }
     }
 
+    public void updateLayout(float worldWidth, float worldHeight) {
+        // kích thước ảnh gốc
+        float texW = bgTex.getWidth();
+        float texH = bgTex.getHeight();
+        float aspect = texH / texW;
+
+        // cho SeedBank chiếm 90% chiều ngang màn hình
+        float trayW = worldWidth * 0.4f;
+        float trayH = trayW * aspect;
+
+        setSize(trayW, trayH);
+
+        // canh trái + cách mép trên một đoạn
+        float marginLeft = 50f;
+        float marginTop = 20f;
+
+        setPosition(
+                marginLeft,
+                worldHeight - trayH - marginTop);
+    }
+
     @Override
     public void draw(Batch batch, float parentAlpha) {
         Color c = getColor();
