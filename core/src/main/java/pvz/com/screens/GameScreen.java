@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,8 @@ public class GameScreen implements Screen {
     // ===== Game config =====
     private static final float COUNTDOWN_DURATION = 6f;
     private static final int INITIAL_SUN = 150;
+
+    private ShapeRenderer shapeRenderer;
 
     // Độ dài 1 màn zombie (phải match với ZombieWaveController nếu dùng
     // levelDuration)
@@ -84,6 +87,9 @@ public class GameScreen implements Screen {
 
         // HUD stage (UI)
         this.hudStage = new Stage(new ScreenViewport());
+
+        hudStage.setDebugAll(true);
+
         // để PlantCard lấy được GameScreen từ Stage (userObject)
         this.hudStage.getRoot().setUserObject(this);
 
@@ -136,6 +142,8 @@ public class GameScreen implements Screen {
                 hudController,
                 plantGridController,
                 gameWorld);
+
+        shapeRenderer = new ShapeRenderer();
     }
 
     // ================== Helper ==================
@@ -241,6 +249,8 @@ public class GameScreen implements Screen {
         worldRenderer.render(batch, isCountdown(), isPlaying());
         batch.end();
 
+        drawDebugGrid();
+
         // --- ECS (plants, projectiles, sun system, attack system) ---
         gameWorld.update(delta, isPlaying());
         if (isPlaying()) {
@@ -265,6 +275,7 @@ public class GameScreen implements Screen {
         hudStage.dispose();
         hudController.dispose();
         worldRenderer.dispose();
+        shapeRenderer.dispose();
         // entities / plants: nếu có texture/sound riêng thì tự dispose bên trong
     }
 
@@ -279,4 +290,28 @@ public class GameScreen implements Screen {
     @Override
     public void hide() {
     }
+
+    private void drawDebugGrid() {
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        for (int row = 0; row < GridConfig.ROWS; row++) {
+            for (int col = 0; col < GridConfig.COLS; col++) {
+                float x = GridConfig.getCellOriginX(col);
+                float y = GridConfig.getCellOriginY(row);
+
+                // viền ô
+                shapeRenderer.rect(x, y, GridConfig.CELL_WIDTH, GridConfig.CELL_HEIGHT);
+
+                // tâm ô
+                float cx = GridConfig.getCellCenterX(col);
+                float cy = GridConfig.getCellCenterY(row);
+                float r = 3f;
+                shapeRenderer.circle(cx, cy, r);
+            }
+        }
+
+        shapeRenderer.end();
+    }
+
 }
