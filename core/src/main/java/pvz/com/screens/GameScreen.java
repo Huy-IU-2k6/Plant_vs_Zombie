@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
 import pvz.com.items.PlantCard;
+import pvz.com.logic.GameState;
 import pvz.com.logic.GameWorld;
 import pvz.com.logic.HudController;
 import pvz.com.logic.LawnMowerController;
@@ -28,29 +30,26 @@ import pvz.com.logic.WorldRenderer;
 import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.BackgroundManager;
 import pvz.com.managers.GridConfig;
+import pvz.com.managers.DesignConfig;
 
 public class GameScreen implements Screen {
 
     // ===== World & layout =====
-    private static final float WORLD_WIDTH = 800f;
-    private static final float WORLD_HEIGHT = 600f;
+    private static final float WORLD_WIDTH = DesignConfig.BASE_SCREEN_W;
+    private static final float WORLD_HEIGHT = DesignConfig.BASE_SCREEN_H;
 
     // ===== Game config =====
     private static final float COUNTDOWN_DURATION = 6f;
     private static final int INITIAL_SUN = 150;
+
+    private ShapeRenderer shapeRenderer;
 
     // Độ dài 1 màn zombie (phải match với ZombieWaveController nếu dùng
     // levelDuration)
     private static final float LEVEL_DURATION = 240f; // 4 phút
 
     // ===== Zombie lane config (dựa trên GridConfig) =====
-    private static final int ZOMBIE_LANE_COUNT = GridConfig.ROWS;
     private static final float ZOMBIE_START_OFFSET_X = 200f;
-
-    private enum State {
-        COUNTDOWN,
-        PLAYING
-    }
 
     // ===== Core refs =====
     private final Game game;
@@ -63,6 +62,9 @@ public class GameScreen implements Screen {
     private final List<Entity> entities = new ArrayList<>();
     private final List<Plant> plants = new ArrayList<>();
 
+    // ===== Game state dùng chung =====
+    private final GameState gameState;
+
     // ===== Controllers =====
     private final HudController hudController;
     private final PlantGridController plantGridController;
@@ -74,8 +76,6 @@ public class GameScreen implements Screen {
     private final GameWorld gameWorld;
     private final PlantPlacementController plantPlacementController;
 
-    private State state = State.COUNTDOWN;
-
     public GameScreen(Game game) {
         this.game = game;
 
@@ -84,33 +84,38 @@ public class GameScreen implements Screen {
 
         // HUD stage (UI)
         this.hudStage = new Stage(new ScreenViewport());
-        // để PlantCard lấy được GameScreen từ Stage (userObject)
+        hudStage.setDebugAll(true);
         this.hudStage.getRoot().setUserObject(this);
 
-        // Camera + viewport world 800x600
+        // ===== WORLD CAMERA + VIEWPORT =====
         this.camera = new OrthographicCamera();
         this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
         camera.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0f);
         camera.update();
 
+        // 🔹🔹 Init GridConfig theo world size 🔹🔹
+        GridConfig.init(
+                viewport.getWorldWidth(),
+                viewport.getWorldHeight());
+
+        // ===== GameState =====
+        this.gameState = new GameState();
+
         // ===== Controllers =====
         this.hudController = new HudController(hudStage, COUNTDOWN_DURATION, INITIAL_SUN);
 
-        // PlantGridController dùng cùng list entities/plants với GameWorld
         this.plantGridController = new PlantGridController(entities, plants, camera);
         plantGridController.setEnabled(false);
 
         this.lawnMowerController = new LawnMowerController(
-                ZOMBIE_LANE_COUNT,
-                WORLD_WIDTH,
-                180f // khoảng cách mower spawn từ mép trái
-        );
+                WORLD_WIDTH - 50f,
+                DesignConfig.START_X - 150f);
 
         this.zombieWaveController = new ZombieWaveController(
                 WORLD_WIDTH,
-                ZOMBIE_LANE_COUNT,
+                WORLD_HEIGHT,
                 ZOMBIE_START_OFFSET_X,
-                90, // tổng số zombie của màn (tuỳ bạn tune)
+                90,
                 LEVEL_DURATION);
 
         BackgroundManager backgroundManager = new BackgroundManager();
@@ -120,8 +125,8 @@ public class GameScreen implements Screen {
                 lawnMowerController,
                 zombieWaveController);
 
-        // GameWorld: chứa toàn bộ ECS (systems, spawn, pickup sun...)
         this.gameWorld = new GameWorld(
+                gameState,
                 hudController,
                 entities,
                 plants,
@@ -130,22 +135,34 @@ public class GameScreen implements Screen {
                 plantGridController,
                 batch);
 
-        // Controller đặt cây bằng card (click/drag)
         this.plantPlacementController = new PlantPlacementController(
                 viewport,
                 hudController,
                 plantGridController,
                 gameWorld);
+
+        shapeRenderer = new ShapeRenderer();
     }
 
     // ================== Helper ==================
 
     private boolean isPlaying() {
-        return state == State.PLAYING;
+        return gameState.isPlaying();
     }
 
     private boolean isCountdown() {
-        return state == State.COUNTDOWN;
+        return gameState.isCountdown();
+    }
+
+    private boolean isGameOver() {
+        return gameState.isGameOver();
+    }
+
+    /**
+     * Cho screen khác (GameOverScreen, ResumeScreen, ...) lấy trạng thái nếu cần.
+     */
+    public GameState getGameState() {
+        return gameState;
     }
 
     // ================== HUD interaction ==================
@@ -155,6 +172,9 @@ public class GameScreen implements Screen {
      * Stage HUD sẽ lấy GameScreen qua getRoot().getUserObject().
      */
     public void onPlantCardClicked(PlantCard card) {
+        // khi gameOver thì không cho đặt plant nữa
+        if (isGameOver())
+            return;
         plantPlacementController.handleCardClicked(card, isPlaying());
     }
 
@@ -162,18 +182,25 @@ public class GameScreen implements Screen {
      * Được PlantCard gọi khi người chơi kéo card và thả ra màn hình.
      */
     public void onPlantCardDragged(PlantCard card, float screenX, float screenY) {
+        if (isGameOver())
+            return;
         plantPlacementController.handleCardDragged(card, screenX, screenY, isPlaying());
     }
 
     // ================== Game state ==================
 
     private void updateState(float delta) {
+        // Nếu đã gameOver rồi thì không chuyển state nữa
+        if (isGameOver()) {
+            return;
+        }
+
         if (!isCountdown()) {
             return;
         }
 
         if (hudController.isCountdownFinished()) {
-            state = State.PLAYING;
+            gameState.setState(GameState.State.PLAYING);
 
             hudController.onCountdownFinished();
 
@@ -184,6 +211,7 @@ public class GameScreen implements Screen {
     }
 
     private void updateGame(float delta) {
+        // Chỉ update logic thế giới khi đang PLAYING
         if (!isPlaying()) {
             return;
         }
@@ -200,6 +228,8 @@ public class GameScreen implements Screen {
 
     private void handleEscape() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            // Nếu gameOver thì có thể sau này chuyển sang GameOverScreen
+            // Hiện tại vẫn giữ ResumeScreen như cũ
             game.setScreen(new ResumeScreen(game, this));
         }
     }
@@ -241,8 +271,10 @@ public class GameScreen implements Screen {
         worldRenderer.render(batch, isCountdown(), isPlaying());
         batch.end();
 
+        drawDebugGrid();
+
         // --- ECS (plants, projectiles, sun system, attack system) ---
-        gameWorld.update(delta, isPlaying());
+        gameWorld.update(delta);
         if (isPlaying()) {
             batch.setProjectionMatrix(camera.combined);
             gameWorld.render(batch);
@@ -265,6 +297,7 @@ public class GameScreen implements Screen {
         hudStage.dispose();
         hudController.dispose();
         worldRenderer.dispose();
+        shapeRenderer.dispose();
         // entities / plants: nếu có texture/sound riêng thì tự dispose bên trong
     }
 
@@ -279,4 +312,28 @@ public class GameScreen implements Screen {
     @Override
     public void hide() {
     }
+
+    private void drawDebugGrid() {
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        for (int row = 0; row < GridConfig.ROWS; row++) {
+            for (int col = 0; col < GridConfig.COLS; col++) {
+                float x = GridConfig.getCellOriginX(col);
+                float y = GridConfig.getCellOriginY(row);
+
+                // viền ô
+                shapeRenderer.rect(x, y, GridConfig.CELL_WIDTH, GridConfig.CELL_HEIGHT);
+
+                // tâm ô
+                float cx = GridConfig.getCellCenterX(col);
+                float cy = GridConfig.getCellCenterY(row);
+                float r = 3f;
+                shapeRenderer.circle(cx, cy, r);
+            }
+        }
+
+        shapeRenderer.end();
+    }
+
 }

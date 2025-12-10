@@ -10,28 +10,36 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 
+import pvz.com.managers.HudLayoutConfig;
+import pvz.com.managers.ScaleManager;
+
 public class SeedBank extends Group {
 
     private final Texture bgTex;
     private final Array<PlantCard> cards = new Array<>();
 
-    private static final float SAFE_PADDING_LEFT = 310f;
-    private static final float SAFE_PADDING_RIGHT = 30f;
-    private static final float PADDING_TOP = 10f;
-    private static final float PADDING_BOTTOM = 10f;
-    private static final float CARD_GAP_X = 5f;
+    private static final float TRAY_WIDTH_RATIO = HudLayoutConfig.SEEDBANK_WIDTH_RATIO;
+    private static final float TRAY_MARGIN_LEFT = HudLayoutConfig.SEEDBANK_MARGIN_LEFT;
+    private static final float TRAY_MARGIN_TOP = HudLayoutConfig.SEEDBANK_MARGIN_TOP;
 
-    private static final float CARD_HEIGHT_RATIO = 0.9f;
+    private static final float SAFE_PADDING_LEFT = HudLayoutConfig.SEEDBANK_SAFE_PADDING_LEFT;
+    private static final float SAFE_PADDING_RIGHT = HudLayoutConfig.SEEDBANK_SAFE_PADDING_RIGHT;
+    private static final float PADDING_TOP = HudLayoutConfig.SEEDBANK_PADDING_TOP;
+    private static final float PADDING_BOTTOM = HudLayoutConfig.SEEDBANK_PADDING_BOTTOM;
+    private static final float CARD_GAP_X = HudLayoutConfig.SEEDBANK_CARD_GAP_X;
+    private static final float CARD_HEIGHT_RATIO = HudLayoutConfig.SEEDBANK_CARD_HEIGHT_RATIO;
+
+    private static final float SUN_LABEL_CENTER_X = HudLayoutConfig.SUN_LABEL_CENTER_X;
+    private static final float SUN_LABEL_CENTER_Y = HudLayoutConfig.SUN_LABEL_CENTER_Y;
+
+    private static final float BASE_SUN_FONT_SCALE = HudLayoutConfig.BASE_SUN_FONT_SCALE;
+
+    // tỉ lệ chiều rộng / chiều cao card (dựa theo kích thước gốc)
     private static final float CARD_ASPECT = PlantCard.WIDTH / PlantCard.HEIGHT;
 
     // ==== SUN HUD ====
     private int sunAmount = 0;
     private final Label sunLabel;
-
-    // toạ độ tâm của số 50 trên texture gốc (pixel trên ảnh gốc)
-    // nếu lệch chút thì chỉnh 2 số này
-    private static final float SUN_LABEL_CENTER_X = 180f;
-    private static final float SUN_LABEL_CENTER_Y = 25f;
 
     public SeedBank(BitmapFont font) {
         bgTex = new Texture(Gdx.files.internal("images/items/seed_bank.png"));
@@ -43,7 +51,6 @@ public class SeedBank extends Group {
 
         sunLabel = new Label("0", style);
         sunLabel.setAlignment(Align.center);
-        sunLabel.setFontScale(0.6f); // cho chữ nhỏ lại cho giống số 50
         addActor(sunLabel);
 
         // set kích thước ban đầu sau khi đã có sunLabel
@@ -95,29 +102,57 @@ public class SeedBank extends Group {
         float scaleX = getWidth() / bgTex.getWidth();
         float scaleY = getHeight() / bgTex.getHeight();
 
-        float padLeft = SAFE_PADDING_LEFT * scaleX;
-        float padRight = SAFE_PADDING_RIGHT * scaleX;
-        float gapX = CARD_GAP_X * scaleX;
+        float innerPadLeft = SAFE_PADDING_LEFT * scaleX;
+        float innerPadRight = SAFE_PADDING_RIGHT * scaleX;
+        float cardGapX = CARD_GAP_X * scaleX;
 
-        float innerW = getWidth() - padLeft - padRight;
-        float innerH = getHeight() - (PADDING_TOP + PADDING_BOTTOM) * scaleY;
+        float innerWidth = getWidth() - innerPadLeft - innerPadRight;
+        float innerHeight = getHeight() - (PADDING_TOP + PADDING_BOTTOM) * scaleY;
 
-        float cardH = innerH * CARD_HEIGHT_RATIO;
-        float cardW = cardH * CARD_ASPECT;
+        float cardHeight = innerHeight * CARD_HEIGHT_RATIO;
+        float cardWidth = cardHeight * CARD_ASPECT;
 
-        float totalW = cards.size * cardW + (cards.size - 1) * gapX;
-        if (totalW > innerW) {
-            cardW = (innerW - (cards.size - 1) * gapX) / cards.size;
-            cardH = cardW / CARD_ASPECT;
+        float totalCardsWidth = cards.size * cardWidth + (cards.size - 1) * cardGapX;
+        if (totalCardsWidth > innerWidth) {
+            cardWidth = (innerWidth - (cards.size - 1) * cardGapX) / cards.size;
+            cardHeight = cardWidth / CARD_ASPECT;
         }
 
-        float baseY = PADDING_BOTTOM * scaleY + (innerH - cardH) / 2f;
+        float baseY = PADDING_BOTTOM * scaleY + (innerHeight - cardHeight) / 2f;
 
         for (int i = 0; i < cards.size; i++) {
             PlantCard card = cards.get(i);
-            float x = padLeft + i * (cardW + gapX);
-            card.setBounds(x, baseY, cardW, cardH);
+            float x = innerPadLeft + i * (cardWidth + cardGapX);
+            card.setBounds(x, baseY, cardWidth, cardHeight);
         }
+    }
+
+    public void updateLayout(float worldWidth, float worldHeight) {
+        // ===== KÍCH THƯỚC SEEDBANK =====
+        // Chiếm TRAY_WIDTH_RATIO chiều ngang màn hình
+        float trayWidth = worldWidth * TRAY_WIDTH_RATIO;
+
+        // Giữ tỉ lệ gốc của texture
+        float textureAspect = (float) bgTex.getHeight() / (float) bgTex.getWidth();
+        float trayHeight = trayWidth * textureAspect;
+
+        setSize(trayWidth, trayHeight);
+
+        // ===== VỊ TRÍ SEEDBANK =====
+        // Margin trái / trên được khai báo theo layout gốc (BASE_SCREEN_W/H)
+        float x = ScaleManager.toWorldX(TRAY_MARGIN_LEFT, worldWidth);
+        float marginTopWorld = ScaleManager.toWorldY(TRAY_MARGIN_TOP, worldHeight);
+
+        // (0,0) ở góc trái dưới, nên y = top - height - marginTop
+        float y = worldHeight - trayHeight - marginTopWorld;
+
+        setPosition(x, y);
+
+        // scale theo chiều cao màn hình (vì layout base dùng BASE_SCREEN_H)
+        float fontScale = ScaleManager.getHeightScale(worldHeight);
+
+        // scale cuối = scale gốc * factor theo màn hình
+        sunLabel.setFontScale(BASE_SUN_FONT_SCALE * fontScale);
     }
 
     @Override

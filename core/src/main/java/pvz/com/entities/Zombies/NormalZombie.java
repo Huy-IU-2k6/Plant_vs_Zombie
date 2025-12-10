@@ -7,19 +7,23 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import pvz.com.managers.GifManager;
+import pvz.com.managers.DesignConfig;
+import pvz.com.managers.ScaleManager;
 
 public class NormalZombie extends Zombies {
 
     // ===== CONST =====
     private static final int BODY_HEALTH = 100;
-    private static final float MOVE_SPEED = 12f;
+    private static final float MOVE_SPEED = 15f;
     private static final int FRAMES_PER_ROW = 1;
     private static final float WALK_FRAME_TIME = 0.20f;
     private static final float DIE_FRAME_TIME = 0.20f;
     private static final float EAT_FRAME_TIME = 0.25f;
 
-    // Chiều cao zombie mong muốn trong world (vừa 1 ô cỏ ~ 100)
-    private static final float DESIRED_HEIGHT = 120f;
+    // Kích thước zombie theo layout gốc (1920x1080)
+    // -> lấy từ DesignConfig
+    private static final float BASE_ZOMBIE_W = DesignConfig.ZOMBIE_W;
+    private static final float BASE_ZOMBIE_H = DesignConfig.ZOMBIE_H;
 
     // Spritesheets
     private final Texture walkSheet;
@@ -31,10 +35,17 @@ public class NormalZombie extends Zombies {
     private final Animation<TextureRegion> dieAnim;
     private final Animation<TextureRegion> eatAnim;
 
-    // State
+    // State animation
     private float stateTime = 0f;
     private boolean isDying = false;
     private boolean isEating = false;
+
+    // Dùng để giữ tỉ lệ khung hình gốc của sprite
+    private final float originalW;
+    private final float originalH;
+
+    // Chỉ init size một lần khi đã có stage (để lấy worldHeight)
+    private boolean sizeInitialized = false;
 
     public NormalZombie() {
         super();
@@ -51,23 +62,56 @@ public class NormalZombie extends Zombies {
         eatAnim = GifManager.createAnim(
                 eatSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        // ===== Set size với scale thay vì size gốc =====
+        // Lấy kích thước frame gốc để giữ tỉ lệ
         TextureRegion firstFrame = walkAnim.getKeyFrame(0f);
-        float originalW = firstFrame.getRegionWidth();
-        float originalH = firstFrame.getRegionHeight();
+        originalW = firstFrame.getRegionWidth();
+        originalH = firstFrame.getRegionHeight();
 
-        float scale = DESIRED_HEIGHT / originalH;
-        float desiredWidth = originalW * scale;
-
-        setSize(desiredWidth, DESIRED_HEIGHT);
+        // Tạm set size theo kích thước design (chưa scale theo world)
+        // để tránh null trong 1 số logic nào đó nếu có
+        setSize(BASE_ZOMBIE_W, BASE_ZOMBIE_H);
 
         // ===== Health & speed =====
         this.health = BODY_HEALTH;
         this.speed = MOVE_SPEED;
     }
 
+    /**
+     * Khởi tạo lại kích thước theo world hiện tại,
+     * dùng DesignConfig + ScaleManager.
+     *
+     * - BASE_ZOMBIE_H: chiều cao zombie trên layout gốc 1920x1080
+     * - scaleByHeight: scale theo worldHeight thực tế
+     * - giữ nguyên tỉ lệ originalW/originalH của sprite
+     */
+    private void initSizeIfNeeded() {
+        if (sizeInitialized)
+            return;
+
+        float worldHeight;
+        if (getStage() != null && getStage().getViewport() != null) {
+            worldHeight = getStage().getViewport().getWorldHeight();
+        } else {
+            // fallback: nếu chưa có stage thì coi như worldHeight = layout gốc
+            worldHeight = ScaleManager.BASE_SCREEN_H;
+        }
+
+        // Chiều cao zombie trên world: scale từ thiết kế gốc
+        float zombieWorldH = ScaleManager.scaleByHeight(BASE_ZOMBIE_H, worldHeight);
+
+        // Giữ tỉ lệ khung hình của GIF
+        float aspect = originalW / originalH;
+        float zombieWorldW = zombieWorldH * aspect;
+
+        setSize(zombieWorldW, zombieWorldH);
+        sizeInitialized = true;
+    }
+
     @Override
     public void act(float delta) {
+        // đảm bảo size đã được scale đúng theo world
+        initSizeIfNeeded();
+
         // Nếu đang trong animation chết → chỉ chạy anim, không gọi super.act
         if (isDying) {
             stateTime += delta;
@@ -83,7 +127,6 @@ public class NormalZombie extends Zombies {
             return;
         }
 
-        // Không tự xử lý isEating ở đây nữa.
         // CollisionSystem sẽ gọi setEating(true/false).
         super.act(delta);
 
@@ -93,7 +136,6 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        // Nếu đã chết hẳn (animation kết thúc và đã set dead = true) thì khỏi vẽ
         if (dead)
             return;
 
@@ -113,7 +155,6 @@ public class NormalZombie extends Zombies {
 
     // ===== DEATH LOGIC =====
 
-    /** Bắt đầu trạng thái chết (dùng chung cho đạn, mower, cherry bomb). */
     private void startDeath() {
         if (isDying || dead)
             return;
@@ -137,13 +178,11 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void killByMower() {
-        // Mower cán cũng cho chơi animation chết
         startDeath();
     }
 
     @Override
     public void killByCherryBomb() {
-        // Sau này nếu có Burnt_Zombie.gif thì có thể đổi animation ở đây
         startDeath();
     }
 
@@ -156,18 +195,15 @@ public class NormalZombie extends Zombies {
         if (isDying || dead)
             return;
 
-        if (this.isEating == eating) {
-            return; // không đổi gì thì thôi
-        }
+        if (this.isEating == eating)
+            return;
 
         this.isEating = eating;
-        stateTime = 0f; // reset lại anim để chuyển mượt hơn
+        stateTime = 0f; // reset anim cho mượt
 
         if (eating) {
-            // Đứng lại, để Zombies.act() không moveBy nữa
             this.speed = 0f;
         } else {
-            // Đi tiếp như bình thường
             this.speed = MOVE_SPEED;
         }
     }
@@ -177,5 +213,4 @@ public class NormalZombie extends Zombies {
         dieSheet.dispose();
         eatSheet.dispose();
     }
-    
 }

@@ -26,7 +26,6 @@ public class SoundManager implements Disposable {
     private float sfxVolume = 1f;
 
     private SoundManager() {
-        // TODO: chỉnh lại path cho đúng với project của bạn
 
         // Background Music
         // musics.put("menu",

@@ -36,15 +36,6 @@ public class MainMenuScreen implements Screen {
     private TextButton startButton;
     private Cell<TextButton> startButtonCell;
 
-    // thêm mấy hằng số ở đầu class
-    private static final float BOARD_W_RATIO = 0.36f; // % chiều rộng màn hình
-    private static final float BOARD_H_RATIO = 0.33f; // % chiều cao màn hình
-
-    // kích thước gốc của board.png (pixel) – cái em dùng để ước lượng tỉ lệ
-    private static final float BASE_BOARD_HEIGHT = 320f;
-
-    // padding đáy của chữ trên board gốc (320px cao, padBottom ~70px)
-
     // Layout gốc em thiết kế trên 1920 x 1080
     private static final float BASE_SCREEN_W = 1920f;
     private static final float BASE_SCREEN_H = 1080f;

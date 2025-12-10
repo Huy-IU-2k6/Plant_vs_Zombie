@@ -8,15 +8,16 @@ import pvz.com.items.ItemType;
 import pvz.com.items.PlantCard;
 import pvz.com.items.SeedBank;
 import pvz.com.managers.FontManager;
-import pvz.com.ui.CountdownActor;
+import pvz.com.items.CountdownActor;
+
+import pvz.com.managers.HudLayoutConfig;
 
 public class HudController {
 
-    // ===== SeedBank layout =====
-    private static final float SEED_BANK_HEIGHT = 110f;
-    private static final float SEED_BANK_MARGIN_TOP = 20f;
-    private static final float SEED_BANK_MARGIN_LEFT = 50f;
+    private static final float COUNTDOWN_POS_X_RATIO = HudLayoutConfig.getCountdownPosXRatio();
+    private static final float COUNTDOWN_POS_Y_RATIO = HudLayoutConfig.getCountdownPosYRatio();
 
+    // ===== FIELDS =====
     private final Stage hudStage;
 
     private final SeedBank seedBank;
@@ -35,34 +36,19 @@ public class HudController {
 
         // SeedBank
         seedBank = new SeedBank(hudFont);
-        layoutSeedBank();
         seedBank.setVisible(false);
         seedBank.setSunAmount(initialSun); // sync số sun ban đầu
         hudStage.addActor(seedBank);
 
         // Countdown
-        countdown = new CountdownActor(countdownDuration, hudFont);
-        countdown.setPosition(400f, 500f);
+        countdown = new CountdownActor(countdownDuration);
         hudStage.addActor(countdown);
 
         // Plant cards
         createPlantCards();
-    }
 
-    private void layoutSeedBank() {
-        float hudH = hudStage.getViewport().getWorldHeight();
-
-        float originalW = seedBank.getWidth();
-        float originalH = seedBank.getHeight();
-
-        float scale = SEED_BANK_HEIGHT / originalH;
-        float trayW = originalW * scale;
-        float trayH = originalH * scale;
-
-        seedBank.setSize(trayW, trayH);
-        seedBank.setPosition(
-                SEED_BANK_MARGIN_LEFT,
-                hudH - trayH - SEED_BANK_MARGIN_TOP);
+        // Layout ban đầu
+        updateHudLayout();
     }
 
     private void createPlantCards() {
@@ -73,9 +59,29 @@ public class HudController {
         }
     }
 
+    /**
+     * Cập nhật toàn bộ layout HUD theo worldWidth/worldHeight hiện tại:
+     * - SeedBank.
+     * - Countdown.
+     */
+    private void updateHudLayout() {
+        float worldWidth = hudStage.getViewport().getWorldWidth();
+        float worldHeight = hudStage.getViewport().getWorldHeight();
+
+        // SeedBank tự xử lý layout nội bộ
+        seedBank.updateLayout(worldWidth, worldHeight);
+
+        // Countdown position scale theo kích thước world
+        if (countdown != null) {
+            float countdownX = worldWidth * COUNTDOWN_POS_X_RATIO;
+            float countdownY = worldHeight * COUNTDOWN_POS_Y_RATIO;
+            countdown.setPosition(countdownX, countdownY);
+        }
+    }
+
     public void resize(int width, int height) {
         hudStage.getViewport().update(width, height, true);
-        layoutSeedBank();
+        updateHudLayout();
     }
 
     // ===== Countdown =====
@@ -100,8 +106,6 @@ public class HudController {
     }
 
     // ===== Sun HUD =====
-    // Chỉ lưu logic sunPoints, việc vẽ giao cho SeedBank
-
     public void addSun(int amount) {
         sunPoints += amount;
         seedBank.setSunAmount(sunPoints);
@@ -130,6 +134,5 @@ public class HudController {
 
     public void dispose() {
         seedBank.dispose();
-        // hudFont do FontManager quản lý, không dispose ở đây
     }
 }

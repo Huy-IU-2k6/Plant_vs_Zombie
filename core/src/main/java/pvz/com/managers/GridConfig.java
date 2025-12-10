@@ -1,23 +1,47 @@
 package pvz.com.managers;
 
-/**
- * Cấu hình grid (lawn) dùng chung cho Plants & Zombies.
- *
- * Hệ toạ độ libGDX: (0,0) ở góc trái dưới màn hình.
- */
 public class GridConfig {
 
-    // Số hàng / cột của lawn
-    public static final int ROWS = 5;
-    public static final int COLS = 9;
+    // Số hàng / cột của lawn (không cần scale)
+    public static final int ROWS = DesignConfig.ROWS;
+    public static final int COLS = DesignConfig.COLS;
 
-    // Kích thước 1 ô (theo world units)
-    public static final float CELL_WIDTH = 62f;
-    public static final float CELL_HEIGHT = 100f;
+    // Kích thước 1 ô & vị trí start trên WORLD (sau khi đã scale)
+    public static float CELL_WIDTH;
+    public static float CELL_HEIGHT;
+    public static float START_X;
+    public static float START_Y;
 
-    // Góc trái dưới của ô (row=0, col=0) trên world
-    public static final float START_X = 255f;
-    public static final float START_Y = 60f;
+    private static boolean initialized = false;
+
+    /**
+     * Gọi 1 lần sau khi biết worldWidth / worldHeight (vd: sau khi tạo viewport).
+     *
+     * @param worldWidth  kích thước world theo trục X (vd: camera viewportWidth)
+     * @param worldHeight kích thước world theo trục Y (vd: camera viewportHeight)
+     */
+    public static void init(float worldWidth, float worldHeight) {
+        // scale kích thước ô theo thiết kế gốc 1920x1080
+        CELL_WIDTH = ScaleManager.scaleByWidth(DesignConfig.CELL_WIDTH, worldWidth);
+        CELL_HEIGHT = ScaleManager.scaleByHeight(DesignConfig.CELL_HEIGHT, worldHeight);
+
+        // toạ độ góc trái dưới lawn
+        START_X = ScaleManager.toWorldX(DesignConfig.START_X, worldWidth);
+        START_Y = ScaleManager.toWorldY(DesignConfig.START_Y, worldHeight);
+
+        initialized = true;
+    }
+
+    private static void checkInit() {
+        if (!initialized) {
+            // fallback: nếu quên init thì dùng giá trị base (1920x1080)
+            CELL_WIDTH = DesignConfig.CELL_WIDTH;
+            CELL_HEIGHT = DesignConfig.CELL_HEIGHT;
+            START_X = DesignConfig.START_X;
+            START_Y = DesignConfig.START_Y;
+            initialized = true;
+        }
+    }
 
     // =========================================================
     // CENTER OF CELL
@@ -25,11 +49,13 @@ public class GridConfig {
 
     /** Tâm ô theo col (theo worldX) */
     public static float getCellCenterX(int col) {
+        checkInit();
         return START_X + col * CELL_WIDTH + CELL_WIDTH / 2f;
     }
 
     /** Tâm ô theo row (theo worldY) */
     public static float getCellCenterY(int row) {
+        checkInit();
         return START_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2f;
     }
 
@@ -39,11 +65,13 @@ public class GridConfig {
 
     /** Góc trái dưới của ô theo col (worldX) */
     public static float getCellOriginX(int col) {
+        checkInit();
         return START_X + col * CELL_WIDTH;
     }
 
     /** Góc trái dưới của ô theo row (worldY) */
     public static float getCellOriginY(int row) {
+        checkInit();
         return START_Y + row * CELL_HEIGHT;
     }
 
@@ -53,12 +81,14 @@ public class GridConfig {
 
     /** Lấy col từ tọa độ worldX */
     public static int worldToCol(float worldX) {
+        checkInit();
         float localX = worldX - START_X; // toạ độ tương đối trong lawn
         return (int) (localX / CELL_WIDTH); // floor
     }
 
     /** Lấy row từ tọa độ worldY */
     public static int worldToRow(float worldY) {
+        checkInit();
         float localY = worldY - START_Y;
         return (int) (localY / CELL_HEIGHT);
     }
@@ -69,6 +99,8 @@ public class GridConfig {
     }
 
     public static int[] worldToNearestCell(float worldX, float worldY) {
+        checkInit();
+
         int bestRow = -1;
         int bestCol = -1;
         float bestDist2 = Float.MAX_VALUE;
@@ -111,6 +143,7 @@ public class GridConfig {
      * Trả về góc trái dưới (origin) của Actor.
      */
     public static float getActorXForCell(int col, float actorWidth) {
+        checkInit();
         return getCellCenterX(col) - actorWidth / 2f;
     }
 
@@ -119,6 +152,7 @@ public class GridConfig {
      * Trả về góc trái dưới (origin) của Actor.
      */
     public static float getActorYForCell(int row, float actorHeight) {
+        checkInit();
         return getCellCenterY(row) - actorHeight / 2f;
     }
 }
