@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import pvz.com.managers.GifManager;
+import pvz.com.managers.DesignConfig;
+import pvz.com.managers.ScaleManager;
 
 public class BucketheadZombie extends Zombies {
 
@@ -23,8 +25,8 @@ public class BucketheadZombie extends Zombies {
     private static final float EAT_FRAME_TIME = 0.15f;
     private static final float BURNT_FRAME_TIME = 0.15f;
 
-    // Chiều cao mong muốn (đồng bộ với NormalZombie)
-    private static final float DESIRED_HEIGHT = 120f;
+    // Chiều cao zombie theo layout gốc 1920x1080
+    private static final float BASE_ZOMBIE_H = DesignConfig.ZOMBIE_H;
 
     // ---------- STATE ----------
     private int bucketHealth;
@@ -52,6 +54,17 @@ public class BucketheadZombie extends Zombies {
     private final Animation<TextureRegion> normalEatAnim;
 
     private final Animation<TextureRegion> burntAnim;
+
+    // Giữ kích thước frame gốc để tính tỉ lệ
+    private final float bucketOriginalW;
+    private final float bucketOriginalH;
+    private final float normalOriginalW;
+    private final float normalOriginalH;
+
+    // ---------- SCALE CACHE ----------
+    private boolean sizeInitialized = false;
+    private boolean lastBucketLost = false;
+    private float lastWorldHeight = -1f;
 
     // ---------- SOUNDS ----------
     private final Sound groanSound;
@@ -107,19 +120,57 @@ public class BucketheadZombie extends Zombies {
                 PlayMode.NORMAL // cháy 1 lần rồi thôi
         );
 
-        // --------- SCALE THE ZOMBIE HEIGHT ----------
-        TextureRegion firstFrame = walkAnim.getKeyFrame(0f);
-        float originalW = firstFrame.getRegionWidth();
-        float originalH = firstFrame.getRegionHeight();
+        // --------- LẤY KÍCH THƯỚC GỐC ----------
+        TextureRegion bucketFirst = walkAnim.getKeyFrame(0f);
+        bucketOriginalW = bucketFirst.getRegionWidth();
+        bucketOriginalH = bucketFirst.getRegionHeight();
 
-        float scale = DESIRED_HEIGHT / originalH;
-        float desiredWidth = originalW * scale;
+        TextureRegion normalFirst = normalWalkAnim.getKeyFrame(0f);
+        normalOriginalW = normalFirst.getRegionWidth();
+        normalOriginalH = normalFirst.getRegionHeight();
 
-        setSize(desiredWidth, DESIRED_HEIGHT);
+        // Tạm set size, sẽ scale đúng khi có stage
+        float aspect = bucketOriginalW / bucketOriginalH;
+        setSize(aspect * BASE_ZOMBIE_H, BASE_ZOMBIE_H);
 
         // Zombie groan sound
         groanSound = Gdx.audio.newSound(Gdx.files.internal("sounds/groan.wav"));
         groanSound.play(0.15f);
+    }
+
+    // ------------------------------------------------------
+    // SCALE THEO WORLD / FORM
+    // ------------------------------------------------------
+    private void updateSizeForCurrentForm() {
+        float worldHeight;
+        if (getStage() != null && getStage().getViewport() != null) {
+            worldHeight = getStage().getViewport().getWorldHeight();
+        } else {
+            // fallback: chưa có stage thì dùng layout gốc
+            worldHeight = ScaleManager.BASE_SCREEN_H;
+        }
+
+        // Nếu không đổi form và worldHeight giữ nguyên → bỏ qua
+        if (sizeInitialized && lastBucketLost == bucketLost && lastWorldHeight == worldHeight) {
+            return;
+        }
+
+        float zombieWorldH = ScaleManager.scaleByHeight(BASE_ZOMBIE_H, worldHeight);
+
+        float aspect;
+        if (!bucketLost) {
+            aspect = bucketOriginalW / bucketOriginalH;
+        } else {
+            aspect = normalOriginalW / normalOriginalH;
+        }
+
+        float zombieWorldW = zombieWorldH * aspect;
+
+        setSize(zombieWorldW, zombieWorldH);
+
+        sizeInitialized = true;
+        lastBucketLost = bucketLost;
+        lastWorldHeight = worldHeight;
     }
 
     // ------------------------------------------------------
@@ -135,7 +186,9 @@ public class BucketheadZombie extends Zombies {
             bucketHealth -= dmg;
 
             if (bucketHealth <= 0) {
-                bucketLost = true; // không cần sound
+                bucketLost = true;
+                stateTime = 0f; // reset anim cho mượt
+                updateSizeForCurrentForm(); // đổi sang size normal
             }
             return;
         }
@@ -186,13 +239,24 @@ public class BucketheadZombie extends Zombies {
     // ------------------------------------------------------
     @Override
     public void act(float delta) {
+        // Scale theo world + form (có/không có xô)
+        updateSizeForCurrentForm();
+
+        // Nếu đang cháy thì không còn di chuyển nữa,
+        // chỉ để draw() lo animation và remove
+        if (isBurnt) {
+            stateTime += delta;
+            return;
+        }
+
+        // Nếu đã chết theo kiểu thường (die()) thì thôi
+        if (dead) {
+            return;
+        }
+
         super.act(delta); // xử lý move, sound, gameOver ở base
 
         stateTime += delta;
-
-        // Khi cháy hoặc dead thì không cần xử lý thêm
-        if (isBurnt || dead)
-            return;
     }
 
     // ------------------------------------------------------
@@ -232,12 +296,29 @@ public class BucketheadZombie extends Zombies {
     // ------------------------------------------------------
     // PLANT INTERACTION
     // ------------------------------------------------------
+    public void setEating(boolean eating) {
+        if (dead || isBurnt)
+            return;
+
+        if (this.isEating == eating)
+            return;
+
+        this.isEating = eating;
+        stateTime = 0f;
+
+        if (eating) {
+            this.speed = 0f;
+        } else {
+            this.speed = MOVE_SPEED;
+        }
+    }
+
     public void startEating() {
-        isEating = true;
+        setEating(true);
     }
 
     public void stopEating() {
-        isEating = false;
+        setEating(false);
     }
 
     @Override

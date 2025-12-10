@@ -3,12 +3,13 @@ package pvz.com.entities.Zombies;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.graphics.Color;
+import pvz.com.managers.DesignConfig;
+
 public class Zombies extends Actor {
     // ===== STATE =====
     private boolean eating = false;
 
     // ===== STATIC STATE =====
-    protected static boolean gameOver = false;
     protected static int zombieCount = 0;
 
     // ===== COMPOSITION =====
@@ -18,9 +19,9 @@ public class Zombies extends Actor {
     // ===== CONFIG =====
     protected float speed = 20f;
     protected int health = 100;
-    protected float baseSpeed = 20f; 
-    protected boolean isSlowed = false; 
-    protected float slowTimer = 0f;     
+    protected float baseSpeed = 20f;
+    protected boolean isSlowed = false;
+    protected float slowTimer = 0f;
     // dead = đã chết, đang nằm trong animation chết, chuẩn bị bị remove
 
     // dead = đã chết, đang trong animation chết, chuẩn bị bị remove
@@ -36,7 +37,7 @@ public class Zombies extends Actor {
         zombieCount++;
 
         // kích thước default, subclass có thể override
-        setSize(70, 100);
+        setSize(DesignConfig.FIXED_WIDTH, DesignConfig.FIXED_HEIGHT);
 
         // tạo hitbox dựa theo size ban đầu
         zombieBounds = new ZombieBounds(getWidth(), getHeight());
@@ -47,9 +48,6 @@ public class Zombies extends Actor {
     @Override
     public void act(float delta) {
         super.act(delta);
-
-        if (gameOver)
-            return;
 
         // update âm thanh
         zombieSounds.act(delta);
@@ -62,26 +60,20 @@ public class Zombies extends Actor {
             }
             return;
         }
-                if (isSlowed) {
-                    slowTimer -= delta;
+        if (isSlowed) {
+            slowTimer -= delta;
             // Nếu hết thời gian làm chậm
             if (slowTimer <= 0) {
                 isSlowed = false;
                 this.speed = this.baseSpeed; // Trả lại tốc độ gốc
-                this.setColor(Color.WHITE);  // Trả lại màu trắng bình thường
+                this.setColor(Color.WHITE); // Trả lại màu trắng bình thường
             }
         }
-
 
         // ----- ZOMBIE CÒN SỐNG: di chuyển -----
         moveBy(-speed * delta, 0);
         // hitBox sẽ được update trong positionChanged()
 
-        // chạm nhà -> thua
-        if (getX() < 0) {
-            gameOver = true;
-        }
-        
     }
 
     @Override
@@ -175,10 +167,6 @@ public class Zombies extends Actor {
     // ======================================================================
     // CLEANUP
     // ======================================================================
-
-    public static boolean isGameOver() {
-        return gameOver;
-    }
 
     public static int getZombieCount() {
         return zombieCount;
