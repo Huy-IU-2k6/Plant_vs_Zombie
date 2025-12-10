@@ -1,10 +1,10 @@
 package pvz.com.entities.components;
 
 public class HealthComponent {
-    public int maxHealth;
-    public int currentHealth;
+    public float maxHealth;
+    public float currentHealth;
 
-    public HealthComponent(int maxHealth) {
+    public HealthComponent(float maxHealth) {
         this.maxHealth = maxHealth;
         this.currentHealth = maxHealth;
     }

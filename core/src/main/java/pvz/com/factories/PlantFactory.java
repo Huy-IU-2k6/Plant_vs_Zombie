@@ -9,7 +9,6 @@ import pvz.com.entities.plants.shooters.SnowPea;
 import pvz.com.entities.plants.defenders.Wallnut;
 import pvz.com.entities.plants.bombs.CherryBomb;
 import pvz.com.entities.plants.bombs.PotatoMine;
-import pvz.com.entities.plants.shooters.SnowPea;
 
 import pvz.com.managers.GridConfig;
 
@@ -34,7 +33,7 @@ public class PlantFactory {
     // CherryBomb dùng size riêng (gif vuông)
     private static final float CHERRY_BOMB_WIDTH = 90f;
     private static final float CHERRY_BOMB_HEIGHT = 90f;
-    
+
     private static final float SNOWPEA_SCALE_X = 0.7f;
     private static final float SNOWPEA_SCALE_Y = 0.8f;
     // offset để CherryBomb nằm đẹp hơn trong ô
@@ -122,6 +121,7 @@ public class PlantFactory {
 
         return new PotatoMine(x, y, col, row);
     }
+
     public static Plant createSnowPeaAtCell(int col, int row) {
         float w = GridConfig.CELL_WIDTH * SNOWPEA_SCALE_X;
         float h = GridConfig.CELL_HEIGHT * SNOWPEA_SCALE_Y;

@@ -6,16 +6,16 @@ import com.badlogic.gdx.utils.Array;
 import pvz.com.entities.Zombies.Zombies;
 import pvz.com.items.LawnMower;
 import pvz.com.managers.GridConfig;
+import pvz.com.managers.DesignConfig;
 
 public class LawnMowerController {
 
     private final Array<LawnMower> lawnMowers = new Array<>();
-    private final int laneCount;
+    private final int laneCount = DesignConfig.ROWS;
     private final float worldWidth;
     private final float mowerStartX;
 
-    public LawnMowerController(int laneCount, float worldWidth, float mowerStartX) {
-        this.laneCount = laneCount;
+    public LawnMowerController(float worldWidth, float mowerStartX) {
         this.worldWidth = worldWidth;
         this.mowerStartX = mowerStartX;
     }
@@ -27,7 +27,7 @@ public class LawnMowerController {
             // Grid center Y của row hiện tại
             float laneCenterY = GridConfig.getCellCenterY(row);
             // offset xuống 1 chút cho phù hợp sprite (giống logic cũ: -50f)
-            float mowerY = laneCenterY - 50f;
+            float mowerY = laneCenterY;
 
             lawnMowers.add(new LawnMower(mowerStartX, mowerY, worldWidth));
         }

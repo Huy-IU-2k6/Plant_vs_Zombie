@@ -6,20 +6,15 @@ package pvz.com.managers;
  */
 public class HudLayoutConfig {
 
-    // ===== BASE DESIGN RESOLUTION =====
-    // Dùng làm chuẩn để scale font, vị trí tương đối, v.v.
-    public static final float BASE_SCREEN_W = 1920f;
-    public static final float BASE_SCREEN_H = 1080f;
-
     // ===== SEEDBANK: VỊ TRÍ & KÍCH THƯỚC TRÊN HUD =====
 
     /** SeedBank chiếm bao nhiêu phần trăm chiều ngang HUD (worldWidth) */
     public static final float SEEDBANK_WIDTH_RATIO = 0.4f;
 
-    /** Khoảng cách từ mép trái màn hình HUD tới SeedBank */
+    /** Khoảng cách từ mép trái màn hình HUD tới SeedBank (world units) */
     public static final float SEEDBANK_MARGIN_LEFT = 50f;
 
-    /** Khoảng cách từ mép trên màn hình HUD xuống SeedBank */
+    /** Khoảng cách từ mép trên màn hình HUD xuống SeedBank (world units) */
     public static final float SEEDBANK_MARGIN_TOP = 20f;
 
     // ===== SEEDBANK: PADDING BÊN TRONG KHAY (TÍNH THEO TEXTURE GỐC) =====
@@ -40,9 +35,10 @@ public class HudLayoutConfig {
 
     // ===== SUN LABEL TRÊN SEEDBANK =====
     // Toạ độ tâm số "50" trên texture gốc của seed_bank
-
     public static final float SUN_LABEL_CENTER_X = 180f;
     public static final float SUN_LABEL_CENTER_Y = 25f;
+
+    public static final float BASE_SUN_FONT_SCALE = 0.6f;
 
     // ===== COUNTDOWN =====
 
@@ -50,25 +46,36 @@ public class HudLayoutConfig {
     public static final float COUNTDOWN_POS_X_DESIGN = 400f;
     public static final float COUNTDOWN_POS_Y_DESIGN = 500f;
 
-    /** Tỉ lệ X của countdown so với chiều ngang màn hình design */
     public static float getCountdownPosXRatio() {
-        return COUNTDOWN_POS_X_DESIGN / BASE_SCREEN_W;
+        return ScaleManager.ratioFromBaseWidth(COUNTDOWN_POS_X_DESIGN);
     }
 
-    /** Tỉ lệ Y của countdown so với chiều dọc màn hình design */
     public static float getCountdownPosYRatio() {
-        return COUNTDOWN_POS_Y_DESIGN / BASE_SCREEN_H;
+        return ScaleManager.ratioFromBaseHeight(COUNTDOWN_POS_Y_DESIGN);
     }
 
-    // ===== HELPER SCALE FONT (OPTIONAL) =====
+    /** Toạ độ X thực tế của countdown trên world hiện tại */
+    public static float getCountdownWorldX(float worldWidth) {
+        // Dùng ScaleManager để chuyển từ toạ độ design -> world
+        return ScaleManager.toWorldX(COUNTDOWN_POS_X_DESIGN, worldWidth);
+        // hoặc worldWidth * getCountdownPosXRatio();
+    }
+
+    /** Toạ độ Y thực tế của countdown trên world hiện tại */
+    public static float getCountdownWorldY(float worldHeight) {
+        return ScaleManager.toWorldY(COUNTDOWN_POS_Y_DESIGN, worldHeight);
+        // hoặc worldHeight * getCountdownPosYRatio();
+    }
+
+    // ===== HELPER SCALE FONT (giữ API cũ nhưng delegate sang ScaleManager) =====
 
     /** scale theo X so với design */
     public static float getScaleX(float worldWidth) {
-        return worldWidth / BASE_SCREEN_W;
+        return ScaleManager.getWidthScale(worldWidth);
     }
 
     /** scale theo Y so với design */
     public static float getScaleY(float worldHeight) {
-        return worldHeight / BASE_SCREEN_H;
+        return ScaleManager.getHeightScale(worldHeight);
     }
 }

@@ -15,16 +15,14 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import pvz.com.managers.ScaleManager;
+
 public class ResumeScreen implements Screen {
 
     private final Game game;
     private final Screen previousScreen;
 
     private final Stage stage;
-
-    // ==== layout gốc 1920 x 1080 ====
-    private static final float BASE_SCREEN_W = 1920f;
-    private static final float BASE_SCREEN_H = 1080f;
 
     // Logo PVZ (board) – kích thước trên layout gốc
     private static final float SIGN_BASE_W = 450f;
@@ -118,7 +116,7 @@ public class ResumeScreen implements Screen {
         float stageH = stage.getViewport().getWorldHeight();
 
         // scale chung theo chiều cao màn hình so với layout gốc
-        float scale = stageH / BASE_SCREEN_H;
+        float scale = ScaleManager.getHeightScale(stageH);
 
         // ===== Logo =====
         float signW = SIGN_BASE_W * scale;

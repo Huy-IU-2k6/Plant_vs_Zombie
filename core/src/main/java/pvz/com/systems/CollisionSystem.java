@@ -22,6 +22,9 @@ import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.GridConfig;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public class CollisionSystem {
 
     // ECS entities: Plants, đạn, mìn,...
@@ -32,6 +35,8 @@ public class CollisionSystem {
 
     // Grid cây
     private final PlantGridController plantGridController;
+
+    private final Map<Zombies, Plant> eatingTargets = new HashMap<>();
 
     public CollisionSystem(List<Entity> entities,
             ZombieWaveController zombieWaveController,
@@ -106,12 +111,49 @@ public class CollisionSystem {
 
         // Ngoài lawn -> không ăn cây
         if (!GridConfig.isInsideGrid(zombieRow, 0)) {
+            eatingTargets.remove(zombie);
             zombie.setEating(false);
             return;
         }
 
+        Plant currentTarget = eatingTargets.get(zombie);
+
+        // ========================
+        // 1) ĐÃ CÓ TARGET ĐANG ĂN
+        // ========================
+        if (currentTarget != null) {
+
+            // Plant đã bị xóa / chết -> bỏ ăn, đi tiếp
+            if (currentTarget.markedForRemoval
+                    || !currentTarget.hasComponent(HealthComponent.class)) {
+                eatingTargets.remove(zombie);
+                zombie.setEating(false);
+                return;
+            }
+
+            // Optional: nếu muốn kiểm tra vẫn còn overlaps
+            BoundsComponent pb = currentTarget.getComponent(BoundsComponent.class);
+            if (pb == null || !Intersector.overlaps(zRect, pb.bounds)) {
+                // Có thể bỏ check này nếu muốn zombie cứ đứng ăn đến khi plant chết
+                // Còn nếu giữ thì khi hết overlaps cũng cho nó đi tiếp
+                eatingTargets.remove(zombie);
+                zombie.setEating(false);
+                return;
+            }
+
+            // Vẫn còn target -> tiếp tục ăn nó
+            zombie.setEating(true);
+            damagePlantAndMaybeRemove(currentTarget, deltaTime);
+
+            // Nếu plant chết trong damagePlantAndMaybeRemove, vòng sau sẽ vào nhánh remove
+            // ở trên
+            return;
+        }
+
+        // ===========================
+        // 2) CHƯA CÓ TARGET -> TÌM MỚI
+        // ===========================
         Plant[] rowPlants = grid[zombieRow];
-        boolean touchingPlant = false;
 
         for (Plant plant : rowPlants) {
             if (plant == null || plant.markedForRemoval)
@@ -132,16 +174,27 @@ public class CollisionSystem {
             // ==== POTATO MINE ====
             if (plant.hasComponent(ArmingComponent.class)) {
                 handlePotatoMine(zombie, plant);
-                touchingPlant = true;
+                // Mine nổ xong thì thường zombie chết hoặc bị damage ở system khác.
+                // Ở đây không set target ăn mìn (optional, tùy thiết kế).
+                return;
             }
-            // ==== CÂY THƯỜNG ====
-            else {
-                damagePlantAndMaybeRemove(plant, deltaTime);
-                touchingPlant = true;
-            }
+
+            // ==== CÂY THƯỜNG: CHỌN LÀM TARGET ====
+            eatingTargets.put(zombie, plant);
+            zombie.setEating(true);
+
+            // "Chốt" vị trí zombie sát mép plant để tránh lệch bounding box
+            // (tùy hướng di chuyển, mình giả sử zombie đi từ phải sang trái)
+            float newX = pb.bounds.x + pb.bounds.width - zRect.width * 0.8f;
+            zombie.setX(newX);
+
+            // Cắn cây ngay frame này luôn
+            damagePlantAndMaybeRemove(plant, deltaTime);
+            return;
         }
 
-        zombie.setEating(touchingPlant);
+        // Không đụng cây nào & không có target -> đảm bảo zombie không ăn
+        zombie.setEating(false);
     }
 
     // =========================

@@ -11,6 +11,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 
 import pvz.com.managers.HudLayoutConfig;
+import pvz.com.managers.ScaleManager;
 
 public class SeedBank extends Group {
 
@@ -31,6 +32,8 @@ public class SeedBank extends Group {
     private static final float SUN_LABEL_CENTER_X = HudLayoutConfig.SUN_LABEL_CENTER_X;
     private static final float SUN_LABEL_CENTER_Y = HudLayoutConfig.SUN_LABEL_CENTER_Y;
 
+    private static final float BASE_SUN_FONT_SCALE = HudLayoutConfig.BASE_SUN_FONT_SCALE;
+
     // tỉ lệ chiều rộng / chiều cao card (dựa theo kích thước gốc)
     private static final float CARD_ASPECT = PlantCard.WIDTH / PlantCard.HEIGHT;
 
@@ -48,7 +51,6 @@ public class SeedBank extends Group {
 
         sunLabel = new Label("0", style);
         sunLabel.setAlignment(Align.center);
-        sunLabel.setFontScale(0.6f); // cho chữ nhỏ lại cho giống số 50
         addActor(sunLabel);
 
         // set kích thước ban đầu sau khi đã có sunLabel
@@ -126,21 +128,31 @@ public class SeedBank extends Group {
     }
 
     public void updateLayout(float worldWidth, float worldHeight) {
-        // kích thước ảnh gốc
-        float textureWidth = bgTex.getWidth();
-        float textureHeight = bgTex.getHeight();
-        float trayAspect = textureHeight / textureWidth;
-
-        // cho SeedBank chiếm TRAY_WIDTH_RATIO chiều ngang màn hình
+        // ===== KÍCH THƯỚC SEEDBANK =====
+        // Chiếm TRAY_WIDTH_RATIO chiều ngang màn hình
         float trayWidth = worldWidth * TRAY_WIDTH_RATIO;
-        float trayHeight = trayWidth * trayAspect;
+
+        // Giữ tỉ lệ gốc của texture
+        float textureAspect = (float) bgTex.getHeight() / (float) bgTex.getWidth();
+        float trayHeight = trayWidth * textureAspect;
 
         setSize(trayWidth, trayHeight);
 
-        // canh trái + cách mép trên một đoạn (dùng constant)
-        setPosition(
-                TRAY_MARGIN_LEFT,
-                worldHeight - trayHeight - TRAY_MARGIN_TOP);
+        // ===== VỊ TRÍ SEEDBANK =====
+        // Margin trái / trên được khai báo theo layout gốc (BASE_SCREEN_W/H)
+        float x = ScaleManager.toWorldX(TRAY_MARGIN_LEFT, worldWidth);
+        float marginTopWorld = ScaleManager.toWorldY(TRAY_MARGIN_TOP, worldHeight);
+
+        // (0,0) ở góc trái dưới, nên y = top - height - marginTop
+        float y = worldHeight - trayHeight - marginTopWorld;
+
+        setPosition(x, y);
+
+        // scale theo chiều cao màn hình (vì layout base dùng BASE_SCREEN_H)
+        float fontScale = ScaleManager.getHeightScale(worldHeight);
+
+        // scale cuối = scale gốc * factor theo màn hình
+        sunLabel.setFontScale(BASE_SUN_FONT_SCALE * fontScale);
     }
 
     @Override

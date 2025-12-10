@@ -6,13 +6,15 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
+import pvz.com.managers.DesignConfig;
 import pvz.com.entities.Zombies.Zombies;
 
 public class LawnMower {
 
     private static final float DEFAULT_SPEED = 300f;
-    private static final float FIXED_WIDTH = 80f;
-    private static final float FIXED_HEIGHT = 60f;
+
+    private static final float FIXED_WIDTH = DesignConfig.FIXED_WIDTH;
+    private static final float FIXED_HEIGHT = DesignConfig.FIXED_WIDTH;
 
     private final Texture idleTexture;
     private final Texture activeTexture;

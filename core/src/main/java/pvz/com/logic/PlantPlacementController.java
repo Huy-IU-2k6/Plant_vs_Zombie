@@ -121,6 +121,7 @@ public class PlantPlacementController {
             case CHOMPER:
             case REPEATER:
             case SNOWPEA:
+                return PlantType.SNOW_PEA;
             default:
                 return PlantType.PEASHOOTER;
         }
