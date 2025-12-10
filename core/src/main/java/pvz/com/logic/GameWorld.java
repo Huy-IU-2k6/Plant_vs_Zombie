@@ -25,6 +25,9 @@ public class GameWorld implements IGameSpawner {
     private final List<Entity> entities;
     private final List<Plant> plants;
 
+    // Trạng thái game dùng chung (COUNTDOWN / PLAYING / GAME_OVER)
+    private final GameState gameState;
+
     // ECS systems
     private final RenderSystem renderSystem;
     private final SunProductionSystem sunSystem;
@@ -36,7 +39,8 @@ public class GameWorld implements IGameSpawner {
 
     private final HudController hudController;
 
-    public GameWorld(HudController hudController,
+    public GameWorld(GameState gameState,
+            HudController hudController,
             List<Entity> entities,
             List<Plant> plants,
             OrthographicCamera camera,
@@ -44,6 +48,7 @@ public class GameWorld implements IGameSpawner {
             PlantGridController plantGridController,
             SpriteBatch batch) {
 
+        this.gameState = gameState;
         this.entities = entities;
         this.plants = plants;
         this.hudController = hudController;
@@ -64,8 +69,13 @@ public class GameWorld implements IGameSpawner {
 
     // ====== UPDATE / RENDER ======
 
-    public void update(float delta, boolean isPlaying) {
-        if (!isPlaying) {
+    /**
+     * Update ECS world (plants, projectiles, sun, v.v...).
+     * Chỉ chạy khi gameState đang PLAYING.
+     */
+    public void update(float delta) {
+        // Nếu không phải PLAYING (COUNTDOWN hoặc GAME_OVER) thì không update ECS
+        if (!gameState.isPlaying()) {
             return;
         }
 
@@ -75,7 +85,7 @@ public class GameWorld implements IGameSpawner {
         movementSystem.update(entities, delta); // entity có MovementComponent di chuyển
         collisionSystem.update(delta); // đạn đâm zombie
         sunPickupSystem.update(delta); // sun tự biến mất nếu quá lâu
-        cleanupSystem.update();
+        cleanupSystem.update(); // xoá entity chết
     }
 
     public void render(SpriteBatch batch) {
@@ -99,6 +109,10 @@ public class GameWorld implements IGameSpawner {
 
     public List<Plant> getPlants() {
         return plants;
+    }
+
+    public GameState getGameState() {
+        return gameState;
     }
 
     // ====== IGameSpawner implementation ======
@@ -135,5 +149,15 @@ public class GameWorld implements IGameSpawner {
     /** Lấy số sun hiện tại, dùng cho card, logic khác. */
     public int getSunPoints() {
         return hudController.getSunPoints();
+    }
+
+    // ====== GAME OVER helper (optional) ======
+
+    /**
+     * Cho systems khác (vd: CollisionSystem, ZombieWaveController)
+     * có thể gọi thông qua GameWorld nếu muốn.
+     */
+    public void setGameOver(boolean playerWon) {
+        gameState.setGameOver(playerWon);
     }
 }
