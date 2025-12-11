@@ -25,10 +25,10 @@ public class PlantCard extends Image {
 
     private float cooldownRemaining = 0f;
 
-    // khoá card cho đến khi game start xong
+    // Lock card until game starts
     private boolean lockedByGame = true;
 
-    // ghost khi kéo
+    // Ghost image when dragging
     private Image dragGhost;
 
     public PlantCard(ItemType type) {
@@ -39,15 +39,14 @@ public class PlantCard extends Image {
 
         setSize(WIDTH, HEIGHT);
 
-        // Chỉ còn kéo thả, KHÔNG click
+        // Drag only, no click
         addDragSupport();
 
         updateStateUI();
     }
 
     /**
-     * Lấy GameScreen đang gắn vào stage.root.userObject
-     * (GameScreen là nơi giữ GameWorld + PlantPlacementController).
+     * Get the GameScreen attached to stage.root.userObject
      */
     private GameScreen getGameScreen() {
         if (getStage() == null)
@@ -71,17 +70,15 @@ public class PlantCard extends Image {
                 if (screen == null)
                     return;
 
-                // Lấy sun từ GameWorld (GameWorld -> HudController)
-                int currentSun = screen
-                        .getGameWorld()
-                        .getSunPoints();
+                // [FIX] Get sun directly from GameScreen (GameWorld was removed)
+                int currentSun = screen.getSunPoints();
 
-                // nếu đang khoá, cooldown hoặc không đủ sun → không cho kéo
+                // If locked, cooldown active, or not enough sun -> cancel drag
                 if (lockedByGame || cooldownRemaining > 0f || currentSun < type.cost) {
                     return;
                 }
 
-                // tạo ghost card
+                // Create ghost card
                 dragGhost = new Image(getDrawable());
                 dragGhost.setSize(getWidth(), getHeight());
                 dragGhost.setOrigin(Align.center);
@@ -109,7 +106,7 @@ public class PlantCard extends Image {
 
                     GameScreen screen = getGameScreen();
                     if (screen != null) {
-                        // GameScreen xử lý: convert screen -> world -> grid -> spawn plant
+                        // GameScreen handles conversion: screen -> world -> grid -> spawn plant
                         screen.onPlantCardDragged(PlantCard.this, screenX, screenY);
                     }
 
@@ -125,7 +122,7 @@ public class PlantCard extends Image {
                 float screenX = Gdx.input.getX(pointer);
                 float screenY = Gdx.input.getY(pointer);
 
-                // screen -> toạ độ trong hudStage (nơi card đang sống)
+                // screen -> coordinates in hudStage (where card lives)
                 Vector2 stageCoords = getStage().screenToStageCoordinates(
                         new Vector2(screenX, screenY));
 
@@ -163,14 +160,14 @@ public class PlantCard extends Image {
     }
 
     private void updateStateUI() {
-        // Nếu game chưa cho dùng (đang countdown) -> ẩn hẳn card
+        // If game hasn't started -> hide card
         if (lockedByGame) {
             setVisible(false);
             setTouchable(Touchable.disabled);
             return;
         }
 
-        // Game đã bắt đầu -> hiện lên, nhưng vẫn quản lý cooldown như cũ
+        // Game started -> show card, manage visual state
         setVisible(true);
 
         boolean onCooldown = cooldownRemaining > 0f;
