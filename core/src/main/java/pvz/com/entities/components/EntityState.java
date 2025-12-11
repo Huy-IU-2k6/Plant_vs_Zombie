@@ -5,5 +5,10 @@ public enum EntityState {
     WALKING,    // Đang đi
     ATTACKING,  // Đang tấn công/bắn
     EATING,     // Đang ăn (dành cho Zombie)
-    DYING       // Đang chết
+    DYING,      // Đang chết
+    // --- THÊM CÁC TRẠNG THÁI MỚI CHO WALLNUT ---
+    WALLNUT_FULL,      // Đầy máu ( > 75%)
+    WALLNUT_CRACKED_1, // Nứt nhẹ ( 25% - 75%)
+    WALLNUT_CRACKED_2,  // Nứt nặng ( < 25%)
+
 }

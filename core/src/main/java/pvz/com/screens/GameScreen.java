@@ -32,6 +32,7 @@ import pvz.com.items.PlantCard;
 import pvz.com.systems.IGameSpawner;
 import pvz.com.systems.RenderSystem;
 import pvz.com.systems.SunProductionSystem;
+import pvz.com.systems.WallnutStateSystem;
 import pvz.com.systems.PlantAttackSystem;
 import pvz.com.systems.MovementSystem;
 import pvz.com.systems.CollisionSystem;
@@ -70,6 +71,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     private final Stage hudStage;
     private final OrthographicCamera camera;
     private final Viewport viewport;
+    private final WallnutStateSystem wallnutStateSystem;
     private ShapeRenderer shapeRenderer;
 
     // ===== ECS Data =====
@@ -153,6 +155,8 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
                 entities,
                 camera,
                 this);
+    
+        wallnutStateSystem = new WallnutStateSystem();
 
         shapeRenderer = new ShapeRenderer();
     }
@@ -278,6 +282,8 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         // Đây là phần quan trọng để cây lắc lư và bắn đạn
         if (isPlaying()) {
             sunSystem.update(delta);
+            wallnutStateSystem.update(entities);
+            
             animationSystem.update(entities, delta);
             attackSystem.update(plants, delta);
             movementSystem.update(entities, delta);
