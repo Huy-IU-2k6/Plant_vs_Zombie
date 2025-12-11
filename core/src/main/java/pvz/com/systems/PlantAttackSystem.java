@@ -3,13 +3,19 @@ package pvz.com.systems;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.PlantAttackComponent;
 import pvz.com.entities.components.PositionComponent;
+import pvz.com.entities.Zombies.Zombies; // Import Zombie base class
+import pvz.com.logic.ZombieWaveController; // Import Controller
+
 import java.util.List;
 
 public class PlantAttackSystem {
     private IGameSpawner spawner;
+    private ZombieWaveController zombieController; // Reference to check zombies
 
-    public PlantAttackSystem(IGameSpawner spawner) {
+    // [FIX] Constructor now accepts ZombieWaveController
+    public PlantAttackSystem(IGameSpawner spawner, ZombieWaveController zombieController) {
         this.spawner = spawner;
+        this.zombieController = zombieController;
     }
 
     public void update(List<Plant> plants, float deltaTime) {
@@ -18,24 +24,53 @@ public class PlantAttackSystem {
             PositionComponent pos = plant.getComponent(PositionComponent.class);
 
             if (attacker != null && pos != null) {
+                // Increase cooldown timer
                 attacker.cooldown.timer += deltaTime;
 
-                // Trong thực tế, bạn nên thêm logic check: "Có Zombie ở cùng hàng không?" tại
-                // đây
-                // if (isZombieInLane(plant, attacker.range)) { ... }
-
+                // If ready to shoot
                 if (attacker.cooldown.timer >= attacker.cooldown.cooldownTime) {
-                    attacker.cooldown.timer = 0;
+                    
+                    // Check if there is a zombie in range before shooting
+                    if (shouldShoot(pos, attacker.range)) {
+                        attacker.cooldown.timer = 0; // Reset cooldown
 
-                    // Bắn đạn dựa trên thông số trong Component
-                    spawner.spawnProjectile(
-                            pos.x + 20, // Offset để đạn bay ra từ miệng cây
-                            pos.y + 50,
-                            attacker.damage,
-                            attacker.damageType,
-                            attacker.projectileType);
+                        // Spawn projectile
+                        spawner.spawnProjectile(
+                                pos.x + 20, 
+                                pos.y + 50, // Adjusted offset based on your previous code
+                                attacker.damage,
+                                attacker.damageType,
+                                attacker.projectileType);
+                    } else {
+                        // Keep timer maxed so it shoots instantly when a zombie appears
+                        attacker.cooldown.timer = attacker.cooldown.cooldownTime;
+                    }
                 }
             }
         }
+    }
+
+    // Logic to check if any zombie is in the lane and range
+    private boolean shouldShoot(PositionComponent plantPos, float range) {
+        if (zombieController == null) return false;
+
+        for (Zombies z : zombieController.getZombies()) {
+            // Ignore dead or dying zombies
+            if (z.isDead() || z.getHealth() <= 0) continue;
+
+            // 1. Check Lane (Y Check with tolerance)
+            // Plants and zombies on the same row should have similar Y coordinates
+            if (Math.abs(z.getY() - plantPos.y) > 50f) {
+                continue; 
+            }
+
+            // 2. Check Range (X Check)
+            // Zombie must be to the right of the plant AND within range
+            if (z.getX() > plantPos.x && (z.getX() - plantPos.x) <= range) {
+                return true; 
+            }
+        }
+        
+        return false; 
     }
 }

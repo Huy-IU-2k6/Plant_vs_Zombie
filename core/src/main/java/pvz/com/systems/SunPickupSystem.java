@@ -10,23 +10,25 @@ import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.components.BoundsComponent;
 import pvz.com.entities.components.SunPickupComponent;
-import pvz.com.logic.GameWorld;
 
 public class SunPickupSystem extends InputAdapter {
 
     private final List<Entity> entities;
     private final OrthographicCamera camera;
-    private final GameWorld gameWorld;
+    
+    // [CHANGE] Use Interface instead of specific class
+    private final ISunReceiver sunReceiver; 
 
+    // [CHANGE] Constructor accepts ISunReceiver
     public SunPickupSystem(List<Entity> entities,
-            OrthographicCamera camera,
-            GameWorld gameWorld) {
+                           OrthographicCamera camera,
+                           ISunReceiver sunReceiver) { 
         this.entities = entities;
         this.camera = camera;
-        this.gameWorld = gameWorld;
+        this.sunReceiver = sunReceiver;
     }
 
-    // Sun hết hạn thì tự biến mất
+    // Sun disappears if lifespan expires
     public void update(float deltaTime) {
         List<Entity> toRemove = new ArrayList<>();
 
@@ -47,11 +49,12 @@ public class SunPickupSystem extends InputAdapter {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        // chuyển toạ độ screen -> world
+        // Convert screen coordinates -> world coordinates
         Vector3 world = new Vector3(screenX, screenY, 0);
         camera.unproject(world);
 
         List<Entity> toRemove = new ArrayList<>();
+        boolean handled = false;
 
         for (Entity e : entities) {
             if (!e.hasComponent(SunPickupComponent.class)
@@ -64,15 +67,17 @@ public class SunPickupSystem extends InputAdapter {
             if (bounds.bounds.contains(world.x, world.y)) {
                 SunPickupComponent sun = e.getComponent(SunPickupComponent.class);
 
-                // Cộng sun vào GameWorld (thực chất là HUD)
-                gameWorld.addSun(sun.amount);
+                // [CHANGE] Call method via Interface
+                sunReceiver.addSun(sun.amount);
 
                 toRemove.add(e);
+                handled = true;
             }
         }
 
         entities.removeAll(toRemove);
-        // đã xử lý event, trả về true
-        return !toRemove.isEmpty();
+        
+        // Return true if we actually clicked a sun, so other input processors don't handle it
+        return handled; 
     }
 }

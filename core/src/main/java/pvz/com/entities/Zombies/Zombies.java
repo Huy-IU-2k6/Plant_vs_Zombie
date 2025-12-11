@@ -1,16 +1,23 @@
 package pvz.com.entities.Zombies;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.utils.Disposable;
+
 import pvz.com.managers.DesignConfig;
 
-public class Zombies extends Actor {
+// Ensure you have these helper classes created, or remove these lines if you don't
+// import pvz.com.entities.Zombies.components.ZombieSounds;
+// import pvz.com.entities.Zombies.components.ZombieBounds;
+
+public class Zombies extends Actor implements Disposable {
     // ===== STATE =====
     private boolean eating = false;
 
     // ===== STATIC STATE =====
     protected static int zombieCount = 0;
+    protected static boolean gameOver = false; // Added back for Game Over check
 
     // ===== COMPOSITION =====
     protected final ZombieSounds zombieSounds = new ZombieSounds(Zombies.this);
@@ -19,15 +26,14 @@ public class Zombies extends Actor {
     // ===== CONFIG =====
     protected float speed = 20f;
     protected int health = 100;
+    
+    // [SNOW PEA CONFIG]
     protected float baseSpeed = 20f;
     protected boolean isSlowed = false;
     protected float slowTimer = 0f;
-    // dead = đã chết, đang nằm trong animation chết, chuẩn bị bị remove
 
-    // dead = đã chết, đang trong animation chết, chuẩn bị bị remove
+    // ===== DEATH STATE =====
     protected boolean dead = false;
-
-    // thời gian hiển thị animation chết trước khi remove
     private static final float NORMAL_DEATH_DURATION = 10f;
     private static final float BURN_DEATH_DURATION = 1.0f;
     private float deathTimer = 0f;
@@ -36,12 +42,15 @@ public class Zombies extends Actor {
     public Zombies() {
         zombieCount++;
 
-        // kích thước default, subclass có thể override
+        // Default size
         setSize(DesignConfig.FIXED_WIDTH, DesignConfig.FIXED_HEIGHT);
 
-        // tạo hitbox dựa theo size ban đầu
+        // Sync speed
+        this.speed = 20f;
+        this.baseSpeed = 20f;
+
+        // Hitbox
         zombieBounds = new ZombieBounds(getWidth(), getHeight());
-        // sync lần đầu
         zombieBounds.update(getX(), getY(), getWidth(), getHeight());
     }
 
@@ -49,10 +58,12 @@ public class Zombies extends Actor {
     public void act(float delta) {
         super.act(delta);
 
-        // update âm thanh
+        if (gameOver) return;
+
+        // Update sounds
         zombieSounds.act(delta);
 
-        // ----- ĐANG CHẾT: chỉ đếm timer, hết thì remove -----
+        // ----- 1. DEATH LOGIC -----
         if (dead) {
             deathTimer -= delta;
             if (deathTimer <= 0f) {
@@ -60,26 +71,31 @@ public class Zombies extends Actor {
             }
             return;
         }
+
+        // ----- 2. SLOW LOGIC (Snow Pea) -----
         if (isSlowed) {
             slowTimer -= delta;
-            // Nếu hết thời gian làm chậm
             if (slowTimer <= 0) {
                 isSlowed = false;
-                this.speed = this.baseSpeed; // Trả lại tốc độ gốc
-                this.setColor(Color.WHITE); // Trả lại màu trắng bình thường
+                this.speed = this.baseSpeed; // Restore speed
+                this.setColor(Color.WHITE);  // Restore color
             }
         }
 
-        // ----- ZOMBIE CÒN SỐNG: di chuyển -----
+        // ----- 3. MOVEMENT -----
         moveBy(-speed * delta, 0);
-        // hitBox sẽ được update trong positionChanged()
-
+        
+        // ----- 4. GAME OVER CHECK -----
+        if (getX() < 0) {
+            gameOver = true;
+        }
+        
+        // Hitbox is updated in positionChanged()
     }
 
     @Override
     protected void positionChanged() {
         super.positionChanged();
-        // mỗi khi Actor đổi vị trí -> cập nhật hitbox
         if (zombieBounds != null) {
             zombieBounds.update(getX(), getY(), getWidth(), getHeight());
         }
@@ -90,8 +106,7 @@ public class Zombies extends Actor {
     // ======================================================================
 
     public void takeDamage(int dmg) {
-        if (dead)
-            return;
+        if (dead) return;
 
         health -= dmg;
         if (health <= 0) {
@@ -108,8 +123,7 @@ public class Zombies extends Actor {
     }
 
     public void instantKillByMower() {
-        if (dead)
-            return;
+        if (dead) return;
 
         die(false);
         deathTimer = 0f;
@@ -117,14 +131,13 @@ public class Zombies extends Actor {
     }
 
     protected void die(boolean burnt) {
-        if (dead)
-            return;
+        if (dead) return;
 
         dead = true;
         burntDeath = burnt;
         speed = 0f;
-
-        // dừng trạng thái đang ăn (nếu có) để tắt tiếng chomp
+        
+        setColor(Color.WHITE); // Reset color on death
         setEating(false);
 
         if (zombieCount > 0) {
@@ -137,38 +150,57 @@ public class Zombies extends Actor {
     }
 
     protected void onDie(boolean burnt) {
-        // subclass override nếu muốn (đổi animation chết, v.v.)
-    }
-
-    public boolean isDead() {
-        return dead;
-    }
-
-    public boolean isBurntDeath() {
-        return burntDeath;
+        // subclass override
     }
 
     // ======================================================================
-    // COLLISION API
+    // API
     // ======================================================================
+
+    public boolean isDead() { return dead; }
+    public boolean isBurntDeath() { return burntDeath; }
 
     public Rectangle getBounds() {
         return zombieBounds != null ? zombieBounds.getBounds() : null;
     }
 
-    public boolean isEating() {
-        return eating;
-    }
+    public boolean isEating() { return eating; }
 
     public void setEating(boolean eating) {
         this.eating = eating;
     }
 
     // ======================================================================
-    // CLEANUP
+    // SNOW PEA API
+    // ======================================================================
+
+    public void applySlow(float duration, float factor) {
+        if (dead) return;
+
+        this.isSlowed = true;
+        this.slowTimer = duration;
+        this.speed = this.baseSpeed * factor;
+        this.setColor(0.5f, 0.5f, 1f, 1f); // Blue tint
+    }
+
+    @Override
+    public void dispose() {
+        zombieSounds.dispose();
+    }
+
+    // ======================================================================
+    // GETTERS
     // ======================================================================
 
     public static int getZombieCount() {
         return zombieCount;
+    }
+    
+    public int getHealth() {
+        return health;
+    }
+
+    public static boolean isGameOver() {
+        return gameOver;
     }
 }

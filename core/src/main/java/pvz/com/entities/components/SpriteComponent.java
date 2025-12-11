@@ -5,19 +5,34 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class SpriteComponent {
-    public Texture texture;
     public Sprite sprite;
 
-    // Dùng cho static image
+    // Constructor for static image
     public SpriteComponent(String texturePath) {
-        this.texture = new Texture(texturePath);
+        this.sprite = new Sprite(new Texture(texturePath));
+    }
+    
+    // Constructor for Texture (static)
+    public SpriteComponent(Texture texture) {
         this.sprite = new Sprite(texture);
     }
 
-    // Dùng cho animation frame (TextureRegion)
+    // Constructor for animation frame (TextureRegion)
     public SpriteComponent(TextureRegion region) {
-        this.texture = region.getTexture(); // tham chiếu lại texture gốc
         this.sprite = new Sprite(region);
+    }
+
+    // [CRITICAL] Updates the image inside the sprite (Called by AnimationSystem)
+    public void setRegion(TextureRegion region) {
+        float oldX = sprite.getX();
+        float oldY = sprite.getY();
+        float oldW = sprite.getWidth();
+        float oldH = sprite.getHeight();
+        
+        sprite.setRegion(region);
+        
+        // Restore bounds so the plant doesn't jump or resize unexpectedly
+        sprite.setBounds(oldX, oldY, oldW, oldH);
     }
 
     public void setPosition(float x, float y) {
