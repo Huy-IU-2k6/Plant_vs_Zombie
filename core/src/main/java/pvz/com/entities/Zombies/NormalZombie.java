@@ -1,105 +1,130 @@
 package pvz.com.entities.Zombies;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
 
 import pvz.com.managers.GifManager;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.ScaleManager;
 
+// Ensure this class implements Disposable as per our previous fix
 public class NormalZombie extends Zombies {
 
     // ===== CONST =====
     private static final int BODY_HEALTH = 100;
-    private static final float MOVE_SPEED = 15f;
+    private static final float INITIAL_SPEED = 10f; // Using INITIAL_SPEED from HEAD
+
     private static final int FRAMES_PER_ROW = 1;
-    private static final float WALK_FRAME_TIME = 0.20f;
-    private static final float DIE_FRAME_TIME = 0.20f;
+    
+    // Animation Speeds
+    private static final float WALK_FRAME_TIME = 0.12f; 
     private static final float EAT_FRAME_TIME = 0.25f;
+    private static final float BODY_DIE_FRAME_TIME = 0.15f; 
+    private static final float HEAD_POP_FRAME_TIME = 0.1f;  
 
-    // Kích thước zombie theo layout gốc (1920x1080)
-    // -> lấy từ DesignConfig
-    private static final float BASE_ZOMBIE_W = DesignConfig.ZOMBIE_W;
-    private static final float BASE_ZOMBIE_H = DesignConfig.ZOMBIE_H;
+    // ===== TEXTURES =====
+    private final Array<Texture> walkTextures;
+    private final Array<Texture> headPopTextures;
+    private final Array<Texture> bodyDieTextures;
+    private final Array<Texture> eatTextures; // New texture array for Eat animation
 
-    // Spritesheets
-    private final Texture walkSheet;
-    private final Texture dieSheet;
-    private final Texture eatSheet;
-
-    // Animations
+    // ===== ANIMATIONS =====
     private final Animation<TextureRegion> walkAnim;
-    private final Animation<TextureRegion> dieAnim;
+    private final Animation<TextureRegion> headPopAnim; 
+    private final Animation<TextureRegion> bodyDieAnim; 
     private final Animation<TextureRegion> eatAnim;
 
-    // State animation
+    // ===== STATE =====
     private float stateTime = 0f;
     private boolean isDying = false;
     private boolean isEating = false;
-
-    // Dùng để giữ tỉ lệ khung hình gốc của sprite
-    private final float originalW;
-    private final float originalH;
-
-    // Chỉ init size một lần khi đã có stage (để lấy worldHeight)
+    
     private boolean sizeInitialized = false;
+    private float originalW;
+    private float originalH;
 
     public NormalZombie() {
         super();
 
-        // ===== Load GIFs =====
-        walkSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieRun.gif"));
-        dieSheet = new Texture(Gdx.files.internal("images/Zombies/ZombieDie.gif"));
-        eatSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieEat.gif"));
+        // 1. ===== LOAD WALK ANIMATION (PNG Sequence) =====
+        walkTextures = new Array<>();
+        // Adjust the range based on your actual file names
+        for (int i = 0; i <= 21; i++) {
+            walkTextures.add(new Texture("images/Zombies/NormalZombie/Zombie/Zombie_" + i + ".png"));
+        }
+        walkAnim = createAnimation(walkTextures, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        walkAnim = GifManager.createAnim(
-                walkSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
-        dieAnim = GifManager.createAnim(
-                dieSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
-        eatAnim = GifManager.createAnim(
-                eatSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
+        // 2. ===== LOAD HEAD POP ANIMATION =====
+        headPopTextures = new Array<>();
+        // Adjust the range based on your actual file names
+        for (int i = 0; i <= 11; i++) {
+            headPopTextures.add(new Texture("images/Zombies/NormalZombie/ZombieHead/ZombieHead_" + i + ".png"));
+        }
+        headPopAnim = createAnimation(headPopTextures, HEAD_POP_FRAME_TIME, Animation.PlayMode.NORMAL);
 
-        // Lấy kích thước frame gốc để giữ tỉ lệ
+        // 3. ===== LOAD BODY DIE ANIMATION =====
+        bodyDieTextures = new Array<>();
+        // Load LostHead frames first
+        for (int i = 0; i <= 17; i++) {
+             bodyDieTextures.add(new Texture("images/Zombies/NormalZombie/ZombieLostHead/ZombieLostHead_" + i + ".png"));
+        }
+        // Then load Die frames
+        for (int i = 0; i <= 9; i++) {
+             bodyDieTextures.add(new Texture("images/Zombies/NormalZombie/ZombieDie/ZombieDie_" + i + ".png"));
+        }
+        bodyDieAnim = createAnimation(bodyDieTextures, BODY_DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
+
+        // 4. ===== LOAD EAT ANIMATION (PNG Sequence) =====
+        eatTextures = new Array<>();
+        // Assuming you have eat frames, e.g., ZombieEat_0.png to ZombieEat_10.png
+        // If not, you can reuse walk frames temporarily or load your specific eat frames here
+        // For now, I'll reuse the first walk frame as a placeholder if you don't have eat frames
+        // BUT ideally, load your real eat frames:
+         for (int i = 0; i <= 10; i++) {
+            eatTextures.add(new Texture("images/Zombies/NormalZombie/ZombieAttack/ZombieAttack_" + i + ".png"));
+         }
+        // Placeholder using walk frame 0:
+       
+        eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
+
+        // 5. ===== INIT SIZE & STATS =====
         TextureRegion firstFrame = walkAnim.getKeyFrame(0f);
         originalW = firstFrame.getRegionWidth();
         originalH = firstFrame.getRegionHeight();
+        
+        // Initial size (will be rescaled by initSizeIfNeeded)
+        setSize(originalW, originalH); 
 
-        // Tạm set size theo kích thước design (chưa scale theo world)
-        // để tránh null trong 1 số logic nào đó nếu có
-        setSize(BASE_ZOMBIE_W, BASE_ZOMBIE_H);
-
-        // ===== Health & speed =====
         this.health = BODY_HEALTH;
-        this.speed = MOVE_SPEED;
+        this.baseSpeed = INITIAL_SPEED;
+        this.speed = this.baseSpeed;
     }
 
-    /**
-     * Khởi tạo lại kích thước theo world hiện tại,
-     * dùng DesignConfig + ScaleManager.
-     *
-     * - BASE_ZOMBIE_H: chiều cao zombie trên layout gốc 1920x1080
-     * - scaleByHeight: scale theo worldHeight thực tế
-     * - giữ nguyên tỉ lệ originalW/originalH của sprite
-     */
-    private void initSizeIfNeeded() {
-        if (sizeInitialized)
-            return;
-
-        float worldHeight;
-        if (getStage() != null && getStage().getViewport() != null) {
-            worldHeight = getStage().getViewport().getWorldHeight();
-        } else {
-            // fallback: nếu chưa có stage thì coi như worldHeight = layout gốc
-            worldHeight = ScaleManager.BASE_SCREEN_H;
+    private Animation<TextureRegion> createAnimation(Array<Texture> textures, float frameDuration, Animation.PlayMode mode) {
+        TextureRegion[] frames = new TextureRegion[textures.size];
+        for (int i = 0; i < textures.size; i++) {
+            frames[i] = new TextureRegion(textures.get(i));
         }
+        Animation<TextureRegion> anim = new Animation<>(frameDuration, frames);
+        anim.setPlayMode(mode);
+        return anim;
+    }
+    
+    private void initSizeIfNeeded() {
+        if (sizeInitialized) return;
 
-        // Chiều cao zombie trên world: scale từ thiết kế gốc
-        float zombieWorldH = ScaleManager.scaleByHeight(BASE_ZOMBIE_H, worldHeight);
+        float worldHeight = (getStage() != null && getStage().getViewport() != null) 
+                            ? getStage().getViewport().getWorldHeight() 
+                            : ScaleManager.BASE_SCREEN_H;
 
-        // Giữ tỉ lệ khung hình của GIF
+        // Scale logic using DesignConfig.ZOMBIE_H
+        float zombieWorldH = ScaleManager.scaleByHeight(DesignConfig.ZOMBIE_H, worldHeight);
         float aspect = originalW / originalH;
         float zombieWorldW = zombieWorldH * aspect;
 
@@ -109,108 +134,107 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void act(float delta) {
-        // đảm bảo size đã được scale đúng theo world
         initSizeIfNeeded();
 
-        // Nếu đang trong animation chết → chỉ chạy anim, không gọi super.act
+        // --- DEATH LOGIC ---
         if (isDying) {
             stateTime += delta;
-
-            if (dieAnim.isAnimationFinished(stateTime)) {
-                dead = true;
-                speed = 0f;
-                if (zombieCount > 0) {
-                    zombieCount--;
+            
+            // Check if BODY has finished falling
+            if (bodyDieAnim.isAnimationFinished(stateTime)) {
+                if (!dead) { 
+                    dead = true; 
+                    speed = 0f;
+                    if (zombieCount > 0) zombieCount--;
+                    remove(); 
                 }
-                remove();
             }
             return;
         }
 
-        // CollisionSystem sẽ gọi setEating(true/false).
         super.act(delta);
-
-        // Cập nhật thời gian animation
-        stateTime += delta;
+        
+        // --- ANIMATION UPDATE ---
+        if (isEating) {
+            stateTime += delta;
+        } else {
+            // Snow Pea Slow Effect
+            float animSpeedScale = (this.speed > 0) ? (this.speed / this.baseSpeed) : 1f;
+            if (animSpeedScale < 0.2f) animSpeedScale = 1f; 
+            stateTime += delta * animSpeedScale;
+        }
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        if (dead)
-            return;
+        if (dead) return;
 
-        Animation<TextureRegion> currentAnim;
+        Color color = getColor();
+        batch.setColor(color.r, color.g, color.b, color.a * parentAlpha);
 
         if (isDying) {
-            currentAnim = dieAnim;
-        } else if (isEating) {
-            currentAnim = eatAnim;
+            // 1. Draw BODY (Always)
+            TextureRegion bodyFrame = bodyDieAnim.getKeyFrame(stateTime);
+            batch.draw(bodyFrame, getX(), getY(), getWidth(), getHeight());
+
+            // 2. Draw HEAD (Only if not finished)
+            if (!headPopAnim.isAnimationFinished(stateTime)) {
+                TextureRegion headFrame = headPopAnim.getKeyFrame(stateTime);
+                batch.draw(headFrame, getX(), getY(), getWidth(), getHeight());
+            }
         } else {
-            currentAnim = walkAnim;
+            Animation<TextureRegion> currentAnim = isEating ? eatAnim : walkAnim;
+            TextureRegion frame = currentAnim.getKeyFrame(stateTime);
+            batch.draw(frame, getX(), getY(), getWidth(), getHeight());
         }
 
-        TextureRegion frame = currentAnim.getKeyFrame(stateTime);
-        batch.draw(frame, getX(), getY(), getWidth(), getHeight());
+        batch.setColor(Color.WHITE);
     }
 
-    // ===== DEATH LOGIC =====
-
     private void startDeath() {
-        if (isDying || dead)
-            return;
-
+        if (isDying || dead) return;
         isDying = true;
         stateTime = 0f;
         health = 0;
         speed = 0f;
+        setColor(Color.WHITE);
     }
 
     @Override
     public void takeDamage(int damage) {
-        if (isDying || dead)
-            return;
-
+        if (isDying || dead) return;
         health -= damage;
-        if (health <= 0) {
-            startDeath();
-        }
+        if (health <= 0) startDeath();
     }
 
     @Override
-    public void killByMower() {
-        startDeath();
-    }
+    public void killByMower() { startDeath(); }
+    @Override
+    public void killByCherryBomb() { startDeath(); }
 
     @Override
-    public void killByCherryBomb() {
-        startDeath();
-    }
-
-    @Override
-    public boolean isEating() {
-        return isEating;
-    }
+    public boolean isEating() { return isEating; }
 
     public void setEating(boolean eating) {
-        if (isDying || dead)
-            return;
-
-        if (this.isEating == eating)
-            return;
+        if (isDying || dead) return;
+        if (this.isEating == eating) return;
 
         this.isEating = eating;
-        stateTime = 0f; // reset anim cho mượt
+        stateTime = 0f;
 
         if (eating) {
             this.speed = 0f;
         } else {
-            this.speed = MOVE_SPEED;
+            this.speed = this.baseSpeed;
         }
     }
 
+   
     public void dispose() {
-        walkSheet.dispose();
-        dieSheet.dispose();
-        eatSheet.dispose();
+        if (walkTextures != null) for (Texture t : walkTextures) t.dispose();
+        if (headPopTextures != null) for (Texture t : headPopTextures) t.dispose();
+        if (bodyDieTextures != null) for (Texture t : bodyDieTextures) t.dispose();
+        if (eatTextures != null) for (Texture t : eatTextures) t.dispose();
+        // eatSheet was replaced by eatTextures, so remove its dispose if not used
     }
 }
