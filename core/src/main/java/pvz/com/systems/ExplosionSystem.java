@@ -1,101 +1,101 @@
 package pvz.com.systems;
 
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import pvz.com.entities.Entity;
-import pvz.com.entities.components.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import pvz.com.entities.Entity;
+import pvz.com.entities.Zombies.Zombies;
+import pvz.com.entities.components.*;
+import pvz.com.logic.PlantGridController; // [1] Import PlantGridController
+import pvz.com.logic.ZombieWaveController;
+
 public class ExplosionSystem {
-    private List<Entity> entities;
+    private final ZombieWaveController zombieController;
+    private final PlantGridController plantGridController; // [2] Khai báo biến
 
-    // Cần danh sách toàn bộ entity để quét xem ai đứng gần bom
-    public ExplosionSystem(List<Entity> entities) {
-        this.entities = entities;
+    // [3] SỬA CONSTRUCTOR: Nhận cả 2 tham số để khớp với GameScreen
+    public ExplosionSystem(ZombieWaveController zombieController, PlantGridController plantGridController) {
+        this.zombieController = zombieController;
+        this.plantGridController = plantGridController;
     }
 
-    public void update(float deltaTime) {
+    public void update(List<Entity> entities, float delta) {
+        List<Entity> toRemove = new ArrayList<>();
+
         for (Entity entity : entities) {
-            // Chỉ xử lý những entity có khả năng nổ
-            if (entity.hasComponent(ExplosiveComponent.class)) {
-                processExplosive(entity, deltaTime);
-            }
-        }
-    }
+            ExplosiveComponent explosive = entity.getComponent(ExplosiveComponent.class);
+            StateComponent state = entity.getComponent(StateComponent.class);
+            PositionComponent pos = entity.getComponent(PositionComponent.class);
+            AnimationComponent anim = entity.getComponent(AnimationComponent.class);
+            GridPositionComponent gridPos = entity.getComponent(GridPositionComponent.class); // Lấy vị trí lưới
 
-    private void processExplosive(Entity bombEntity, float deltaTime) {
-        ExplosiveComponent explosive = bombEntity.getComponent(ExplosiveComponent.class);
-        
-        // Nếu đã nổ rồi thì bỏ qua (chờ CleanupSystem xóa)
-        if (explosive.isExploded) return;
+            if (explosive == null || state == null || pos == null) continue;
 
-        // 1. Đếm ngược
-        explosive.fuseTimer -= deltaTime;
+            // --- GIAI ĐOẠN 1: ĐẾM NGƯỢC ---
+            if (!explosive.hasExploded) {
+                explosive.timer += delta;
 
-        // 2. Kích hoạt nổ
-        if (explosive.fuseTimer <= 0) {
-            triggerExplosion(bombEntity, explosive);
-        }
-    }
+                if (explosive.timer >= explosive.fuseTime) {
+                    explosive.hasExploded = true;
+                    
+                    // Chuyển sang animation BÙM
+                    state.set(EntityState.EXPLODING); 
+                    explosive.timer = 0f; 
 
-    private void triggerExplosion(Entity bombEntity, ExplosiveComponent explosive) {
-        explosive.isExploded = true; // Đánh dấu đã nổ
+                    // Gây sát thương diện rộng
+                    dealAreaDamage(pos, explosive);
+                    
+                    // [4] QUAN TRỌNG: Xóa cây khỏi lưới ngay khi nổ
+                    // Để người chơi có thể trồng cây mới vào chỗ đó ngay lập tức
+                    if (gridPos != null) {
+                        plantGridController.unregisterPlantAtCell(gridPos.row, gridPos.col);
+                    }
+                }
+            } 
+            // --- GIAI ĐOẠN 2: CHỜ ANIMATION NỔ XONG ---
+            else {
+                explosive.timer += delta;
+                
+                // Lấy thời gian của animation nổ
+                float explodeAnimDuration = 0.8f; 
+                if (anim != null && anim.getAnimation(EntityState.EXPLODING) != null) {
+                    explodeAnimDuration = anim.getAnimation(EntityState.EXPLODING).getAnimationDuration();
+                }
 
-        // Lấy vị trí tâm của quả bom (để tính khoảng cách cho chuẩn)
-        PositionComponent bombPos = bombEntity.getComponent(PositionComponent.class);
-        SizeComponent bombSize = bombEntity.getComponent(SizeComponent.class);
-        
-        float bombCenterX = bombPos.x + bombSize.width / 2;
-        float bombCenterY = bombPos.y + bombSize.height / 2;
-        Vector2 center = new Vector2(bombCenterX, bombCenterY);
-
-        // 3. Quét tất cả entity để tìm nạn nhân
-        for (Entity victim : entities) {
-            // Bỏ qua chính quả bom
-            if (victim == bombEntity) continue;
-
-            // Chỉ gây sát thương cho ZOMBIE (Team check)
-            if (victim.hasComponent(TeamComponent.class)) {
-                TeamComponent team = victim.getComponent(TeamComponent.class);
-                if (team.team != Team.ZOMBIE) continue; // Không nổ quân ta
-            } else {
-                continue; // Không có phe thì không đánh
-            }
-
-            // Kiểm tra khoảng cách
-            if (victim.hasComponent(PositionComponent.class) && victim.hasComponent(SizeComponent.class)) {
-                PositionComponent vicPos = victim.getComponent(PositionComponent.class);
-                SizeComponent vicSize = victim.getComponent(SizeComponent.class);
-
-                // Lấy tâm của Zombie
-                float vicCenterX = vicPos.x + vicSize.width / 2;
-                float vicCenterY = vicPos.y + vicSize.height / 2;
-
-                // Tính khoảng cách giữa Bom và Zombie
-                float distance = center.dst(vicCenterX, vicCenterY);
-
-                // Nếu nằm trong vùng nổ -> Gây sát thương
-                if (distance <= explosive.range) {
-                    applyDamage(victim, explosive.damage);
+                // Nếu animation nổ đã chạy xong -> Xóa Entity khỏi game
+                if (explosive.timer >= explodeAnimDuration) {
+                    toRemove.add(entity); 
                 }
             }
         }
 
-        // 4. Xóa quả bom sau khi nổ
-        bombEntity.markedForRemoval = true;
-        
-        // TODO: Ở đây bạn nên spawn một Entity mới là "ExplosionEffect" 
-        // để hiển thị hình ảnh vụ nổ "POW!" (nếu không bom biến mất cái bộp rất kỳ)
-        // createExplosionEffect(bombCenterX, bombCenterY);
+        entities.removeAll(toRemove);
     }
 
-    private void applyDamage(Entity victim, int damage) {
-        if (victim.hasComponent(HealthComponent.class)) {
-            HealthComponent health = victim.getComponent(HealthComponent.class);
-            health.currentHealth -= damage;
-            
-            // Debug log để biết zombie đã bị nổ banh xác
-            System.out.println("ZOMBIE TOOK " + damage + " EXPLOSIVE DAMAGE! HP: " + health.currentHealth);
+    private void dealAreaDamage(PositionComponent bombPos, ExplosiveComponent explosive) {
+        // Tâm vụ nổ (cộng thêm 45 vì kích thước bom là 90x90)
+        float centerX = bombPos.x + 45f; 
+        float centerY = bombPos.y + 45f;
+
+        for (Zombies z : zombieController.getZombies()) {
+            if (z.isDead()) continue;
+
+            float zCenterX = z.getX() + z.getWidth() / 2f;
+            float zCenterY = z.getY() + z.getHeight() / 2f;
+
+            float dist = Vector2.dst(centerX, centerY, zCenterX, zCenterY);
+
+            // Nổ trong phạm vi
+            if (dist <= explosive.range) {
+                // Giết ngay lập tức (kèm hiệu ứng cháy nếu có)
+                z.killByCherryBomb(); 
+                // Bắt buộc zombie nhả mồm ra
+                z.setEating(false);   
+            }
         }
     }
 }

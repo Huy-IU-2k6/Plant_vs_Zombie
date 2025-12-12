@@ -39,6 +39,7 @@ import pvz.com.systems.CollisionSystem;
 import pvz.com.systems.SunPickupSystem;
 import pvz.com.systems.AnimationSystem;
 import pvz.com.systems.ISunReceiver;
+import pvz.com.systems.ExplosionSystem;
 
 import pvz.com.logic.GameState;
 import pvz.com.logic.HudController;
@@ -72,6 +73,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     private final OrthographicCamera camera;
     private final Viewport viewport;
     private final WallnutStateSystem wallnutStateSystem;
+    private final ExplosionSystem explosionSystem;
     private ShapeRenderer shapeRenderer;
 
     // ===== ECS Data =====
@@ -157,6 +159,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
                 this);
     
         wallnutStateSystem = new WallnutStateSystem();
+        explosionSystem = new ExplosionSystem(zombieWaveController, plantGridController);
 
         shapeRenderer = new ShapeRenderer();
     }
@@ -283,6 +286,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         if (isPlaying()) {
             sunSystem.update(delta);
             wallnutStateSystem.update(entities);
+            explosionSystem.update(entities, delta);
             
             animationSystem.update(entities, delta);
             attackSystem.update(plants, delta);
