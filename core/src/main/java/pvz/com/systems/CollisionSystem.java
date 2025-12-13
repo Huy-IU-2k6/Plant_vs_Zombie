@@ -229,9 +229,9 @@ public class CollisionSystem {
         // CASE 1: Đã trồi lên (Armed) -> BÙM!
         if (arming != null && arming.isArmed) {
             ExplosiveComponent explosive = potatoMine.getComponent(ExplosiveComponent.class);
-            if (explosive != null && !explosive.isExploded) {
+            if (explosive != null && !explosive.hasExploded) {
                 // Kích hoạt nổ ngay lập tức (Fuse = 0)
-                explosive.fuseTimer = 0;
+                explosive.fuseTime = 0;
                 // ExplosionSystem sẽ lo phần gây damage diện rộng và xóa mìn ở vòng sau
             }
             return;

@@ -1,15 +1,27 @@
 package pvz.com.entities.components;
 
 public class ExplosiveComponent {
-    public int damage;          // Sát thương (Rất lớn: 1800)
-    public float range;         // Phạm vi nổ (Bán kính)
-    public float fuseTimer;     // Thời gian đếm ngược trước khi nổ (giây)
-    public boolean isExploded;  // Đánh dấu đã nổ hay chưa
+    // ===== CẤU HÌNH (DATA) =====
+    public int damage;          // Sát thương (1800 cho CherryBomb)
+    public float range;         // Bán kính nổ (150f ~ 3x3 ô)
+    
+    // Tổng thời gian chờ nổ (ví dụ 1.2 giây)
+    public float fuseTime;      
+    
+    // ===== TRẠNG THÁI (STATE) =====
+    // Đồng hồ đếm giờ nội bộ (tăng dần từ 0)
+    public float timer;         
+    
+    // Đánh dấu đã nổ chưa (để chuyển animation sang BÙM)
+    public boolean hasExploded; 
 
     public ExplosiveComponent(int damage, float range, float fuseTime) {
         this.damage = damage;
         this.range = range;
-        this.fuseTimer = fuseTime;
-        this.isExploded = false;
+        this.fuseTime = fuseTime;
+        
+        // Khởi tạo mặc định
+        this.timer = 0f;
+        this.hasExploded = false;
     }
 }
