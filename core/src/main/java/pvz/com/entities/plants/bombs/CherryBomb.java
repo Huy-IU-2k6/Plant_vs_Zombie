@@ -53,6 +53,6 @@ public class CherryBomb extends Plant {
         // [CƠ CHẾ NỔ]
         // Range 150f: Bán kính nổ.
         // Ô lưới khoảng 80x90. 150f tính từ tâm sẽ quét được 3x3 ô xung quanh.
-        this.addComponent(new ExplosiveComponent(1800, 150f, 1.0f)); 
+        this.addComponent(new ExplosiveComponent(1800, 250f, 1.0f)); 
     }
 }
