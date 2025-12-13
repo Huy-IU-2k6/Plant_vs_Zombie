@@ -69,7 +69,7 @@ public class NormalZombie extends Zombies {
         eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
         // 5. [MỚI] CHARRED
-        charredTextures = loadTextures("images/Zombies/burnt/burnt_", 48);
+        charredTextures = loadTextures("images/Zombies/NormalZombie/BoomDie/BoomDie_",19);
         charredAnim = createAnimation(charredTextures, CHARRED_FRAME_TIME, Animation.PlayMode.NORMAL);
 
         // 6. INIT SIZE & STATS

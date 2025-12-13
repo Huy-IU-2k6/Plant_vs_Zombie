@@ -28,7 +28,7 @@ public class CherryBomb extends Plant {
 
         // B. EXPLODE (Nổ Bùm): Boom_0.png -> Boom_4.png
         Array<TextureRegion> explodeFrames = new Array<>();
-        for (int i = 0; i <= 28; i++) {
+        for (int i = 18; i <= 28; i++) {
             explodeFrames.add(new TextureRegion(new Texture("images/Plants/CherryBomb/powie/powie_" + i + ".png")));
         }
         // Quan trọng: Animation nổ chỉ chạy 1 lần (NORMAL), không lặp
