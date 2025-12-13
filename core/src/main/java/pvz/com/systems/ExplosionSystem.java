@@ -12,6 +12,7 @@ import pvz.com.entities.Zombies.Zombies;
 import pvz.com.entities.components.*;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
+import pvz.com.managers.GridConfig; // [MỚI] Import cái này để tính tọa độ
 
 public class ExplosionSystem {
     private final ZombieWaveController zombieController;
@@ -30,10 +31,9 @@ public class ExplosionSystem {
             StateComponent state = entity.getComponent(StateComponent.class);
             PositionComponent pos = entity.getComponent(PositionComponent.class);
             AnimationComponent anim = entity.getComponent(AnimationComponent.class);
-            GridPositionComponent gridPos = entity.getComponent(GridPositionComponent.class);
-            
-            // [MỚI] Lấy thêm SizeComponent để thay đổi kích thước hiển thị
             SizeComponent size = entity.getComponent(SizeComponent.class);
+
+            // [LƯU Ý] Đã xóa dòng lấy GridPositionComponent ở đây
 
             if (explosive == null || state == null || pos == null) continue;
 
@@ -42,38 +42,44 @@ public class ExplosionSystem {
                 explosive.timer += delta;
 
                 if (explosive.timer >= explosive.fuseTime) {
+                    // === KÍCH HOẠT NỔ ===
                     explosive.hasExploded = true;
-                    
-                    // 1. Chuyển trạng thái sang BÙM
                     state.set(EntityState.EXPLODING); 
                     explosive.timer = 0f; 
 
-                    // =========================================================
-                    // 2. [QUAN TRỌNG] LOGIC PHÓNG TO VISUAL
-                    // =========================================================
-                    if (size != null) {
-                        float oldSize = size.width; // Kích thước cũ (90)
-                        float newSize = 250f;       // Kích thước nổ mong muốn (To hơn)
-                        
-                        // Tính độ lệch để căn giữa: (250 - 90) / 2 = 80
-                        float offset = (newSize - oldSize) / 2f; 
+                    // 1. Xóa sự tồn tại vật lý (Hitbox & Máu)
+                    entity.removeComponent(HealthComponent.class);
+                    entity.removeComponent(BoundsComponent.class);
 
-                        // Dịch chuyển vị trí lùi lại (lên trên, sang trái)
+                    // 2. [FIX - QUAN TRỌNG] XÓA KHỎI GRID (Không cần GridPositionComponent)
+                    // Chúng ta tính ngược từ vị trí X, Y ra Hàng và Cột
+                    // Lưu ý: Phải làm bước này TRƯỚC khi dịch chuyển pos (bước 3)
+                    if (plantGridController != null) {
+                        // Dùng hàm tiện ích có sẵn trong GridConfig của bạn
+                        int[] cell = GridConfig.worldToNearestCell(pos.x, pos.y);
+                        int row = cell[0];
+                        int col = cell[1];
+                        
+                        // Gọi Controller xóa cây khỏi bộ nhớ
+                        plantGridController.unregisterPlantAtCell(row, col);
+                    }
+
+                    // 3. Phóng to hình ảnh nổ (Logic dịch chuyển Pos)
+                    if (size != null) {
+                        float oldSize = size.width;
+                        float newSize = 250f;       
+                        float offset = (newSize - oldSize) / 2f; 
+                        
+                        // Giờ mới dịch chuyển pos (sau khi đã tính grid ở trên)
                         pos.x -= offset;
                         pos.y -= offset;
-
-                        // Cập nhật kích thước mới để RenderSystem vẽ hình to ra
+                        
                         size.width = newSize;
                         size.height = newSize;
                     }
 
-                    // 3. Gây sát thương (Tính toán lại tâm dựa trên kích thước mới)
+                    // 4. Gây sát thương
                     dealAreaDamage(pos, size, explosive);
-                    
-                    // 4. Xóa cây khỏi lưới trồng (để trồng cây mới đc ngay)
-                    if (gridPos != null) {
-                        plantGridController.unregisterPlantAtCell(gridPos.row, gridPos.col);
-                    }
                 }
             } 
             // --- GIAI ĐOẠN 2: CHỜ ANIMATION NỔ XONG ---
@@ -94,11 +100,9 @@ public class ExplosionSystem {
         entities.removeAll(toRemove);
     }
 
-    // [CẬP NHẬT] Hàm tính sát thương nhận thêm SizeComponent để tính tâm chuẩn
     private void dealAreaDamage(PositionComponent bombPos, SizeComponent size, ExplosiveComponent explosive) {
-        float currentSize = (size != null) ? size.width : 90f; // Nếu ko có size thì mặc định 90
+        float currentSize = (size != null) ? size.width : 90f; 
         
-        // Tính tâm dựa trên kích thước hiện tại (đã phóng to)
         float centerX = bombPos.x + (currentSize / 2f); 
         float centerY = bombPos.y + (currentSize / 2f);
 
@@ -112,7 +116,7 @@ public class ExplosionSystem {
 
             if (dist <= explosive.range) {
                 z.killByCherryBomb(); 
-                z.setEating(false);   
+                z.setEating(false); 
             }
         }
     }

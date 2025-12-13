@@ -48,7 +48,7 @@ public class CherryBomb extends Plant {
         this.addComponent(new StateComponent(EntityState.IDLE));
         this.addComponent(new HealthComponent(300));
         this.addComponent(new TeamComponent(Team.PLANT));
-        this.addComponent(new GridPositionComponent(col, row));
+        this.addComponent(new GridCellComponent(col, row));
 
         // [CƠ CHẾ NỔ]
         // Range 150f: Bán kính nổ.

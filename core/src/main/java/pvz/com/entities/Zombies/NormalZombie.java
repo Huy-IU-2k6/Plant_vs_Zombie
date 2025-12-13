@@ -17,7 +17,7 @@ public class NormalZombie extends Zombies {
     private static final float INITIAL_SPEED = 10f;
 
     // Animation Speeds
-    private static final float WALK_FRAME_TIME = 0.12f; 
+    private static final float WALK_FRAME_TIME = 0.12f;
     private static final float EAT_FRAME_TIME = 0.25f;
     private static final float BODY_DIE_FRAME_TIME = 0.15f; 
     private static final float HEAD_POP_FRAME_TIME = 0.1f;  
@@ -32,8 +32,8 @@ public class NormalZombie extends Zombies {
 
     // ===== ANIMATIONS =====
     private final Animation<TextureRegion> walkAnim;
-    private final Animation<TextureRegion> headPopAnim; 
-    private final Animation<TextureRegion> bodyDieAnim; 
+    private final Animation<TextureRegion> headPopAnim;
+    private final Animation<TextureRegion> bodyDieAnim;
     private final Animation<TextureRegion> eatAnim;
     private final Animation<TextureRegion> charredAnim; // [MỚI]
 
@@ -131,28 +131,31 @@ public class NormalZombie extends Zombies {
                 if (!dead) { 
                     dead = true; 
                     speed = 0f;
-                    if (zombieCount > 0) zombieCount--;
-                    remove(); 
+                    if (zombieCount > 0)
+                        zombieCount--;
+                    remove();
                 }
             }
             return;
         }
 
         super.act(delta);
-        
+
         // --- ANIMATION UPDATE ---
         if (isEating) {
             stateTime += delta;
         } else {
             float animSpeedScale = (this.speed > 0) ? (this.speed / this.baseSpeed) : 1f;
-            if (animSpeedScale < 0.2f) animSpeedScale = 1f; 
+            if (animSpeedScale < 0.2f)
+                animSpeedScale = 1f;
             stateTime += delta * animSpeedScale;
         }
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        if (dead) return;
+        if (dead)
+            return;
 
         Color color = getColor();
         batch.setColor(color.r, color.g, color.b, color.a * parentAlpha);
@@ -195,7 +198,8 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void takeDamage(int damage) {
-        if (isDying || dead) return;
+        if (isDying || dead)
+            return;
         health -= damage;
         // Mặc định là chết thường (burnt = false)
         if (health <= 0) startDeath(false);
@@ -212,8 +216,11 @@ public class NormalZombie extends Zombies {
     }
 
     // ... (Các hàm isEating, setEating, dispose giữ nguyên) ...
+
     @Override
-    public boolean isEating() { return isEating; }
+    public boolean isEating() {
+        return isEating;
+    }
 
     @Override
     public void setEating(boolean eating) {

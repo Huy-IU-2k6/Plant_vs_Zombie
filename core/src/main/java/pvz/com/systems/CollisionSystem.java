@@ -4,23 +4,36 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 import pvz.com.entities.Entity;
 import pvz.com.entities.Zombies.Zombies;
-import pvz.com.entities.components.*;
+import pvz.com.entities.components.ArmingComponent;
+import pvz.com.entities.components.BoundsComponent;
+import pvz.com.entities.components.DamageComponent;
+import pvz.com.entities.components.ExplosiveComponent;
+import pvz.com.entities.components.GridCellComponent;
+import pvz.com.entities.components.HealthComponent;
+import pvz.com.entities.components.PositionComponent;
+import pvz.com.entities.components.ProjectileTagComponent;
+import pvz.com.entities.components.Team;
+import pvz.com.entities.components.TeamComponent;
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.projectiles.FrozenPeaProjectile; // [FIX] Import specific projectiles
-import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.GridConfig;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public class CollisionSystem {
 
+    // ECS entities: Plants, đạn, mìn,...
     private final List<Entity> entities;
+
+    // OOP zombie controller (wave)
     private final ZombieWaveController zombieWaveController;
+
+    // Grid cây
     private final PlantGridController plantGridController;
 
     private final Map<Zombies, Plant> eatingTargets = new HashMap<>();
@@ -36,22 +49,21 @@ public class CollisionSystem {
     public void update(float deltaTime) {
         Plant[][] grid = plantGridController.getPlantGrid();
 
+        // Duyệt từng zombie, xử lý cả: đạn trúng + ăn cây
         for (Zombies zombie : zombieWaveController.getZombies()) {
             if (zombie.isDead()) {
                 zombie.setEating(false);
-                eatingTargets.remove(zombie);
                 continue;
             }
 
+            // Dùng hitbox trong class Zombies
             Rectangle zRect = zombie.getBounds();
-            
-            // [FIX] Correctly calculate row based on GridConfig
             int zombieRow = getRowForZombie(zRect);
 
             // 1) ZOMBIE vs PROJECTILE
             handleZombieProjectiles(zombie, zRect);
 
-            // 2) ZOMBIE vs PLANT
+            // 2) ZOMBIE vs PLANT (GRID)
             handleZombiePlants(zombie, zombieRow, grid, zRect, deltaTime);
         }
     }
@@ -60,39 +72,31 @@ public class CollisionSystem {
     // ZOMBIE vs BULLET
     // =========================
     private void handleZombieProjectiles(Zombies zombie, Rectangle zRect) {
+
         for (Entity projectile : entities) {
-            if (projectile.markedForRemoval) continue;
+            if (projectile.markedForRemoval)
+                continue;
 
-            // [FIX] Check if entity is a Projectile using instance check or checking components
-            // Since we don't have ProjectileTagComponent, we check class type
-            boolean isProjectile = (projectile instanceof PeaProjectile) || (projectile instanceof FrozenPeaProjectile);
-            if (!isProjectile) continue;
+            // Chỉ quan tâm entity là đạn
+            if (projectile.getComponent(ProjectileTagComponent.class) == null)
+                continue;
 
-            // Get Bounds & Damage from Components (assuming projectiles have these)
-            // If projectiles are Entities, they must have components added in their constructor!
-            // BUT: In your GameWorld, you created PeaProjectile as 'Entity' subclass.
-            // Let's assume you added BoundsComponent and a custom 'DamageComponent' or similar.
-            
-            // SIMPLIFIED LOGIC for compatibility:
-            // Check position intersection manually if components are missing
-            PositionComponent pPos = projectile.getComponent(PositionComponent.class);
-            if (pPos == null) continue;
-            
-            Rectangle pRect = new Rectangle(pPos.x, pPos.y, 20, 20); // Approx size
+            BoundsComponent pBounds = projectile.getComponent(BoundsComponent.class);
+            DamageComponent damage = projectile.getComponent(DamageComponent.class);
+            if (pBounds == null || damage == null)
+                continue;
 
-            if (pRect.overlaps(zRect)) {
-                // Apply Damage
-                // Default damage is 20
-                zombie.takeDamage(20); 
-                
-                // Apply Slow if Frozen
-                if (projectile instanceof FrozenPeaProjectile) {
-                    zombie.applySlow(5f, 0.5f); // Slow for 5s, 50% speed
-                }
+            // Đồng bộ bounds với position mỗi frame
+            syncBoundsWithPosition(projectile);
 
-                // Remove Bullet
-                projectile.markedForRemoval = true;
-            }
+            if (!pBounds.bounds.overlaps(zRect))
+                continue;
+
+            // Trúng đạn -> trừ máu
+            zombie.takeDamage(damage.amount);
+
+            // Đạn biến mất: dùng cờ, để hệ thống cleanup chung xử lý
+            projectile.markedForRemoval = true;
         }
     }
 
@@ -105,85 +109,158 @@ public class CollisionSystem {
             Rectangle zRect,
             float deltaTime) {
 
-        // Check if row is valid
-        if (zombieRow < 0 || zombieRow >= GridConfig.ROWS) {
+        // Ngoài lawn -> không ăn cây
+        if (!GridConfig.isInsideGrid(zombieRow, 0)) {
+            eatingTargets.remove(zombie);
             zombie.setEating(false);
             return;
         }
 
         Plant currentTarget = eatingTargets.get(zombie);
 
-        // --- 1. EXISTING TARGET ---
+        // ========================
+        // 1) ĐÃ CÓ TARGET ĐANG ĂN
+        // ========================
         if (currentTarget != null) {
-            HealthComponent hp = currentTarget.getComponent(HealthComponent.class);
-            
-            if (currentTarget.markedForRemoval || hp == null || hp.currentHealth <= 0) {
+
+            // Plant đã bị xóa / chết -> bỏ ăn, đi tiếp
+            if (currentTarget.markedForRemoval
+                    || !currentTarget.hasComponent(HealthComponent.class)) {
                 eatingTargets.remove(zombie);
                 zombie.setEating(false);
                 return;
             }
-            
-            // Continue eating
+
+            // Optional: nếu muốn kiểm tra vẫn còn overlaps
+            BoundsComponent pb = currentTarget.getComponent(BoundsComponent.class);
+            if (pb == null || !Intersector.overlaps(zRect, pb.bounds)) {
+                // Có thể bỏ check này nếu muốn zombie cứ đứng ăn đến khi plant chết
+                // Còn nếu giữ thì khi hết overlaps cũng cho nó đi tiếp
+                eatingTargets.remove(zombie);
+                zombie.setEating(false);
+                return;
+            }
+
+            // Vẫn còn target -> tiếp tục ăn nó
             zombie.setEating(true);
             damagePlantAndMaybeRemove(currentTarget, deltaTime);
+
+            // Nếu plant chết trong damagePlantAndMaybeRemove, vòng sau sẽ vào nhánh remove
+            // ở trên
             return;
         }
 
-        // --- 2. FIND NEW TARGET ---
-        // Look through plants in the same row
-        for (int col = 0; col < GridConfig.COLS; col++) {
-            Plant plant = grid[zombieRow][col];
-            if (plant == null || plant.markedForRemoval) continue;
+        // ===========================
+        // 2) CHƯA CÓ TARGET -> TÌM MỚI
+        // ===========================
+        Plant[] rowPlants = grid[zombieRow];
 
-            // Check collision using Position/Grid info
-            // Plant bounds (approximate from grid)
-            float pX = GridConfig.getCellOriginX(col);
-            float pY = GridConfig.getCellOriginY(zombieRow);
-            Rectangle pRect = new Rectangle(pX, pY, GridConfig.CELL_WIDTH, GridConfig.CELL_HEIGHT);
+        for (Plant plant : rowPlants) {
+            if (plant == null || plant.markedForRemoval)
+                continue;
+            if (!plant.hasComponent(BoundsComponent.class))
+                continue;
+            if (!plant.hasComponent(TeamComponent.class))
+                continue;
 
-            if (zRect.overlaps(pRect)) {
-                // [FIX] Potato Mine Logic (using ExplosiveComponent)
-                ExplosiveComponent explosive = plant.getComponent(ExplosiveComponent.class);
-                
-                // If it's a Potato Mine (has explosion) and armed logic (simplified)
-                // For now, treat Potato Mine as instant explode on contact
-                if (explosive != null && plant.getClass().getSimpleName().equals("PotatoMine")) {
-                     explosive.fuseTime = 0; // Explode immediately
-                     return; // Don't eat it
-                }
+            TeamComponent team = plant.getComponent(TeamComponent.class);
+            if (team.team != Team.PLANT)
+                continue;
 
-                // Normal Plant -> Eat it
-                eatingTargets.put(zombie, plant);
-                zombie.setEating(true);
+            BoundsComponent pb = plant.getComponent(BoundsComponent.class);
+            if (!Intersector.overlaps(zRect, pb.bounds))
+                continue;
+
+            // ==== POTATO MINE ====
+            if (plant.hasComponent(ArmingComponent.class)) {
+                handlePotatoMine(zombie, plant);
+                // Mine nổ xong thì thường zombie chết hoặc bị damage ở system khác.
+                // Ở đây không set target ăn mìn (optional, tùy thiết kế).
                 return;
             }
+
+            // ==== CÂY THƯỜNG: CHỌN LÀM TARGET ====
+            eatingTargets.put(zombie, plant);
+            zombie.setEating(true);
+
+            // "Chốt" vị trí zombie sát mép plant để tránh lệch bounding box
+            // (tùy hướng di chuyển, mình giả sử zombie đi từ phải sang trái)
+            float newX = pb.bounds.x + pb.bounds.width - zRect.width * 0.8f;
+            zombie.setX(newX);
+
+            // Cắn cây ngay frame này luôn
+            damagePlantAndMaybeRemove(plant, deltaTime);
+            return;
         }
 
+        // Không đụng cây nào & không có target -> đảm bảo zombie không ăn
         zombie.setEating(false);
     }
 
+    // =========================
+    // PLANT DAMAGE
+    // =========================
     private void damagePlantAndMaybeRemove(Plant plant, float deltaTime) {
         HealthComponent health = plant.getComponent(HealthComponent.class);
-        if (health == null) return;
+        if (health == null)
+            return;
 
-        float damagePerSecond = 50f; // Adjust eating speed
+        // Có thể scale theo thời gian: 20 máu / giây chẳng hạn
+        float damagePerSecond = 20f;
         health.currentHealth -= damagePerSecond * deltaTime;
 
-        if (health.currentHealth <= 0) {
+        if (health.isDead()) {
             plant.markedForRemoval = true;
-            
-            // Remove from grid
-            GridPositionComponent gridPos = plant.getComponent(GridPositionComponent.class);
-            if (gridPos != null) {
-                plantGridController.unregisterPlantAtCell(gridPos.row, gridPos.col);
+
+            // Dọn ô trong grid
+            GridCellComponent cell = plant.getComponent(GridCellComponent.class);
+            if (cell != null) {
+                plantGridController.unregisterPlantAtCell(cell.row, cell.col);
             }
+        }
+    }
+
+    // =========================
+    // POTATO MINE
+    // =========================
+    private void handlePotatoMine(Zombies zombie, Entity potatoMine) {
+        ArmingComponent arming = potatoMine.getComponent(ArmingComponent.class);
+
+        // CASE 1: Đã trồi lên (Armed) -> BÙM!
+        if (arming != null && arming.isArmed) {
+            ExplosiveComponent explosive = potatoMine.getComponent(ExplosiveComponent.class);
+            if (explosive != null && !explosive.hasExploded) {
+                // Kích hoạt nổ ngay lập tức (Fuse = 0)
+                explosive.fuseTime = 0;
+                // ExplosionSystem sẽ lo phần gây damage diện rộng và xóa mìn ở vòng sau
+            }
+            return;
+        }
+
+        // CASE 2: Chưa trồi lên -> Bị ăn như cây thường
+        HealthComponent health = potatoMine.getComponent(HealthComponent.class);
+        if (health != null) {
+            // Zombie ăn nhanh hơn chút
+            health.currentHealth -= 2;
+            if (health.isDead()) {
+                potatoMine.markedForRemoval = true;
+            }
+        }
+    }
+
+    // =========================
+    // UTIL
+    // =========================
+    private void syncBoundsWithPosition(Entity e) {
+        PositionComponent pos = e.getComponent(PositionComponent.class);
+        BoundsComponent bounds = e.getComponent(BoundsComponent.class);
+        if (pos != null && bounds != null) {
+            bounds.bounds.setPosition(pos.x, pos.y);
         }
     }
 
     private int getRowForZombie(Rectangle zRect) {
         float centerY = zRect.y + zRect.height / 2f;
-        // Use GridConfig to convert World Y to Row Index
-        int row = (int) ((centerY - GridConfig.START_Y) / GridConfig.CELL_HEIGHT);
-        return row;
+        return GridConfig.worldToRow(centerY);
     }
 }

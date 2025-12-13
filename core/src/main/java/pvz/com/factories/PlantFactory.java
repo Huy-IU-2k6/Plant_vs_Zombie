@@ -56,11 +56,11 @@ public class PlantFactory {
                 return createPeashooterAtCell(col, row);
             case WALLNUT:
                 return createWallnutAtCell(col, row);
-            case CHERRY_BOMB:
+            case CHERRYBOMB:
                 return createCherryBombAtCell(col, row);
-            case POTATO_MINE:
+            case POTATOMINE:
                 return createPotatoMineAtCell(col, row);
-            case SNOW_PEA: // [FIX] Thêm case SnowPea
+            case SNOWPEA: // [FIX] Thêm case SnowPea
                 return createSnowPeaAtCell(col, row);
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
@@ -146,11 +146,11 @@ public class PlantFactory {
                 return new Peashooter(x, y, col, row);
             case WALLNUT:
                 return new Wallnut(x, y, col, row);
-            case CHERRY_BOMB:
+            case CHERRYBOMB:
                 return new CherryBomb(x, y, col, row);
-            case POTATO_MINE:
+            case POTATOMINE:
                 return new PotatoMine(x, y, col, row);
-            case SNOW_PEA: // [FIX] Thêm case SnowPea vào đây luôn
+            case SNOWPEA: // [FIX] Thêm case SnowPea vào đây luôn
                 return new SnowPea(x, y, col, row);
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);

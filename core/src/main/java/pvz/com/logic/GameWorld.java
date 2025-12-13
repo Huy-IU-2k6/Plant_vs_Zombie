@@ -8,30 +8,29 @@ import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.projectiles.FrozenPeaProjectile; // [FIX] Added
+import pvz.com.entities.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.entities.suns.Sun;
-import pvz.com.systems.AnimationSystem; // [FIX] Added
+import pvz.com.systems.AnimationSystem;
 import pvz.com.systems.CleanupSystem;
 import pvz.com.systems.CollisionSystem;
 import pvz.com.systems.IGameSpawner;
-import pvz.com.systems.ISunReceiver; // [FIX] Added
+import pvz.com.systems.ISunReceiver;
 import pvz.com.systems.MovementSystem;
 import pvz.com.systems.PlantAttackSystem;
 import pvz.com.systems.RenderSystem;
 import pvz.com.systems.SunPickupSystem;
 import pvz.com.systems.SunProductionSystem;
 
-// [FIX] Implements ISunReceiver so SunPickupSystem accepts 'this'
 public class GameWorld implements IGameSpawner, ISunReceiver {
 
     private final List<Entity> entities;
     private final List<Plant> plants;
     private final GameState gameState;
 
-    // ECS systems
+    // Systems
     private final RenderSystem renderSystem;
-    private final AnimationSystem animationSystem; // [FIX] Added AnimationSystem
+    private final AnimationSystem animationSystem;
     private final SunProductionSystem sunSystem;
     private final PlantAttackSystem attackSystem;
     private final MovementSystem movementSystem;
@@ -39,6 +38,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
     private final SunPickupSystem sunPickupSystem;
     private final CleanupSystem cleanupSystem;
 
+    // HUD là nơi giữ SUN duy nhất
     private final HudController hudController;
 
     public GameWorld(GameState gameState,
@@ -55,39 +55,31 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         this.plants = plants;
         this.hudController = hudController;
 
-        // Systems
         this.renderSystem = new RenderSystem(batch);
-        
-        // [FIX] Initialize AnimationSystem
-        this.animationSystem = new AnimationSystem(); 
-        
+        this.animationSystem = new AnimationSystem();
+
         this.sunSystem = new SunProductionSystem(this, entities);
-        
-        // [FIX] Pass zombieWaveController to PlantAttackSystem
-        this.attackSystem = new PlantAttackSystem(this, zombieWaveController); 
-        
+        this.attackSystem = new PlantAttackSystem(this, zombieWaveController);
+
         this.movementSystem = new MovementSystem();
         this.collisionSystem = new CollisionSystem(
                 entities,
                 zombieWaveController,
                 plantGridController);
-                
-        // [FIX] SunPickupSystem now accepts ISunReceiver (this class implements it)
+
+        // SunPickupSystem sẽ gọi addSun(...) qua ISunReceiver
         this.sunPickupSystem = new SunPickupSystem(entities, camera, this);
-        
+
         this.cleanupSystem = new CleanupSystem(entities);
     }
 
     public void update(float delta) {
-        if (!gameState.isPlaying()) {
+        if (!gameState.isPlaying())
             return;
-        }
 
         sunSystem.update(delta);
-        
-        // [FIX] Update Animations
         animationSystem.update(entities, delta);
-        
+
         attackSystem.update(plants, delta);
         movementSystem.update(entities, delta);
         collisionSystem.update(delta);
@@ -99,7 +91,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         renderSystem.update(entities);
     }
 
-    // ====== IGameSpawner & ISunReceiver Implementation ======
+    // ===== IGameSpawner =====
 
     @Override
     public void spawnSun(float x, float y, int amount) {
@@ -111,24 +103,24 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
     public void spawnProjectile(float x, float y, int damage,
             PlantDamageType type,
             Class<?> projectileClass) {
-        
+
         if (projectileClass == PeaProjectile.class) {
-            Entity pea = new PeaProjectile(x, y, damage);
-            entities.add(pea);
+            entities.add(new PeaProjectile(x, y, damage));
+        } else if (projectileClass == FrozenPeaProjectile.class) {
+            entities.add(new FrozenPeaProjectile(x, y, damage));
         }
-        // [FIX] Handle FrozenPeaProjectile
-        else if (projectileClass == FrozenPeaProjectile.class) {
-            Entity frozenPea = new FrozenPeaProjectile(x, y, damage);
-            entities.add(frozenPea);
-        }
+        // Nếu còn loại khác thì thêm ở đây
     }
+
+    // ===== ISunReceiver =====
 
     @Override
     public void addSun(int amount) {
+        // Sun chỉ update ở HUD (owner duy nhất)
         hudController.addSun(amount);
     }
 
-    // ================== Getters & Helpers ==================
+    // ===== Helpers =====
 
     public SunPickupSystem getSunPickupSystem() {
         return sunPickupSystem;
@@ -137,14 +129,6 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
     public void addPlant(Plant plant) {
         entities.add(plant);
         plants.add(plant);
-    }
-
-    public boolean spendSun(int cost) {
-        return hudController.spendSun(cost);
-    }
-
-    public int getSunPoints() {
-        return hudController.getSunPoints();
     }
 
     public void setGameOver(boolean playerWon) {
