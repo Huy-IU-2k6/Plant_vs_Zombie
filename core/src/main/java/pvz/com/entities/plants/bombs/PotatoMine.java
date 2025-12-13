@@ -22,7 +22,7 @@ public class PotatoMine extends Plant {
 
         // 5. Định danh
         this.addComponent(new TeamComponent(Team.PLANT));
-        this.addComponent(new GridPositionComponent(col, row));
+        this.addComponent(new GridCellComponent(col, row));
 
         // 6. Dữ liệu nổ (Sát thương cực to 1800, phạm vi rất nhỏ 50f)
         // fuseTime = 0 vì đạp trúng là nổ ngay

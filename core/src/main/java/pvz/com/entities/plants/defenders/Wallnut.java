@@ -51,7 +51,7 @@ public class Wallnut extends Plant {
         // D. Các component khác
         this.addComponent(new HealthComponent(TOTAL_HEALTH));
         this.addComponent(new TeamComponent(Team.PLANT));
-        this.addComponent(new GridPositionComponent(gridCol, gridRow));
+        this.addComponent(new GridCellComponent(gridCol, gridRow));
     }
 
     // Hàm tiện ích để load nhanh một thư mục ảnh

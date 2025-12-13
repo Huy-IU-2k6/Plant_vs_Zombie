@@ -21,7 +21,7 @@ public class CherryBomb extends Plant {
 
         // 5. Định danh & Vị trí (Quan trọng)
         this.addComponent(new TeamComponent(Team.PLANT));
-        this.addComponent(new GridPositionComponent(col, row));
+        this.addComponent(new GridCellComponent(col, row));
 
         // 6. Cơ chế Nổ (ĐẶC BIỆT)
         // - Damage: 1800 (One-shot hầu hết Zombie thường và Nón)
