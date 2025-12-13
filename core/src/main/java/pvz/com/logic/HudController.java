@@ -25,6 +25,7 @@ public class HudController {
     private CountdownActor countdown;
     private final BitmapFont hudFont;
 
+    // SUN owner duy nhất nằm ở đây
     private int sunPoints;
 
     public HudController(Stage hudStage, float countdownDuration, int initialSun) {
@@ -51,7 +52,6 @@ public class HudController {
     }
 
     private void createPlantCards() {
-        // Chỉ tạo card cho những plant đã đăng ký trong PlantCatalog
         for (PlantType type : PlantCatalog.types()) {
             PlantCard card = new PlantCard(type);
             plantCards.add(card);
@@ -72,6 +72,7 @@ public class HudController {
         }
     }
 
+    /** GameScreen gọi khi resize */
     public void resize(int width, int height) {
         hudStage.getViewport().update(width, height, true);
         updateHudLayout();
@@ -98,7 +99,8 @@ public class HudController {
         }
     }
 
-    // ===== Sun HUD =====
+    // ===== Sun HUD (owner duy nhất) =====
+
     public void addSun(int amount) {
         sunPoints += amount;
         seedBank.setSunAmount(sunPoints);
@@ -115,6 +117,12 @@ public class HudController {
 
     public int getSunPoints() {
         return sunPoints;
+    }
+
+    // ===== Getters =====
+
+    public Stage getHudStage() {
+        return hudStage;
     }
 
     public SeedBank getSeedBank() {

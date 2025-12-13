@@ -27,12 +27,8 @@ public class PlantPlacementController {
     }
 
     /**
-     * Mode click-to-place (nếu bạn vẫn dùng):
-     * click card -> trừ sun + trigger cooldown.
-     *
-     * Lưu ý: click-to-place kiểu “chọn card rồi click ô để đặt” thường cần thêm
-     * state "selectedCard".
-     * Code này giữ đúng hành vi cũ của bạn: click là trừ sun + vào cooldown ngay.
+     * Mode click-to-place (giữ hành vi cũ của bạn):
+     * click card -> trừ sun + trigger cooldown ngay.
      */
     public void handleCardClicked(PlantCard card, boolean isPlaying) {
         if (!isPlaying)
@@ -58,19 +54,19 @@ public class PlantPlacementController {
         if (!isPlaying)
             return;
 
-        // screen -> world
+        // screen -> world (theo viewport)
         Vector2 world = viewport.unproject(new Vector2(screenX, screenY));
 
-        // Snap nearest cell
-        int[] cell = GridConfig.worldToNearestCell(world.x, world.y);
+        // snap nearest cell (nhờ PlantGridController để gom logic)
+        int[] cell = plantGridController.worldToNearestCell(world.x, world.y);
         int row = cell[0];
         int col = cell[1];
 
-        if (row < 0 || col < 0 || !GridConfig.isInsideGrid(row, col)) {
-            // thả ngoài lawn
+        // ngoài lawn
+        if (row < 0 || col < 0 || !GridConfig.isInsideGrid(row, col))
             return;
-        }
 
+        // check sun + cooldown
         int currentSun = hudController.getSunPoints();
         if (!card.canUse(currentSun))
             return;
@@ -81,9 +77,9 @@ public class PlantPlacementController {
         if (!hudController.spendSun(cost))
             return;
 
-        boolean spawned = spawnPlantFromCardAtGrid(card, row, col);
-        if (!spawned) {
-            // Ô bận / factory lỗi -> hoàn sun
+        boolean placed = tryPlacePlantFromCard(card, row, col);
+        if (!placed) {
+            // Ô bận / spawn lỗi -> hoàn sun
             hudController.addSun(cost);
             return;
         }
@@ -92,13 +88,19 @@ public class PlantPlacementController {
         card.triggerUse();
     }
 
-    private boolean spawnPlantFromCardAtGrid(PlantCard card, int row, int col) {
-        if (plantGridController.isCellOccupied(row, col)) {
+    /**
+     * 1 nơi duy nhất làm “đặt cây”:
+     * - check occupied
+     * - factory create
+     * - add vào gameWorld
+     * - register vào grid
+     */
+    private boolean tryPlacePlantFromCard(PlantCard card, int row, int col) {
+        if (plantGridController.isCellOccupied(row, col))
             return false;
-        }
 
-        PlantType plantType = card.type; // PlantType luôn, khỏi map
-        Plant plant = PlantFactory.createPlantAtCell(plantType, col, row);
+        PlantType type = card.type; // PlantType luôn
+        Plant plant = PlantFactory.createPlantAtCell(type, col, row);
         if (plant == null)
             return false;
 
