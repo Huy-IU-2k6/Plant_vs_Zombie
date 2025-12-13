@@ -4,8 +4,9 @@ public enum PlantType {
     SUNFLOWER,
     PEASHOOTER,
     WALLNUT,
-    CHERRY_BOMB,
-    POTATO_MINE,
-    SNOW_PEA,
-    // Thêm các cây khác ở đây sau này
+    CHERRYBOMB,
+    POTATOMINE,
+    SNOWPEA,
+    CHOMPER,
+    REPEATER,
 }

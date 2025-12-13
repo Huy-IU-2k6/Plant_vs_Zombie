@@ -4,12 +4,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.items.ItemType;
+import pvz.com.entities.plants.PlantType;
 import pvz.com.items.PlantCard;
+import pvz.com.items.PlantCatalog;
 import pvz.com.items.SeedBank;
 import pvz.com.managers.FontManager;
 import pvz.com.items.CountdownActor;
-
 import pvz.com.managers.HudLayoutConfig;
 
 public class HudController {
@@ -31,13 +31,12 @@ public class HudController {
         this.hudStage = hudStage;
         this.sunPoints = initialSun;
 
-        // Font dùng cho HUD (countdown + seed bank)
         hudFont = FontManager.getPvzFont();
 
         // SeedBank
         seedBank = new SeedBank(hudFont);
         seedBank.setVisible(false);
-        seedBank.setSunAmount(initialSun); // sync số sun ban đầu
+        seedBank.setSunAmount(initialSun);
         hudStage.addActor(seedBank);
 
         // Countdown
@@ -52,26 +51,20 @@ public class HudController {
     }
 
     private void createPlantCards() {
-        for (ItemType type : ItemType.values()) {
+        // Chỉ tạo card cho những plant đã đăng ký trong PlantCatalog
+        for (PlantType type : PlantCatalog.types()) {
             PlantCard card = new PlantCard(type);
             plantCards.add(card);
             seedBank.addCard(card);
         }
     }
 
-    /**
-     * Cập nhật toàn bộ layout HUD theo worldWidth/worldHeight hiện tại:
-     * - SeedBank.
-     * - Countdown.
-     */
     private void updateHudLayout() {
         float worldWidth = hudStage.getViewport().getWorldWidth();
         float worldHeight = hudStage.getViewport().getWorldHeight();
 
-        // SeedBank tự xử lý layout nội bộ
         seedBank.updateLayout(worldWidth, worldHeight);
 
-        // Countdown position scale theo kích thước world
         if (countdown != null) {
             float countdownX = worldWidth * COUNTDOWN_POS_X_RATIO;
             float countdownY = worldHeight * COUNTDOWN_POS_Y_RATIO;

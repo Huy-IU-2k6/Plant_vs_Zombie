@@ -13,20 +13,17 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.graphics.Color;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.plants.PlantType;
-import pvz.com.factories.PlantFactory;
 import pvz.com.entities.suns.Sun;
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.projectiles.PeaProjectile;
-import pvz.com.items.ItemType;
 import pvz.com.items.PlantCard;
 
 import pvz.com.systems.IGameSpawner;
@@ -59,10 +56,9 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     // ===== Game config =====
     private static final float COUNTDOWN_DURATION = 6f;
     private static final int INITIAL_SUN = 150;
-    private static final float LEVEL_DURATION = 240f; 
+    private static final float LEVEL_DURATION = 240f;
 
     // ===== Zombie lane config =====
-    private static final int ZOMBIE_LANE_COUNT = GridConfig.ROWS;
     private static final float ZOMBIE_START_OFFSET_X = 200f;
 
     // ===== Core refs =====
@@ -88,7 +84,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     private final ZombieWaveController zombieWaveController;
     private final WorldRenderer worldRenderer;
 
-    // ===== ECS Systems (MỚI THÊM VÀO) =====
+    // ===== ECS Systems =====
     private final RenderSystem renderSystem;
     private final AnimationSystem animationSystem;
     private final SunProductionSystem sunSystem;
@@ -102,6 +98,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
 
         // --- core ---
         this.batch = new SpriteBatch();
+
         this.hudStage = new Stage(new ScreenViewport());
         this.hudStage.getRoot().setUserObject(this);
 
@@ -118,20 +115,19 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
 
         // ===== Controllers =====
         this.hudController = new HudController(hudStage, COUNTDOWN_DURATION, INITIAL_SUN);
+
         this.plantGridController = new PlantGridController(entities, plants, camera);
         plantGridController.setEnabled(false);
 
-        // [GIỮ NGUYÊN NHƯ BẢN GỐC CỦA BẠN]
         this.lawnMowerController = new LawnMowerController(
                 WORLD_WIDTH - 50f,
-                DesignConfig.START_X - 150f
-        );
+                DesignConfig.START_X - 150f);
 
         this.zombieWaveController = new ZombieWaveController(
                 WORLD_WIDTH,
-                WORLD_HEIGHT, // Sửa lại constructor cho khớp bản gốc
+                WORLD_HEIGHT,
                 ZOMBIE_START_OFFSET_X,
-                90, 
+                90,
                 LEVEL_DURATION);
 
         BackgroundManager backgroundManager = new BackgroundManager();
@@ -141,97 +137,101 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
                 lawnMowerController,
                 zombieWaveController);
 
-        // ===== ECS Init (MỚI) =====
+        // ===== ECS Init =====
         renderSystem = new RenderSystem(batch);
-        animationSystem = new AnimationSystem(); 
+        animationSystem = new AnimationSystem();
         sunSystem = new SunProductionSystem(this, entities);
-        attackSystem = new PlantAttackSystem(this, zombieWaveController); 
+        attackSystem = new PlantAttackSystem(this, zombieWaveController);
         movementSystem = new MovementSystem();
+
         collisionSystem = new CollisionSystem(
                 entities,
                 zombieWaveController,
                 plantGridController);
+
         sunPickupSystem = new SunPickupSystem(
                 entities,
                 camera,
                 this);
-    
-        wallnutStateSystem = new WallnutStateSystem();
 
+        wallnutStateSystem = new WallnutStateSystem();
         shapeRenderer = new ShapeRenderer();
     }
 
     // ================== Helper ==================
 
-    private boolean isPlaying() { return gameState.isPlaying(); }
-    private boolean isCountdown() { return gameState.isCountdown(); }
-    private boolean isGameOver() { return gameState.isGameOver(); }
-    public GameState getGameState() { return gameState; }
+    private boolean isPlaying() {
+        return gameState.isPlaying();
+    }
+
+    private boolean isCountdown() {
+        return gameState.isCountdown();
+    }
+
+    private boolean isGameOver() {
+        return gameState.isGameOver();
+    }
+
+    public GameState getGameState() {
+        return gameState;
+    }
 
     // ================== HUD interaction ==================
 
     public void onPlantCardClicked(PlantCard card) {
-        if (isGameOver()) return;
-        // Logic cũ dùng plantPlacementController, nhưng giờ mình chuyển sang kéo thả trực tiếp ở dưới
-        // Nếu bạn muốn click-to-place, cần viết lại 1 xíu logic ở đây.
-        // Nhưng tạm thời ta tập trung vào kéo thả (Drag)
+        // Hiện bạn đang dùng drag & drop, click-to-place chưa dùng
+        if (isGameOver())
+            return;
     }
 
+    /**
+     * Called by PlantCard.dragStop -> GameScreen.onPlantCardDragged(card, screenX,
+     * screenY)
+     * screenX/screenY là toạ độ SCREEN (Gdx.input.getX/Y).
+     */
     public void onPlantCardDragged(PlantCard card, float screenX, float screenY) {
-        if (isGameOver()) return;
-        if (!isPlaying()) return;
+        if (isGameOver())
+            return;
+        if (!isPlaying())
+            return;
 
-        // Logic đặt cây (chuyển từ PlantPlacementController sang đây cho gọn)
-        Vector2 world = viewport.unproject(new Vector2(screenX, screenY));
-        int[] cell = GridConfig.worldToNearestCell(world.x, world.y);
-        int row = cell[0];
-        int col = cell[1];
-
-        if (row < 0 || col < 0 || !GridConfig.isInsideGrid(row, col)) return;
-
+        // Check lock/cooldown/sun
         int currentSun = hudController.getSunPoints();
-        if (!card.canUse(currentSun)) return;
+        if (!card.canUse(currentSun))
+            return;
 
-        boolean spawned = spawnPlantFromCardAtGrid(card, row, col);
-        if (!spawned) return;
+        int cost = card.getDef().cost();
 
-        if (!hudController.spendSun(card.type.cost)) return;
+        // Trừ sun trước cho chắc (nếu fail thì thôi)
+        if (!hudController.spendSun(cost))
+            return;
 
-        card.triggerUse();
-    }
+        // Đặt plant theo logic chuẩn của PlantGridController (camera.unproject +
+        // world->cell + check occupied)
+        Plant placed = plantGridController.placePlantFromDrag(screenX, screenY, card.type);
 
-    private PlantType toPlantType(ItemType itemType) {
-        switch (itemType) {
-            case SUNFLOWER: return PlantType.SUNFLOWER;
-            case PEASHOOTER: return PlantType.PEASHOOTER;
-            case WALLNUT: return PlantType.WALLNUT;
-            case CHERRYBOMB: return PlantType.CHERRY_BOMB;
-            case POTATOMINE: return PlantType.POTATO_MINE;
-            case SNOWPEA: return PlantType.SNOW_PEA; 
-            default: return PlantType.PEASHOOTER;
+        if (placed == null) {
+            // thả ngoài grid / ô bị chiếm / enabled=false
+            hudController.addSun(cost); // hoàn tiền
+            return;
         }
-    }
 
-    private boolean spawnPlantFromCardAtGrid(PlantCard card, int row, int col) {
-        if (plantGridController.isCellOccupied(row, col)) return false;
-        PlantType plantType = toPlantType(card.type);
-        Plant plant = PlantFactory.createPlantAtCell(plantType, col, row);
-        if (plant == null) return false;
-        entities.add(plant);
-        plants.add(plant);
-        plantGridController.registerPlantAtCell(plant, row, col);
-        return true;
+        // OK -> vào cooldown
+        card.triggerUse();
     }
 
     // ================== Game State & Loop ==================
 
     private void updateState(float delta) {
-        if (isGameOver()) return;
-        if (!isCountdown()) return;
+        if (isGameOver())
+            return;
+        if (!isCountdown())
+            return;
 
         if (hudController.isCountdownFinished()) {
             gameState.setState(GameState.State.PLAYING);
             hudController.onCountdownFinished();
+
             zombieWaveController.startWave();
             lawnMowerController.createLawnMowers();
             plantGridController.setEnabled(true);
@@ -239,7 +239,8 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     }
 
     private void updateGame(float delta) {
-        if (!isPlaying()) return;
+        if (!isPlaying())
+            return;
         zombieWaveController.update(delta);
         lawnMowerController.update(delta, zombieWaveController.getZombies());
     }
@@ -254,6 +255,12 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     public void show() {
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(hudStage);
+
+        // Nếu bạn muốn PlantGridController bắt input click (hiện touchDown return
+        // false),
+        // có thể add nó cũng không sao:
+        // multiplexer.addProcessor(plantGridController);
+
         multiplexer.addProcessor(sunPickupSystem);
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -270,20 +277,19 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
-        // 1. Vẽ Thế giới (Background...)
+        // 1) Vẽ world (Background...)
         batch.begin();
         worldRenderer.render(batch, isCountdown(), isPlaying());
         batch.end();
 
-        // 2. Vẽ Lưới (Debug)
+        // 2) Debug grid
         drawDebugGrid();
 
-        // 3. Update & Vẽ ECS (Cây, Đạn, Animation)
-        // Đây là phần quan trọng để cây lắc lư và bắn đạn
+        // 3) ECS update + render
         if (isPlaying()) {
             sunSystem.update(delta);
             wallnutStateSystem.update(entities);
-            
+
             animationSystem.update(entities, delta);
             attackSystem.update(plants, delta);
             movementSystem.update(entities, delta);
@@ -294,7 +300,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
             renderSystem.update(entities);
         }
 
-        // 4. Vẽ HUD
+        // 4) HUD
         hudStage.act(delta);
         hudStage.draw();
     }
@@ -331,11 +337,20 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         pvz.com.entities.Zombies.ZombieSounds.disposeAll();
     }
 
-    @Override public void pause() { }
-    @Override public void resume() { }
-    @Override public void hide() { }
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
 
     // ================== IGameSpawner ==================
+
     @Override
     public void spawnSun(float x, float y, int amount) {
         Sun sun = new Sun(x, y, amount);
@@ -352,8 +367,9 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
             entities.add(frozenPea);
         }
     }
-    
-    // ================== ISunReceiver & Helpers ==================
+
+    // ================== ISunReceiver ==================
+
     @Override
     public void addSun(int amount) {
         hudController.addSun(amount);

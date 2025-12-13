@@ -11,11 +11,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 
+import pvz.com.entities.plants.PlantType;
 import pvz.com.screens.GameScreen;
 
 public class PlantCard extends Image {
 
-    public final ItemType type;
+    public final PlantType type;
+    private final PlantDef def;
 
     public static final float WIDTH = 95f;
     public static final float HEIGHT = 120f;
@@ -31,11 +33,11 @@ public class PlantCard extends Image {
     // Ghost image when dragging
     private Image dragGhost;
 
-    public PlantCard(ItemType type) {
-        super(new TextureRegionDrawable(
-                new TextureRegion(new Texture(Gdx.files.internal(type.iconPath)))));
+    public PlantCard(PlantType type) {
+        super(makeDrawable(type));
 
         this.type = type;
+        this.def = PlantCatalog.def(type);
 
         setSize(WIDTH, HEIGHT);
 
@@ -43,6 +45,15 @@ public class PlantCard extends Image {
         addDragSupport();
 
         updateStateUI();
+    }
+
+    private static TextureRegionDrawable makeDrawable(PlantType type) {
+        PlantDef def = PlantCatalog.def(type);
+        return new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal(def.iconPath()))));
+    }
+
+    public PlantDef getDef() {
+        return def;
     }
 
     /**
@@ -70,11 +81,10 @@ public class PlantCard extends Image {
                 if (screen == null)
                     return;
 
-                // [FIX] Get sun directly from GameScreen (GameWorld was removed)
                 int currentSun = screen.getSunPoints();
 
                 // If locked, cooldown active, or not enough sun -> cancel drag
-                if (lockedByGame || cooldownRemaining > 0f || currentSun < type.cost) {
+                if (lockedByGame || cooldownRemaining > 0f || currentSun < def.cost()) {
                     return;
                 }
 
@@ -91,9 +101,8 @@ public class PlantCard extends Image {
             @Override
             public void drag(InputEvent event, float x, float y, int pointer) {
                 super.drag(event, x, y, pointer);
-                if (dragGhost != null) {
+                if (dragGhost != null)
                     updateGhostPosition(pointer);
-                }
             }
 
             @Override
@@ -122,9 +131,7 @@ public class PlantCard extends Image {
                 float screenX = Gdx.input.getX(pointer);
                 float screenY = Gdx.input.getY(pointer);
 
-                // screen -> coordinates in hudStage (where card lives)
-                Vector2 stageCoords = getStage().screenToStageCoordinates(
-                        new Vector2(screenX, screenY));
+                Vector2 stageCoords = getStage().screenToStageCoordinates(new Vector2(screenX, screenY));
 
                 dragGhost.setPosition(
                         stageCoords.x - dragGhost.getWidth() / 2f,
@@ -141,11 +148,11 @@ public class PlantCard extends Image {
     }
 
     public boolean canUse(int sun) {
-        return !lockedByGame && sun >= type.cost && cooldownRemaining <= 0f;
+        return !lockedByGame && sun >= def.cost() && cooldownRemaining <= 0f;
     }
 
     public void triggerUse() {
-        cooldownRemaining = type.cooldown;
+        cooldownRemaining = def.cooldown();
         updateStateUI();
     }
 
@@ -160,14 +167,12 @@ public class PlantCard extends Image {
     }
 
     private void updateStateUI() {
-        // If game hasn't started -> hide card
         if (lockedByGame) {
             setVisible(false);
             setTouchable(Touchable.disabled);
             return;
         }
 
-        // Game started -> show card, manage visual state
         setVisible(true);
 
         boolean onCooldown = cooldownRemaining > 0f;
