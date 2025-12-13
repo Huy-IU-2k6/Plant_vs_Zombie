@@ -9,6 +9,7 @@ import pvz.com.entities.plants.shooters.SnowPea;
 import pvz.com.entities.plants.defenders.Wallnut;
 import pvz.com.entities.plants.bombs.CherryBomb;
 import pvz.com.entities.plants.bombs.PotatoMine;
+import pvz.com.entities.plants.shooters.Repeater;
 
 import pvz.com.managers.GridConfig;
 
@@ -40,6 +41,8 @@ public class PlantFactory {
     private static final float CHERRY_BOMB_OFFSET_X = 15f;
     private static final float CHERRY_BOMB_OFFSET_Y = 55f;
 
+    private static final float REPEATER_SCALE_X = 0.7f;
+    private static final float REPEATER_SCALE_Y = 0.8f;
     // =========================================================
     // API CHÍNH: TẠO PLANT THEO Ô GRID (col, row)
     // =========================================================
@@ -62,6 +65,8 @@ public class PlantFactory {
                 return createPotatoMineAtCell(col, row);
             case SNOWPEA: // [FIX] Thêm case SnowPea
                 return createSnowPeaAtCell(col, row);
+            case REPEATER:
+                return createRepeaterAtCell(col, row);
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }
@@ -130,6 +135,14 @@ public class PlantFactory {
         return new SnowPea(x, y, col, row);
     }
 
+    public static Plant createRepeaterAtCell(int col, int row) {
+        float w = GridConfig.CELL_WIDTH * REPEATER_SCALE_X;
+        float h = GridConfig.CELL_HEIGHT * REPEATER_SCALE_Y;
+        float x = GridConfig.getActorXForCell(col, w);
+        float y = GridConfig.getActorYForCell(row, h);
+        return new Repeater(x, y, col, row);
+    }
+
     // =========================================================
     // MASTER FACTORY DÙNG ENUM + TOẠ ĐỘ WORLD (NẾU CẦN)
     // =========================================================
@@ -152,6 +165,8 @@ public class PlantFactory {
                 return new PotatoMine(x, y, col, row);
             case SNOWPEA: // [FIX] Thêm case SnowPea vào đây luôn
                 return new SnowPea(x, y, col, row);
+            case REPEATER:
+                return new Repeater(x, y, col, row);
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }
