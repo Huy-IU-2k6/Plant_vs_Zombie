@@ -32,51 +32,46 @@ public class PlantAttackSystem {
             // LOGIC BẮN (BURST FIRE)
             // =========================================================
             
-            // TRƯỜNG HỢP 1: Đang trong trạng thái hồi chiêu (Chưa bắt đầu loạt mới)
+            // TRƯỜNG HỢP 1: Đang trong trạng thái hồi chiêu
             if (attack.shotsFiredInBurst == 0) {
-                // Kiểm tra xem đã hồi chiêu xong chưa
                 if (attack.timer >= attack.attackSpeed) {
-                    // Kiểm tra xem có Zombie để bắn không
                     if (shouldShoot(pos, attack.range)) {
                         shoot(plant, attack, pos);
-                        attack.shotsFiredInBurst++; // Đã bắn viên 1
-                        attack.timer = 0f;          // Reset timer để đếm burstDelay
+                        attack.shotsFiredInBurst++; 
+                        attack.timer = 0f;          
                     }
                 }
             } 
-            // TRƯỜNG HỢP 2: Đang bắn dở loạt (Repeater đang bắn viên thứ 2)
+            // TRƯỜNG HỢP 2: Đang bắn dở loạt (Repeater)
             else if (attack.shotsFiredInBurst < attack.burstCount) {
-                // Kiểm tra delay ngắn giữa các viên đạn (ví dụ 0.15s)
                 if (attack.timer >= attack.burstDelay) {
-                     // Kiểm tra lại xem Zombie còn đó không (nếu chết hết thì thôi không bắn phí đạn)
-                     if (shouldShoot(pos, attack.range)) {
+                      if (shouldShoot(pos, attack.range)) {
                         shoot(plant, attack, pos);
                         attack.shotsFiredInBurst++;
                         attack.timer = 0f;
-                     } else {
-                         // Không còn mục tiêu -> Hủy loạt bắn, reset về chờ hồi chiêu
-                         attack.shotsFiredInBurst = 0;
-                         attack.timer = 0f; 
-                     }
+                      } else {
+                          attack.shotsFiredInBurst = 0;
+                          attack.timer = 0f; 
+                      }
                 }
             } 
             // TRƯỜNG HỢP 3: Đã bắn xong loạt
             else {
-                // Reset về 0 để bắt đầu tính thời gian hồi chiêu lớn (attackSpeed)
                 attack.shotsFiredInBurst = 0;
-                // Không reset timer ở đây, để nó tiếp tục đếm cho đến attackSpeed
             }
         }
     }
 
     private void shoot(Plant plant, PlantAttackComponent attack, PositionComponent pos) {
-        // [Logic bắn giữ nguyên]
-        // Kích hoạt animation ATTACK cho cây (nếu có)
-        StateComponent state = plant.getComponent(StateComponent.class);
+        // [FIX LỖI ĐỨNG IM]
+        // Mình đã comment dòng này lại. 
+        // Cây sẽ giữ nguyên trạng thái IDLE (đang lắc lư) nên sẽ không bị khựng lại.
+        
+        /* StateComponent state = plant.getComponent(StateComponent.class);
         if (state != null) {
             state.set(EntityState.ATTACKING);
-            // Reset state về IDLE sau 1 khoảng thời gian (xử lý ở AnimationSystem)
         }
+        */
 
         // Spawn đạn
         float spawnX = pos.x + 40f; 
@@ -84,19 +79,25 @@ public class PlantAttackSystem {
         spawner.spawnProjectile(spawnX, spawnY, attack.damage, attack.damageType, attack.projectileClass);
     }
 
+    // [FIX LỖI BẮN SỚM] Thêm logic kiểm tra Zombie vào sân
     private boolean shouldShoot(PositionComponent plantPos, float range) {
         if (zombieController == null) return false;
         
         float screenRightEdge = DesignConfig.BASE_SCREEN_W; 
         
+        // Khoảng cách an toàn: Zombie phải đi qua mép phải 60px mới bị bắn
+        float safeMargin = 60f; 
+
         for (Zombies z : zombieController.getZombies()) {
             if (z.isDead() || z.getHealth() <= 0) continue; 
             
-            // Kiểm tra làn đường (Row)
-            // (Giả sử bạn check làn đường bằng Y hoặc GridPosition, ở đây demo check Y)
+            // 1. [QUAN TRỌNG] Nếu Zombie chưa đi vào sân (vẫn ở ngoài mép phải) -> Bỏ qua
+            if (z.getX() > (screenRightEdge - safeMargin)) continue;
+            
+            // 2. Kiểm tra làn đường (Row)
             if (Math.abs(z.getY() - plantPos.y) > 50f) continue; 
 
-            // Kiểm tra phía trước mặt
+            // 3. Kiểm tra phía trước mặt & Tầm bắn
             if (z.getX() > plantPos.x && (z.getX() - plantPos.x) <= range) {
                 return true; 
             }
