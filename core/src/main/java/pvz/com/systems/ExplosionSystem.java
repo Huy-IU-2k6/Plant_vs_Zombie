@@ -10,14 +10,13 @@ import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.Zombies.Zombies;
 import pvz.com.entities.components.*;
-import pvz.com.logic.PlantGridController; // [1] Import PlantGridController
+import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
 
 public class ExplosionSystem {
     private final ZombieWaveController zombieController;
-    private final PlantGridController plantGridController; // [2] Khai báo biến
+    private final PlantGridController plantGridController;
 
-    // [3] SỬA CONSTRUCTOR: Nhận cả 2 tham số để khớp với GameScreen
     public ExplosionSystem(ZombieWaveController zombieController, PlantGridController plantGridController) {
         this.zombieController = zombieController;
         this.plantGridController = plantGridController;
@@ -31,7 +30,10 @@ public class ExplosionSystem {
             StateComponent state = entity.getComponent(StateComponent.class);
             PositionComponent pos = entity.getComponent(PositionComponent.class);
             AnimationComponent anim = entity.getComponent(AnimationComponent.class);
-            GridPositionComponent gridPos = entity.getComponent(GridPositionComponent.class); // Lấy vị trí lưới
+            GridPositionComponent gridPos = entity.getComponent(GridPositionComponent.class);
+            
+            // [MỚI] Lấy thêm SizeComponent để thay đổi kích thước hiển thị
+            SizeComponent size = entity.getComponent(SizeComponent.class);
 
             if (explosive == null || state == null || pos == null) continue;
 
@@ -42,15 +44,33 @@ public class ExplosionSystem {
                 if (explosive.timer >= explosive.fuseTime) {
                     explosive.hasExploded = true;
                     
-                    // Chuyển sang animation BÙM
+                    // 1. Chuyển trạng thái sang BÙM
                     state.set(EntityState.EXPLODING); 
                     explosive.timer = 0f; 
 
-                    // Gây sát thương diện rộng
-                    dealAreaDamage(pos, explosive);
+                    // =========================================================
+                    // 2. [QUAN TRỌNG] LOGIC PHÓNG TO VISUAL
+                    // =========================================================
+                    if (size != null) {
+                        float oldSize = size.width; // Kích thước cũ (90)
+                        float newSize = 250f;       // Kích thước nổ mong muốn (To hơn)
+                        
+                        // Tính độ lệch để căn giữa: (250 - 90) / 2 = 80
+                        float offset = (newSize - oldSize) / 2f; 
+
+                        // Dịch chuyển vị trí lùi lại (lên trên, sang trái)
+                        pos.x -= offset;
+                        pos.y -= offset;
+
+                        // Cập nhật kích thước mới để RenderSystem vẽ hình to ra
+                        size.width = newSize;
+                        size.height = newSize;
+                    }
+
+                    // 3. Gây sát thương (Tính toán lại tâm dựa trên kích thước mới)
+                    dealAreaDamage(pos, size, explosive);
                     
-                    // [4] QUAN TRỌNG: Xóa cây khỏi lưới ngay khi nổ
-                    // Để người chơi có thể trồng cây mới vào chỗ đó ngay lập tức
+                    // 4. Xóa cây khỏi lưới trồng (để trồng cây mới đc ngay)
                     if (gridPos != null) {
                         plantGridController.unregisterPlantAtCell(gridPos.row, gridPos.col);
                     }
@@ -60,13 +80,11 @@ public class ExplosionSystem {
             else {
                 explosive.timer += delta;
                 
-                // Lấy thời gian của animation nổ
                 float explodeAnimDuration = 0.8f; 
                 if (anim != null && anim.getAnimation(EntityState.EXPLODING) != null) {
                     explodeAnimDuration = anim.getAnimation(EntityState.EXPLODING).getAnimationDuration();
                 }
 
-                // Nếu animation nổ đã chạy xong -> Xóa Entity khỏi game
                 if (explosive.timer >= explodeAnimDuration) {
                     toRemove.add(entity); 
                 }
@@ -76,10 +94,13 @@ public class ExplosionSystem {
         entities.removeAll(toRemove);
     }
 
-    private void dealAreaDamage(PositionComponent bombPos, ExplosiveComponent explosive) {
-        // Tâm vụ nổ (cộng thêm 45 vì kích thước bom là 90x90)
-        float centerX = bombPos.x + 45f; 
-        float centerY = bombPos.y + 45f;
+    // [CẬP NHẬT] Hàm tính sát thương nhận thêm SizeComponent để tính tâm chuẩn
+    private void dealAreaDamage(PositionComponent bombPos, SizeComponent size, ExplosiveComponent explosive) {
+        float currentSize = (size != null) ? size.width : 90f; // Nếu ko có size thì mặc định 90
+        
+        // Tính tâm dựa trên kích thước hiện tại (đã phóng to)
+        float centerX = bombPos.x + (currentSize / 2f); 
+        float centerY = bombPos.y + (currentSize / 2f);
 
         for (Zombies z : zombieController.getZombies()) {
             if (z.isDead()) continue;
@@ -89,11 +110,8 @@ public class ExplosionSystem {
 
             float dist = Vector2.dst(centerX, centerY, zCenterX, zCenterY);
 
-            // Nổ trong phạm vi
             if (dist <= explosive.range) {
-                // Giết ngay lập tức (kèm hiệu ứng cháy nếu có)
                 z.killByCherryBomb(); 
-                // Bắt buộc zombie nhả mồm ra
                 z.setEating(false);   
             }
         }
