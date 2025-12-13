@@ -1,82 +1,107 @@
 package pvz.com.systems;
 
-import pvz.com.entities.plants.Plant;
-import pvz.com.entities.components.PlantAttackComponent;
-import pvz.com.entities.components.PositionComponent;
-import pvz.com.entities.components.HealthComponent;
-import pvz.com.entities.Zombies.Zombies; 
-import pvz.com.logic.ZombieWaveController; 
-import pvz.com.managers.DesignConfig; // [1] Import để lấy chiều rộng màn hình
-
 import java.util.List;
 
+import pvz.com.entities.Entity;
+import pvz.com.entities.plants.Plant;
+import pvz.com.entities.components.*;
+import pvz.com.logic.ZombieWaveController;
+import pvz.com.entities.Zombies.Zombies;
+import pvz.com.managers.DesignConfig;
+
 public class PlantAttackSystem {
-    private IGameSpawner spawner;
-    private ZombieWaveController zombieController; 
+    private final IGameSpawner spawner;
+    private final ZombieWaveController zombieController;
 
     public PlantAttackSystem(IGameSpawner spawner, ZombieWaveController zombieController) {
         this.spawner = spawner;
         this.zombieController = zombieController;
     }
 
-    public void update(List<Plant> plants, float deltaTime) {
+    public void update(List<Plant> plants, float delta) {
         for (Plant plant : plants) {
-            HealthComponent health = plant.getComponent(HealthComponent.class);
-            if (health != null && health.currentHealth <= 0) {
-                continue;
-            }
-
-            PlantAttackComponent attacker = plant.getComponent(PlantAttackComponent.class);
+            PlantAttackComponent attack = plant.getComponent(PlantAttackComponent.class);
             PositionComponent pos = plant.getComponent(PositionComponent.class);
 
-            if (attacker != null && pos != null) {
-                attacker.cooldown.timer += deltaTime;
+            if (attack == null || pos == null) continue;
 
-                if (attacker.cooldown.timer >= attacker.cooldown.cooldownTime) {
-                    
-                    if (shouldShoot(pos, attacker.range)) {
-                        attacker.cooldown.timer = 0; 
+            // Tăng bộ đếm giờ
+            attack.timer += delta;
 
-                        spawner.spawnProjectile(
-                                pos.x + 20, 
-                                pos.y + 50, 
-                                attacker.damage,
-                                attacker.damageType,
-                                attacker.projectileType);
-                    } else {
-                        attacker.cooldown.timer = attacker.cooldown.cooldownTime;
+            // =========================================================
+            // LOGIC BẮN (BURST FIRE)
+            // =========================================================
+            
+            // TRƯỜNG HỢP 1: Đang trong trạng thái hồi chiêu
+            if (attack.shotsFiredInBurst == 0) {
+                if (attack.timer >= attack.attackSpeed) {
+                    if (shouldShoot(pos, attack.range)) {
+                        shoot(plant, attack, pos);
+                        attack.shotsFiredInBurst++; 
+                        attack.timer = 0f;          
                     }
                 }
+            } 
+            // TRƯỜNG HỢP 2: Đang bắn dở loạt (Repeater)
+            else if (attack.shotsFiredInBurst < attack.burstCount) {
+                if (attack.timer >= attack.burstDelay) {
+                      if (shouldShoot(pos, attack.range)) {
+                        shoot(plant, attack, pos);
+                        attack.shotsFiredInBurst++;
+                        attack.timer = 0f;
+                      } else {
+                          attack.shotsFiredInBurst = 0;
+                          attack.timer = 0f; 
+                      }
+                }
+            } 
+            // TRƯỜNG HỢP 3: Đã bắn xong loạt
+            else {
+                attack.shotsFiredInBurst = 0;
             }
         }
     }
 
+    private void shoot(Plant plant, PlantAttackComponent attack, PositionComponent pos) {
+        // [FIX LỖI ĐỨNG IM]
+        // Mình đã comment dòng này lại. 
+        // Cây sẽ giữ nguyên trạng thái IDLE (đang lắc lư) nên sẽ không bị khựng lại.
+        
+        /* StateComponent state = plant.getComponent(StateComponent.class);
+        if (state != null) {
+            state.set(EntityState.ATTACKING);
+        }
+        */
+
+        // Spawn đạn
+        float spawnX = pos.x + 40f; 
+        float spawnY = pos.y + 35f; 
+        spawner.spawnProjectile(spawnX, spawnY, attack.damage, attack.damageType, attack.projectileClass);
+    }
+
+    // [FIX LỖI BẮN SỚM] Thêm logic kiểm tra Zombie vào sân
     private boolean shouldShoot(PositionComponent plantPos, float range) {
         if (zombieController == null) return false;
-
-        // [2] Lấy chiều rộng màn hình (800f)
+        
         float screenRightEdge = DesignConfig.BASE_SCREEN_W; 
+        
+        // Khoảng cách an toàn: Zombie phải đi qua mép phải 60px mới bị bắn
+        float safeMargin = 150f; 
 
         for (Zombies z : zombieController.getZombies()) {
-            if (z.isDead() || z.getHealth() <= 0) continue;
+            if (z.isDead() || z.getHealth() <= 0) continue; 
+            
+            // 1. [QUAN TRỌNG] Nếu Zombie chưa đi vào sân (vẫn ở ngoài mép phải) -> Bỏ qua
+            if (z.getX() > (screenRightEdge - safeMargin)) continue;
+            
+            // 2. Kiểm tra làn đường (Row)
+            if (Math.abs(z.getY() - plantPos.y) > 50f) continue; 
 
-            // [FIX QUAN TRỌNG] 
-            // Nếu Zombie chưa bước vào màn hình (X > 800), thì KỆ NÓ (không bắn)
-            if (z.getX() > (screenRightEdge-100f)) {
-                continue;
-            }
-
-            // 1. Check Lane
-            if (Math.abs(z.getY() - plantPos.y) > 50f) {
-                continue; 
-            }
-
-            // 2. Check Range
+            // 3. Kiểm tra phía trước mặt & Tầm bắn
             if (z.getX() > plantPos.x && (z.getX() - plantPos.x) <= range) {
                 return true; 
             }
         }
-        
-        return false; 
+        return false;
     }
 }

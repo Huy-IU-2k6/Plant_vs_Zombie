@@ -9,7 +9,7 @@ public class FrozenPeaProjectile extends Entity {
         super();
         this.addComponent(new PositionComponent(x, y));
         this.addComponent(new MovementComponent(200f, 0f)); // Tốc độ bay
-        this.addComponent(new SpriteComponent("images/Plants/snowpea_bullet.png")); // Ảnh đạn xanh
+        this.addComponent(new SpriteComponent("images/Plants/SnowPea.png")); // Ảnh đạn xanh
         this.addComponent(new BoundsComponent(x, y, 20, 20));
         this.addComponent(new SizeComponent(20, 20));
         this.addComponent(new DamageComponent(damage));
