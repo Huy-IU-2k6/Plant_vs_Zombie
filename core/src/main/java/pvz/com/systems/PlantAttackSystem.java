@@ -86,7 +86,7 @@ public class PlantAttackSystem {
         float screenRightEdge = DesignConfig.BASE_SCREEN_W; 
         
         // Khoảng cách an toàn: Zombie phải đi qua mép phải 60px mới bị bắn
-        float safeMargin = 60f; 
+        float safeMargin = 150f; 
 
         for (Zombies z : zombieController.getZombies()) {
             if (z.isDead() || z.getHealth() <= 0) continue; 
