@@ -41,8 +41,8 @@ public class PlantFactory {
     private static final float CHERRY_BOMB_OFFSET_X = 15f;
     private static final float CHERRY_BOMB_OFFSET_Y = 55f;
 
-    private static final float REPEATER_SCALE_X = 0.7f;
-    private static final float REPEATER_SCALE_Y = 0.8f;
+    private static final float REPEATER_SCALE_X = 0.55f;
+    private static final float REPEATER_SCALE_Y = 0.55f;
     // =========================================================
     // API CHÍNH: TẠO PLANT THEO Ô GRID (col, row)
     // =========================================================
