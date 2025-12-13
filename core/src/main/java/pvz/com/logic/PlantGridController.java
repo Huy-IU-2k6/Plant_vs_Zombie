@@ -2,24 +2,26 @@ package pvz.com.logic;
 
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector3;
 
 import java.util.List;
 
 import pvz.com.entities.Entity;
+import pvz.com.entities.components.GridCellComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.managers.GridConfig;
-import pvz.com.entities.components.GridCellComponent;
-import com.badlogic.gdx.math.Vector3;
-import pvz.com.entities.plants.PlantType;
-import pvz.com.factories.PlantFactory;
 
 public class PlantGridController extends InputAdapter {
 
     // Grid plants: [row][col]
     private final Plant[][] plantGrid;
 
+    // Giữ để không phá constructor cũ (không còn dùng để spawn nữa)
+    @SuppressWarnings("unused")
     private final List<Entity> entities;
+    @SuppressWarnings("unused")
     private final List<Plant> plants;
+
     private final OrthographicCamera camera;
 
     private boolean enabled = false;
@@ -41,9 +43,50 @@ public class PlantGridController extends InputAdapter {
         return plantGrid;
     }
 
+    // =========================================================
+    // CONVERT: screen/world -> cell
+    // =========================================================
+
+    /** screen -> world (theo camera game) */
+    public Vector3 screenToWorld(float screenX, float screenY) {
+        Vector3 world = new Vector3(screenX, screenY, 0f);
+        camera.unproject(world);
+        return world;
+    }
+
+    /**
+     * Snap world position về cell gần nhất.
+     * return int[]{row, col}
+     */
+    public int[] worldToNearestCell(float worldX, float worldY) {
+        // GridConfig đã có hàm snap nearest
+        int[] cell = GridConfig.worldToNearestCell(worldX, worldY);
+        // cell[0]=row, cell[1]=col theo code bạn đang dùng
+        return cell;
+    }
+
+    /**
+     * Snap screen position về cell gần nhất (tiện cho input từ camera).
+     * return int[]{row, col}
+     */
+    public int[] screenToNearestCell(float screenX, float screenY) {
+        Vector3 world = screenToWorld(screenX, screenY);
+        return worldToNearestCell(world.x, world.y);
+    }
+
+    // =========================================================
+    // GRID STATE: occupied/register/unregister
+    // =========================================================
+
+    public boolean isCellOccupied(int row, int col) {
+        if (!GridConfig.isInsideGrid(row, col))
+            return false;
+        return plantGrid[row][col] != null;
+    }
+
     /**
      * Đánh dấu 1 ô grid đã có plant.
-     * Gọi từ chỗ khác (ví dụ GameScreen) sau khi spawn plant thành công.
+     * Gọi từ chỗ đặt plant thành công (PlacementController/GameWorld).
      */
     public void registerPlantAtCell(Plant plant, int row, int col) {
         if (plant == null)
@@ -63,71 +106,24 @@ public class PlantGridController extends InputAdapter {
         }
     }
 
-    public Plant placePlantFromDrag(float screenX, float screenY, PlantType type) {
-        if (!enabled)
-            return null;
-
-        // 1. convert từ toạ độ screen sang world (theo camera game)
-        Vector3 world = new Vector3(screenX, screenY, 0);
-        camera.unproject(world);
-
-        float worldX = world.x;
-        float worldY = world.y;
-
-        // 2. chuyển world -> cell
-        int col = GridConfig.worldToCol(worldX);
-        int row = GridConfig.worldToRow(worldY);
-
-        if (!GridConfig.isInsideGrid(row, col)) {
-            // thả ngoài bãi cỏ
-            return null;
-        }
-
-        // 3. check ô đã có plant chưa
-        if (isCellOccupied(row, col)) {
-            return null;
-        }
-
-        // 4. tạo plant đúng cell (tự canh giữa ô)
-        Plant plant = PlantFactory.createPlantAtCell(type, col, row);
-
-        // 5. đưa vào list entity / plants
-        entities.add(plant);
-        plants.add(plant);
-
-        // 6. đăng ký vào grid
-        registerPlantAtCell(plant, row, col);
-
-        return plant;
-    }
-
-    /**
-     * Nếu cần sạch ô khi plant chết / bị ăn…
-     */
+    /** Sạch ô khi plant chết / bị ăn… */
     public void unregisterPlantAtCell(int row, int col) {
         if (!GridConfig.isInsideGrid(row, col))
             return;
         plantGrid[row][col] = null;
     }
 
-    public boolean isCellOccupied(int row, int col) {
-        // Nếu ngoài grid thì coi như không bị chiếm
-        if (!GridConfig.isInsideGrid(row, col)) {
-            return false;
-        }
-        return plantGrid[row][col] != null;
-    }
+    // =========================================================
+    // Input hook (giữ nguyên hành vi cũ)
+    // =========================================================
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        // Trước đây xử lý click trái/phải để trồng cây ở đây.
-        // Bây giờ trồng cây đã chuyển qua drag & drop card,
-        // nên không còn xử lý gì trong touchDown nữa.
         if (!enabled)
             return false;
 
-        // return false để event tiếp tục đi tới các InputProcessor khác
-        // (vd: SunPickupSystem nhặt sun).
+        // Hiện tại không xử lý click-to-place ở đây nữa.
+        // Return false để event tiếp tục đi tới các InputProcessor khác.
         return false;
     }
 }

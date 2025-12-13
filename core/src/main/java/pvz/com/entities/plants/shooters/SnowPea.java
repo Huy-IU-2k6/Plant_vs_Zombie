@@ -17,7 +17,7 @@ public class SnowPea extends Plant {
         this.addComponent(new StateComponent(EntityState.IDLE));
         this.addComponent(new HealthComponent(100));
         this.addComponent(new TeamComponent(Team.PLANT));
-        this.addComponent(new GridPositionComponent(col, row));
+        this.addComponent(new GridCellComponent(col, row));
 
         // Cấu hình bắn: Damage 20, Loại ICE, Đạn FrozenPeaProjectile
         this.addComponent(new PlantAttackComponent(

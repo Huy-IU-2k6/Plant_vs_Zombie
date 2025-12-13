@@ -12,11 +12,11 @@ import pvz.com.managers.GridConfig;
 public class SunFlower extends Plant {
 
     // Scale kích thước
-    private static final float SCALE_X = 0.7f; 
-    private static final float SCALE_Y = 0.8f; 
+    private static final float SCALE_X = 0.7f;
+    private static final float SCALE_Y = 0.8f;
 
     // Tốc độ animation (càng nhỏ càng nhanh)
-    private static final float FRAME_DURATION = 0.1f; 
+    private static final float FRAME_DURATION = 0.1f;
 
     public SunFlower(float x, float y, int col, int row) {
         super(
@@ -29,8 +29,8 @@ public class SunFlower extends Plant {
         // 1. TẠO ANIMATION (Thay thế dòng load GIF cũ)
         // =============================================================
         Array<TextureRegion> frames = new Array<>();
-        
-        // Giả sử SunFlower có 18 frame (từ 0 đến 17). 
+
+        // Giả sử SunFlower có 18 frame (từ 0 đến 17).
         // Bạn hãy sửa số 17 thành số frame thực tế bạn có.
         for (int i = 0; i <= 17; i++) {
             // Đường dẫn: images/Plants/SunFlower/SunFlower_0.png
@@ -59,7 +59,7 @@ public class SunFlower extends Plant {
         // D. Các chỉ số khác (Máu, Phe, Vị trí...)
         this.addComponent(new HealthComponent(100));
         this.addComponent(new TeamComponent(Team.PLANT));
-        this.addComponent(new GridPositionComponent(col, row));
+        this.addComponent(new GridCellComponent(col, row));
 
         // E. Sinh Sun (7 giây ra 1 lần, mỗi lần 25 sun)
         this.addComponent(new SunProducerComponent(7.0f, 25));
