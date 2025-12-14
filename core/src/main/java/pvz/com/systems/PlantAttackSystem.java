@@ -20,7 +20,7 @@ public class PlantAttackSystem {
     private static final float PROJECTILE_SPAWN_OFFSET_Y = 50f;
 
     // Zombie phải “vào màn” rồi mới cho plant bắn (đỡ bắn từ ngoài màn hình)
-    private static final float ZOMBIE_ENTER_SCREEN_MARGIN = 100f;
+    private static final float ZOMBIE_ENTER_SCREEN_MARGIN = 20f;
 
     // Tăng/giảm tốc độ bắn tổng: >1.0 bắn chậm hơn, <1.0 bắn nhanh hơn
     private static final float COOLDOWN_MULTIPLIER = 4.0f;

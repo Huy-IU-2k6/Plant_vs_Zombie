@@ -20,19 +20,27 @@ import pvz.com.managers.GridConfig;
 
 public class PotatoMine extends Plant {
 
+    // ===== SIZE / ANIM =====
     private static final float SCALE_X = 0.65f;
     private static final float SCALE_Y = 0.70f;
-
     private static final float FRAME_DURATION = 0.12f;
 
-    private static final int TOTAL_HEALTH = 300;
+    // ===== STATS =====
+    private static final int MAX_HEALTH = 300;
 
-    // PvZ chuẩn: 14s. Muốn test nhanh thì đổi thành 3f.
+    // PvZ chuẩn: 14s (test nhanh thì đổi nhỏ hơn)
     private static final float ARMING_TIME = 14f;
 
     private static final int DAMAGE = 1800;
     private static final float RADIUS = 50f;
     private static final float FUSE_TIME = 0f; // dẫm là nổ ngay
+
+    // ===== ASSET PATHS (đặt tên rõ ràng hơn) =====
+    private static final String PATH_UNARMED_PREFIX = "images/Plants/PotatoMine/PotatoMineInit/PotatoMineInit_"; // 1
+
+    private static final String PATH_ARMED_PREFIX = "images/Plants/PotatoMine/PotatoMine_"; // 8 frames: _0..7.png
+
+    private static final String PATH_EXPLODE_PREFIX = "images/Plants/PotatoMine/PotatoMineExplode/PotatoMineExplode_"; // 1
 
     public PotatoMine(float x, float y, int col, int row) {
         super(
@@ -42,48 +50,48 @@ public class PotatoMine extends Plant {
                 GridConfig.CELL_HEIGHT * SCALE_Y);
 
         // =========================================================
-        // 1) LOAD ANIMATIONS CHO CÁC TRẠNG THÁI CHUẨN
+        // 1) LOAD FRAMES (giống style SunFlower: for-loop + Array)
         // =========================================================
-        // Lưu ý: đường dẫn/prefix dưới đây là mẫu theo kiểu frame PNG:
-        // prefix + i + ".png"
-        // Bạn chỉnh lại đúng folder asset của bạn.
 
-        Animation<TextureRegion> animUnarmed = loadAnimation(
-                "images/Plants/PotatoMine/Unarmed/PotatoMine_unarmed_", 10, Animation.PlayMode.LOOP);
+        // Unarmed: 1 frame (0..0)
+        Animation<TextureRegion> unarmedAnim = buildAnimation(
+                PATH_UNARMED_PREFIX, 0, 0, Animation.PlayMode.LOOP);
 
-        Animation<TextureRegion> animArming = loadAnimation(
-                "images/Plants/PotatoMine/Arming/PotatoMine_arming_", 10, Animation.PlayMode.LOOP);
+        // Armed loop: 8 frames (0..7)
+        Animation<TextureRegion> armedLoopAnim = buildAnimation(
+                PATH_ARMED_PREFIX, 0, 7, Animation.PlayMode.LOOP);
 
-        Animation<TextureRegion> animArmed = loadAnimation(
-                "images/Plants/PotatoMine/Armed/PotatoMine_armed_", 10, Animation.PlayMode.LOOP);
-
-        Animation<TextureRegion> animExplode = loadAnimation(
-                "images/Plants/PotatoMine/Explode/PotatoMine_explode_", 10, Animation.PlayMode.NORMAL);
+        // Explode: 1 frame (0..0)
+        Animation<TextureRegion> explodeAnim = buildAnimation(
+                PATH_EXPLODE_PREFIX, 0, 0, Animation.PlayMode.NORMAL);
 
         // =========================================================
         // 2) COMPONENTS
         // =========================================================
 
-        // A) SpriteComponent: bắt đầu ở UNARMED
-        this.addComponent(new SpriteComponent(animUnarmed.getKeyFrame(0)));
+        // Sprite start: UNARMED frame đầu
+        this.addComponent(new SpriteComponent(unarmedAnim.getKeyFrame(0)));
 
-        // B) AnimationComponent: map state -> animation
+        // Animation map: bỏ animArming dư (trùng armed)
         AnimationComponent animComp = new AnimationComponent();
-        animComp.addAnimation(EntityState.POTATOMINE_UNARMED, animUnarmed);
-        animComp.addAnimation(EntityState.POTATOMINE_ARMING, animArming);
-        animComp.addAnimation(EntityState.POTATOMINE_ARMED, animArmed);
-        animComp.addAnimation(EntityState.POTATOMINE_EXPLODING, animExplode);
+        animComp.addAnimation(EntityState.POTATOMINE_UNARMED, unarmedAnim);
+
+        // Nếu system vẫn dùng state POTATOMINE_ARMING, map chung vào armedLoopAnim luôn
+        animComp.addAnimation(EntityState.POTATOMINE_ARMING, armedLoopAnim);
+        animComp.addAnimation(EntityState.POTATOMINE_ARMED, armedLoopAnim);
+
+        animComp.addAnimation(EntityState.POTATOMINE_EXPLODING, explodeAnim);
         this.addComponent(animComp);
 
-        // C) StateComponent: state ban đầu
+        // State ban đầu
         this.addComponent(new StateComponent(EntityState.POTATOMINE_UNARMED));
 
-        // D) Máu + team + vị trí ô
-        this.addComponent(new HealthComponent(TOTAL_HEALTH));
+        // Stats / team / cell
+        this.addComponent(new HealthComponent(MAX_HEALTH));
         this.addComponent(new TeamComponent(Team.PLANT));
         this.addComponent(new GridCellComponent(col, row));
 
-        // E) Arming + Explosive (giữ đúng logic cũ)
+        // Logic giữ nguyên
         this.addComponent(new ArmingComponent(ARMING_TIME));
         this.addComponent(new ExplosiveComponent(DAMAGE, RADIUS, FUSE_TIME));
     }
@@ -92,15 +100,21 @@ public class PotatoMine extends Plant {
         this(x, y, -1, -1);
     }
 
-    private Animation<TextureRegion> loadAnimation(String prefixPath, int frameCount, Animation.PlayMode playMode) {
+    // =========================================================
+    // Helpers: load frames bằng vòng lặp như SunFlower
+    // =========================================================
+    private Animation<TextureRegion> buildAnimation(
+            String prefix, int startFrame, int endFrameInclusive, Animation.PlayMode playMode) {
+
         Array<TextureRegion> frames = new Array<>();
-        for (int i = 0; i < frameCount; i++) {
-            Texture tex = new Texture(prefixPath + i + ".png");
+
+        for (int i = startFrame; i <= endFrameInclusive; i++) {
+            Texture tex = new Texture(prefix + i + ".png");
             tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
             frames.add(new TextureRegion(tex));
         }
-        Animation<TextureRegion> anim = new Animation<>(FRAME_DURATION, frames);
-        anim.setPlayMode(playMode);
+
+        Animation<TextureRegion> anim = new Animation<>(FRAME_DURATION, frames, playMode);
         return anim;
     }
 }
