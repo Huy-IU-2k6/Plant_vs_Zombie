@@ -1,186 +1,160 @@
 package pvz.com.entities.Zombies;
 
-import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Array;
 
-import pvz.com.managers.GifManager;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.ScaleManager;
 
 public class ConeheadZombie extends Zombies {
 
+    // ===== CONST =====
     private static final int BODY_HEALTH = 100;
-    private static final int CONE_HEALTH = 200;
-    private static final float MOVE_SPEED = 50f;
+    private static final int CONE_HEALTH = 200; // đặc trưng
+    private static final float INITIAL_SPEED = 10f; // giống NormalZombie
 
-    private static final int FRAMES_PER_ROW = 1;
-    private static final float WALK_FRAME_TIME = 0.20f;
+    // Animation Speeds (giống NormalZombie)
+    private static final float WALK_FRAME_TIME = 0.12f;
     private static final float EAT_FRAME_TIME = 0.25f;
-    private static final float DIE_FRAME_TIME = 0.20f;
+    private static final float BODY_DIE_FRAME_TIME = 0.15f;
+    private static final float HEAD_POP_FRAME_TIME = 0.1f;
 
-    // Kích thước zombie theo layout gốc (1920x1080)
-    private static final float BASE_ZOMBIE_H = DesignConfig.ZOMBIE_H;
-
-    // Textures
-    private final Texture walkConeSheet;
-    private final Texture eatConeSheet;
-
-    private final Texture walkNormalSheet;
-    private final Texture eatNormalSheet;
-    private final Texture dieNormalSheet;
-
-    private final Texture burntZombieSheet; // Cherry Bomb death
-
-    // Animations
-    private final Animation<TextureRegion> walkConeAnim;
-    private final Animation<TextureRegion> eatConeAnim;
-
-    private final Animation<TextureRegion> walkNormalAnim;
-    private final Animation<TextureRegion> eatNormalAnim;
-    private final Animation<TextureRegion> dieNormalAnim;
-    private final Animation<TextureRegion> burntAnim; // Cherry Bomb death
-
-    // Lưu kích thước frame gốc để giữ tỉ lệ
-    private final float coneOriginalW;
-    private final float coneOriginalH;
-    private final float normalOriginalW;
-    private final float normalOriginalH;
-
-    // State
-    private float stateTime = 0f;
-    private boolean isDying = false;
-    private boolean isEating = false;
-    private boolean killedByCherryBomb = false;
-
+    // ===== CONE STATE (đặc trưng) =====
     private boolean coneOnHead = true;
     private int coneHealth = CONE_HEALTH;
 
-    // Cache cho việc scale
+    // ===== TEXTURES =====
+    private final Array<Texture> walkTextures;
+    private final Array<Texture> headPopTextures;
+    private final Array<Texture> bodyDieTextures;
+    private final Array<Texture> eatTextures;
+
+    // ===== ANIMATIONS =====
+    private final Animation<TextureRegion> walkAnim;
+    private final Animation<TextureRegion> headPopAnim;
+    private final Animation<TextureRegion> bodyDieAnim;
+    private final Animation<TextureRegion> eatAnim;
+
+    // ===== STATE =====
+    private float stateTime = 0f;
+    private boolean isDying = false;
+    private boolean isEating = false;
+
     private boolean sizeInitialized = false;
-    private boolean lastConeOnHead = true;
-    private float lastWorldHeight = -1f;
+    private float originalW;
+    private float originalH;
 
     public ConeheadZombie() {
         super();
 
+        // 1) WALK
+        walkTextures = new Array<>();
+        for (int i = 0; i <= 62; i++) {
+            walkTextures.add(new Texture("images/Zombies/ConeheadZombie/Zombie/Zombie_" + i + ".png"));
+        }
+        walkAnim = createAnimation(walkTextures, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
+
+        // 2) HEAD POP
+        headPopTextures = new Array<>();
+        for (int i = 0; i <= 11; i++) {
+            headPopTextures.add(new Texture("images/Zombies/ConeheadZombie/ZombieHead/ZombieHead_" + i + ".png"));
+        }
+        headPopAnim = createAnimation(headPopTextures, HEAD_POP_FRAME_TIME, Animation.PlayMode.NORMAL);
+
+        // 3) BODY DIE (LostHead + Die)
+        bodyDieTextures = new Array<>();
+        for (int i = 0; i <= 17; i++) {
+            bodyDieTextures.add(
+                    new Texture("images/Zombies/ConeheadZombie/ZombieLostHead/ZombieLostHead_" + i + ".png"));
+        }
+        for (int i = 0; i <= 9; i++) {
+            bodyDieTextures.add(new Texture("images/Zombies/ConeheadZombie/ZombieDie/ZombieDie_" + i + ".png"));
+        }
+        bodyDieAnim = createAnimation(bodyDieTextures, BODY_DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
+
+        // 4) EAT (Attack)
+        eatTextures = new Array<>();
+        for (int i = 0; i <= 28; i++) {
+            eatTextures.add(new Texture("images/Zombies/ConeheadZombie/ZombieAttack/ZombieAttack_" + i + ".png"));
+        }
+        eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
+
+        // 5) INIT SIZE & STATS
+        TextureRegion firstFrame = walkAnim.getKeyFrame(0f);
+        originalW = firstFrame.getRegionWidth();
+        originalH = firstFrame.getRegionHeight();
+        setSize(originalW, originalH);
+
         this.health = BODY_HEALTH;
-        this.speed = MOVE_SPEED;
+        this.baseSpeed = INITIAL_SPEED;
+        this.speed = this.baseSpeed;
 
-        // Load textures
-        walkConeSheet = new Texture(Gdx.files.internal("images/Zombies/ConeheadZombie.gif"));
-        eatConeSheet = new Texture(Gdx.files.internal("images/Zombies/ConeheadZombie_Eat.gif"));
-
-        walkNormalSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieRun.gif"));
-        eatNormalSheet = new Texture(Gdx.files.internal("images/Zombies/NormalZombieEat.gif"));
-        dieNormalSheet = new Texture(Gdx.files.internal("images/Zombies/ZombieDie.gif"));
-
-        burntZombieSheet = new Texture(Gdx.files.internal("images/Zombies/BurntZombie.gif"));
-
-        // Build animations bằng GifManager
-        walkConeAnim = GifManager.createAnim(
-                walkConeSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
-        eatConeAnim = GifManager.createAnim(
-                eatConeSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
-
-        walkNormalAnim = GifManager.createAnim(
-                walkNormalSheet, FRAMES_PER_ROW, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
-        eatNormalAnim = GifManager.createAnim(
-                eatNormalSheet, FRAMES_PER_ROW, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
-        dieNormalAnim = GifManager.createAnim(
-                dieNormalSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
-
-        burntAnim = GifManager.createAnim(
-                burntZombieSheet, FRAMES_PER_ROW, DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
-
-        // Kích thước frame gốc
-        TextureRegion coneFirst = walkConeAnim.getKeyFrame(0f);
-        coneOriginalW = coneFirst.getRegionWidth();
-        coneOriginalH = coneFirst.getRegionHeight();
-
-        TextureRegion normalFirst = walkNormalAnim.getKeyFrame(0f);
-        normalOriginalW = normalFirst.getRegionWidth();
-        normalOriginalH = normalFirst.getRegionHeight();
-
-        // Tạm size bằng kích thước design, sẽ scale thật khi có stage
-        setSize(normalOriginalW, BASE_ZOMBIE_H);
+        this.coneHealth = CONE_HEALTH;
+        this.coneOnHead = true;
     }
 
-    // ===== SCALE THEO WORLD / FORM (CONE vs NORMAL) =====
-    private void updateSizeForCurrentForm() {
-        float worldHeight;
-        if (getStage() != null && getStage().getViewport() != null) {
-            worldHeight = getStage().getViewport().getWorldHeight();
-        } else {
-            // fallback: cho bằng layout gốc
-            worldHeight = ScaleManager.BASE_SCREEN_H;
+    private Animation<TextureRegion> createAnimation(Array<Texture> textures, float frameDuration,
+            Animation.PlayMode mode) {
+        TextureRegion[] frames = new TextureRegion[textures.size];
+        for (int i = 0; i < textures.size; i++) {
+            frames[i] = new TextureRegion(textures.get(i));
         }
+        Animation<TextureRegion> anim = new Animation<>(frameDuration, frames);
+        anim.setPlayMode(mode);
+        return anim;
+    }
 
-        // Nếu không đổi gì so với lần trước thì bỏ qua
-        if (sizeInitialized && lastConeOnHead == coneOnHead && lastWorldHeight == worldHeight) {
+    private void initSizeIfNeeded() {
+        if (sizeInitialized)
             return;
-        }
 
-        // Chiều cao zombie trên world dựa trên thiết kế + scale theo chiều cao màn
-        float zombieWorldH = ScaleManager.scaleByHeight(BASE_ZOMBIE_H, worldHeight);
+        float worldHeight = (getStage() != null && getStage().getViewport() != null)
+                ? getStage().getViewport().getWorldHeight()
+                : ScaleManager.BASE_SCREEN_H;
 
-        float aspect;
-        if (coneOnHead) {
-            aspect = coneOriginalW / coneOriginalH;
-        } else {
-            aspect = normalOriginalW / normalOriginalH;
-        }
-
+        float zombieWorldH = ScaleManager.scaleByHeight(DesignConfig.ZOMBIE_H, worldHeight);
+        float aspect = originalW / originalH;
         float zombieWorldW = zombieWorldH * aspect;
 
         setSize(zombieWorldW, zombieWorldH);
-
         sizeInitialized = true;
-        lastConeOnHead = coneOnHead;
-        lastWorldHeight = worldHeight;
-    }
-
-    // ====== LIFE CYCLE ======
-
-    private void startDeath(boolean byCherryBomb) {
-        if (isDying || dead)
-            return;
-
-        isDying = true;
-        killedByCherryBomb = byCherryBomb;
-        stateTime = 0f;
-        health = 0;
-        speed = 0f;
     }
 
     @Override
     public void act(float delta) {
-        // Scale theo world mỗi frame (có cache nên rẻ)
-        updateSizeForCurrentForm();
+        initSizeIfNeeded();
 
-        // Đang trong animation chết → chỉ chạy anim
+        // --- DEATH LOGIC ---
         if (isDying) {
             stateTime += delta;
 
-            Animation<TextureRegion> currentDieAnim = killedByCherryBomb ? burntAnim : dieNormalAnim;
-
-            if (currentDieAnim.isAnimationFinished(stateTime)) {
-                dead = true;
-                speed = 0f;
-                if (zombieCount > 0) {
-                    zombieCount--;
+            if (bodyDieAnim.isAnimationFinished(stateTime)) {
+                if (!dead) {
+                    dead = true;
+                    speed = 0f;
+                    if (zombieCount > 0)
+                        zombieCount--;
+                    remove();
                 }
-                remove();
             }
             return;
         }
 
-        // Logic chung: move, sound, gameOver...
         super.act(delta);
 
-        stateTime += delta;
+        // --- ANIMATION UPDATE ---
+        if (isEating) {
+            stateTime += delta;
+        } else {
+            float animSpeedScale = (this.speed > 0) ? (this.speed / this.baseSpeed) : 1f;
+            if (animSpeedScale < 0.2f)
+                animSpeedScale = 1f;
+            stateTime += delta * animSpeedScale;
+        }
     }
 
     @Override
@@ -188,48 +162,67 @@ public class ConeheadZombie extends Zombies {
         if (dead)
             return;
 
-        Animation<TextureRegion> anim;
+        Color color = getColor();
+        batch.setColor(color.r, color.g, color.b, color.a * parentAlpha);
 
         if (isDying) {
-            anim = killedByCherryBomb ? burntAnim : dieNormalAnim;
-        } else if (isEating) {
-            anim = coneOnHead ? eatConeAnim : eatNormalAnim;
+            TextureRegion bodyFrame = bodyDieAnim.getKeyFrame(stateTime);
+            batch.draw(bodyFrame, getX(), getY(), getWidth(), getHeight());
+
+            if (!headPopAnim.isAnimationFinished(stateTime)) {
+                TextureRegion headFrame = headPopAnim.getKeyFrame(stateTime);
+                batch.draw(headFrame, getX(), getY(), getWidth(), getHeight());
+            }
         } else {
-            anim = coneOnHead ? walkConeAnim : walkNormalAnim;
+            Animation<TextureRegion> currentAnim = isEating ? eatAnim : walkAnim;
+            TextureRegion frame = currentAnim.getKeyFrame(stateTime);
+            batch.draw(frame, getX(), getY(), getWidth(), getHeight());
         }
 
-        TextureRegion frame = anim.getKeyFrame(stateTime);
-        batch.draw(frame, getX(), getY(), getWidth(), getHeight());
+        batch.setColor(Color.WHITE);
     }
 
-    // ===== DAMAGE / DEATH =====
+    private void startDeath() {
+        if (isDying || dead)
+            return;
+        isDying = true;
+        stateTime = 0f;
+        health = 0;
+        speed = 0f;
+        setColor(Color.WHITE);
+    }
 
     @Override
-    public void takeDamage(int dmg) {
+    public void takeDamage(int damage) {
         if (isDying || dead)
             return;
 
+        // ===== ĐẶC TRƯNG CONEHEAD: trừ cone trước =====
         if (coneOnHead) {
-            coneHealth -= dmg;
-
+            coneHealth -= damage;
             if (coneHealth <= 0) {
                 coneOnHead = false;
-                stateTime = 0f; // reset anim
-                updateSizeForCurrentForm(); // đổi size theo sprite thường
+                coneHealth = 0;
+                // Nếu bạn có animation riêng cho "rụng nón" thì cắm vào đây,
+                // còn theo yêu cầu: phần còn lại giữ nguyên.
             }
             return;
         }
 
-        // Đã rớt nón -> máu thân
-        health -= dmg;
-        if (health <= 0) {
-            startDeath(false);
-        }
+        // Sau khi rớt nón -> trừ máu thân như NormalZombie
+        health -= damage;
+        if (health <= 0)
+            startDeath();
+    }
+
+    @Override
+    public void killByMower() {
+        startDeath();
     }
 
     @Override
     public void killByCherryBomb() {
-        startDeath(true);
+        startDeath();
     }
 
     @Override
@@ -237,11 +230,9 @@ public class ConeheadZombie extends Zombies {
         return isEating;
     }
 
-    // Hệ collision / logic bên ngoài sẽ set ăn/không ăn
     public void setEating(boolean eating) {
         if (isDying || dead)
             return;
-
         if (this.isEating == eating)
             return;
 
@@ -251,18 +242,31 @@ public class ConeheadZombie extends Zombies {
         if (eating) {
             this.speed = 0f;
         } else {
-            this.speed = MOVE_SPEED;
+            this.speed = this.baseSpeed;
         }
     }
 
+    // Optional getters (debug/UI)
+    public boolean isConeOnHead() {
+        return coneOnHead;
+    }
+
+    public int getConeHealth() {
+        return coneHealth;
+    }
+
     public void dispose() {
-        walkConeSheet.dispose();
-        eatConeSheet.dispose();
-
-        walkNormalSheet.dispose();
-        eatNormalSheet.dispose();
-        dieNormalSheet.dispose();
-
-        burntZombieSheet.dispose();
+        if (walkTextures != null)
+            for (Texture t : walkTextures)
+                t.dispose();
+        if (headPopTextures != null)
+            for (Texture t : headPopTextures)
+                t.dispose();
+        if (bodyDieTextures != null)
+            for (Texture t : bodyDieTextures)
+                t.dispose();
+        if (eatTextures != null)
+            for (Texture t : eatTextures)
+                t.dispose();
     }
 }

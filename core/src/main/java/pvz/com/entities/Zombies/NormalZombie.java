@@ -19,29 +19,33 @@ public class NormalZombie extends Zombies {
     // Animation Speeds
     private static final float WALK_FRAME_TIME = 0.12f;
     private static final float EAT_FRAME_TIME = 0.25f;
-    private static final float BODY_DIE_FRAME_TIME = 0.15f; 
-    private static final float HEAD_POP_FRAME_TIME = 0.1f;  
-    private static final float CHARRED_FRAME_TIME = 0.15f; // [MỚI]
+    private static final float BODY_DIE_FRAME_TIME = 0.15f;
+    private static final float HEAD_POP_FRAME_TIME = 0.1f;
+
+    // [NEW] Charred death
+    private static final float CHARRED_FRAME_TIME = 0.15f;
 
     // ===== TEXTURES =====
     private final Array<Texture> walkTextures;
     private final Array<Texture> headPopTextures;
     private final Array<Texture> bodyDieTextures;
-    private final Array<Texture> eatTextures; 
-    private final Array<Texture> charredTextures; // [MỚI]
+    private final Array<Texture> eatTextures;
+    private final Array<Texture> charredTextures;
 
     // ===== ANIMATIONS =====
     private final Animation<TextureRegion> walkAnim;
     private final Animation<TextureRegion> headPopAnim;
     private final Animation<TextureRegion> bodyDieAnim;
     private final Animation<TextureRegion> eatAnim;
-    private final Animation<TextureRegion> charredAnim; // [MỚI]
+    private final Animation<TextureRegion> charredAnim;
 
     // ===== STATE =====
     private float stateTime = 0f;
     private boolean isDying = false;
     private boolean isEating = false;
-    private boolean isCharredDeath = false; // [MỚI] Biến phân loại
+
+    // [NEW] death type
+    private boolean isCharredDeath = false;
 
     private boolean sizeInitialized = false;
     private float originalW;
@@ -60,23 +64,32 @@ public class NormalZombie extends Zombies {
 
         // 3. BODY DIE (Lost Head + Die)
         bodyDieTextures = new Array<>();
-        for (int i = 0; i <= 17; i++) bodyDieTextures.add(new Texture("images/Zombies/NormalZombie/ZombieLostHead/ZombieLostHead_" + i + ".png"));
-        for (int i = 0; i <= 9; i++) bodyDieTextures.add(new Texture("images/Zombies/NormalZombie/ZombieDie/ZombieDie_" + i + ".png"));
+        for (int i = 0; i <= 17; i++) {
+            bodyDieTextures.add(new Texture("images/Zombies/NormalZombie/ZombieLostHead/ZombieLostHead_" + i + ".png"));
+        }
+        for (int i = 0; i <= 9; i++) {
+            bodyDieTextures.add(new Texture("images/Zombies/NormalZombie/ZombieDie/ZombieDie_" + i + ".png"));
+        }
         bodyDieAnim = createAnimation(bodyDieTextures, BODY_DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
 
         // 4. EAT
-        eatTextures = loadTextures("images/Zombies/NormalZombie/ZombieAttack/ZombieAttack_", 10);
+        eatTextures = new Array<>();
+        for (int i = 0; i <= 10; i++) {
+            eatTextures.add(new Texture("images/Zombies/NormalZombie/ZombieAttack/ZombieAttack_" + i + ".png"));
+        }
         eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        // 5. [MỚI] CHARRED
-        charredTextures = loadTextures("images/Zombies/NormalZombie/BoomDie/BoomDie_",19);
+        // 5. CHARRED (BoomDie)
+        charredTextures = loadTextures("images/Zombies/NormalZombie/BoomDie/BoomDie_", 19);
         charredAnim = createAnimation(charredTextures, CHARRED_FRAME_TIME, Animation.PlayMode.NORMAL);
 
         // 6. INIT SIZE & STATS
         TextureRegion firstFrame = walkAnim.getKeyFrame(0f);
         originalW = firstFrame.getRegionWidth();
         originalH = firstFrame.getRegionHeight();
-        setSize(originalW, originalH); 
+
+        // Initial size (will be rescaled by initSizeIfNeeded)
+        setSize(originalW, originalH);
 
         this.health = BODY_HEALTH;
         this.baseSpeed = INITIAL_SPEED;
@@ -91,7 +104,8 @@ public class NormalZombie extends Zombies {
         return textures;
     }
 
-    private Animation<TextureRegion> createAnimation(Array<Texture> textures, float frameDuration, Animation.PlayMode mode) {
+    private Animation<TextureRegion> createAnimation(Array<Texture> textures, float frameDuration,
+            Animation.PlayMode mode) {
         TextureRegion[] frames = new TextureRegion[textures.size];
         for (int i = 0; i < textures.size; i++) {
             frames[i] = new TextureRegion(textures.get(i));
@@ -100,10 +114,15 @@ public class NormalZombie extends Zombies {
         anim.setPlayMode(mode);
         return anim;
     }
-    
+
     private void initSizeIfNeeded() {
-        if (sizeInitialized) return;
-        float worldHeight = (getStage() != null) ? getStage().getViewport().getWorldHeight() : ScaleManager.BASE_SCREEN_H;
+        if (sizeInitialized)
+            return;
+
+        float worldHeight = (getStage() != null && getStage().getViewport() != null)
+                ? getStage().getViewport().getWorldHeight()
+                : ScaleManager.BASE_SCREEN_H;
+
         float zombieWorldH = ScaleManager.scaleByHeight(DesignConfig.ZOMBIE_H, worldHeight);
         float aspect = originalW / originalH;
         setSize(zombieWorldH * aspect, zombieWorldH);
@@ -117,19 +136,14 @@ public class NormalZombie extends Zombies {
         // --- DEATH LOGIC ---
         if (isDying) {
             stateTime += delta;
-            
-            // [LOGIC CHÍNH] Kiểm tra xem animation chết đã xong chưa
-            boolean finished;
-            if (isCharredDeath) {
-                finished = charredAnim.isAnimationFinished(stateTime);
-            } else {
-                finished = bodyDieAnim.isAnimationFinished(stateTime);
-            }
 
-            // Nếu animation xong -> Xóa
+            boolean finished = isCharredDeath
+                    ? charredAnim.isAnimationFinished(stateTime)
+                    : bodyDieAnim.isAnimationFinished(stateTime);
+
             if (finished) {
-                if (!dead) { 
-                    dead = true; 
+                if (!dead) {
+                    dead = true;
                     speed = 0f;
                     if (zombieCount > 0)
                         zombieCount--;
@@ -162,11 +176,9 @@ public class NormalZombie extends Zombies {
 
         if (isDying) {
             if (isCharredDeath) {
-                // [MỚI] Vẽ xác cháy
                 TextureRegion frame = charredAnim.getKeyFrame(stateTime);
                 batch.draw(frame, getX(), getY(), getWidth(), getHeight());
             } else {
-                // [CŨ] Vẽ xác thường (Body + Head)
                 TextureRegion bodyFrame = bodyDieAnim.getKeyFrame(stateTime);
                 batch.draw(bodyFrame, getX(), getY(), getWidth(), getHeight());
 
@@ -184,13 +196,20 @@ public class NormalZombie extends Zombies {
         batch.setColor(Color.WHITE);
     }
 
-    // [QUAN TRỌNG] Hàm này được gọi bởi takeDamage (Peashooter)
-    // Mặc định burnt = false -> Chết thường -> Rụng đầu
+    // Backward-compatible: chết thường
+    private void startDeath() {
+        startDeath(false);
+    }
+
+    // burnt=false: chết thường (rụng đầu), burnt=true: chết cháy (charred)
     private void startDeath(boolean burnt) {
-        if (isDying || dead) return;
+        if (isDying || dead)
+            return;
+
         isDying = true;
-        isCharredDeath = burnt; // Lưu loại chết
+        isCharredDeath = burnt;
         stateTime = 0f;
+
         health = 0;
         speed = 0f;
         setColor(Color.WHITE);
@@ -200,22 +219,21 @@ public class NormalZombie extends Zombies {
     public void takeDamage(int damage) {
         if (isDying || dead)
             return;
+
         health -= damage;
-        // Mặc định là chết thường (burnt = false)
-        if (health <= 0) startDeath(false);
+        if (health <= 0)
+            startDeath(false);
     }
 
     @Override
-    public void killByMower() { 
-        startDeath(false); // Chết thường
-    }
-    
-    @Override
-    public void killByCherryBomb() { 
-        startDeath(true); // [MỚI] Chết cháy
+    public void killByMower() {
+        startDeath(false);
     }
 
-    // ... (Các hàm isEating, setEating, dispose giữ nguyên) ...
+    @Override
+    public void killByCherryBomb() {
+        startDeath(true);
+    }
 
     @Override
     public boolean isEating() {
@@ -224,10 +242,14 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void setEating(boolean eating) {
-        if (isDying || dead) return;
-        if (this.isEating == eating) return;
+        if (isDying || dead)
+            return;
+        if (this.isEating == eating)
+            return;
+
         this.isEating = eating;
         stateTime = 0f;
+
         if (eating) {
             this.speed = 0f;
         } else {
@@ -237,10 +259,20 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void dispose() {
-        if (walkTextures != null) for (Texture t : walkTextures) t.dispose();
-        if (headPopTextures != null) for (Texture t : headPopTextures) t.dispose();
-        if (bodyDieTextures != null) for (Texture t : bodyDieTextures) t.dispose();
-        if (eatTextures != null) for (Texture t : eatTextures) t.dispose();
-        if (charredTextures != null) for (Texture t : charredTextures) t.dispose();
+        if (walkTextures != null)
+            for (Texture t : walkTextures)
+                t.dispose();
+        if (headPopTextures != null)
+            for (Texture t : headPopTextures)
+                t.dispose();
+        if (bodyDieTextures != null)
+            for (Texture t : bodyDieTextures)
+                t.dispose();
+        if (eatTextures != null)
+            for (Texture t : eatTextures)
+                t.dispose();
+        if (charredTextures != null)
+            for (Texture t : charredTextures)
+                t.dispose();
     }
 }
