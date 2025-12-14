@@ -196,11 +196,6 @@ public class NormalZombie extends Zombies {
         batch.setColor(Color.WHITE);
     }
 
-    // Backward-compatible: chết thường
-    private void startDeath() {
-        startDeath(false);
-    }
-
     // burnt=false: chết thường (rụng đầu), burnt=true: chết cháy (charred)
     private void startDeath(boolean burnt) {
         if (isDying || dead)
