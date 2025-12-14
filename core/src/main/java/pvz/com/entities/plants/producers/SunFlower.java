@@ -16,7 +16,7 @@ public class SunFlower extends Plant {
     private static final float SCALE_Y = 0.8f;
 
     // Tốc độ animation (càng nhỏ càng nhanh)
-    private static final float FRAME_DURATION = 0.1f;
+    private static final float FRAME_DURATION = 0.12f;
 
     public SunFlower(float x, float y, int col, int row) {
         super(

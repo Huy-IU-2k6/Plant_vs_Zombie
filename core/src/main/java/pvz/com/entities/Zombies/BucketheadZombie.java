@@ -12,83 +12,77 @@ import pvz.com.managers.ScaleManager;
 
 public class BucketheadZombie extends Zombies {
 
-    // ===== CONST =====
     private static final int BODY_HEALTH = 100;
-    private static final int BUCKET_HEALTH = 300; // Bucket HP (đặc trưng)
-    private static final float INITIAL_SPEED = 18f; // giống NormalZombie (muốn nhanh hơn thì đổi)
+    private static final int BUCKET_HEALTH = 300;
+    private static final float INITIAL_SPEED = 18f;
 
-    // Animation Speeds (giống NormalZombie)
     private static final float WALK_FRAME_TIME = 0.12f;
     private static final float EAT_FRAME_TIME = 0.25f;
     private static final float BODY_DIE_FRAME_TIME = 0.15f;
     private static final float HEAD_POP_FRAME_TIME = 0.1f;
 
-    // ===== BUCKET STATE (đặc trưng) =====
     private int bucketHealth = BUCKET_HEALTH;
     private boolean bucketLost = false;
 
-    // ===== TEXTURES =====
     private final Array<Texture> walkTextures;
     private final Array<Texture> headPopTextures;
     private final Array<Texture> bodyDieTextures;
     private final Array<Texture> eatTextures;
 
-    // ===== ANIMATIONS =====
     private final Animation<TextureRegion> walkAnim;
     private final Animation<TextureRegion> headPopAnim;
     private final Animation<TextureRegion> bodyDieAnim;
     private final Animation<TextureRegion> eatAnim;
 
-    // ===== STATE =====
     private float stateTime = 0f;
     private boolean isDying = false;
     private boolean isEating = false;
 
-    private boolean sizeInitialized = false;
-    private float originalW;
-    private float originalH;
-
     public BucketheadZombie() {
         super();
 
-        // 1) WALK (PNG sequence) — chỉ đổi NormalZombie -> BucketheadZombie
+        // WALK
         walkTextures = new Array<>();
         for (int i = 0; i <= 14; i++) {
             walkTextures.add(new Texture("images/Zombies/BucketheadZombie/Zombie/Zombie_" + i + ".png"));
         }
         walkAnim = createAnimation(walkTextures, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        // 2) HEAD POP
+        // HEAD POP
         headPopTextures = new Array<>();
         for (int i = 0; i <= 10; i++) {
             headPopTextures.add(new Texture("images/Zombies/BucketheadZombie/ZombieHead/ZombieHead_" + i + ".png"));
         }
         headPopAnim = createAnimation(headPopTextures, HEAD_POP_FRAME_TIME, Animation.PlayMode.NORMAL);
 
-        // 3) BODY DIE (LostHead + Die)
+        // BODY DIE (LostHead + Die)
         bodyDieTextures = new Array<>();
         for (int i = 0; i <= 17; i++) {
-            bodyDieTextures.add(
-                    new Texture("images/Zombies/BucketheadZombie/ZombieLostHead/ZombieLostHead_" + i + ".png"));
+            bodyDieTextures
+                    .add(new Texture("images/Zombies/BucketheadZombie/ZombieLostHead/ZombieLostHead_" + i + ".png"));
         }
         for (int i = 0; i <= 9; i++) {
             bodyDieTextures.add(new Texture("images/Zombies/BucketheadZombie/ZombieDie/ZombieDie_" + i + ".png"));
         }
         bodyDieAnim = createAnimation(bodyDieTextures, BODY_DIE_FRAME_TIME, Animation.PlayMode.NORMAL);
 
-        // 4) EAT (Attack)
+        // EAT
         eatTextures = new Array<>();
         for (int i = 0; i <= 11; i++) {
             eatTextures.add(new Texture("images/Zombies/BucketheadZombie/ZombieAttack/ZombieAttack_" + i + ".png"));
         }
         eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        // 5) INIT SIZE & STATS
-        TextureRegion firstFrame = walkAnim.getKeyFrame(0f);
-        originalW = firstFrame.getRegionWidth();
-        originalH = firstFrame.getRegionHeight();
-        setSize(originalW, originalH);
+        // ===== WORLD SIZE NGAY TRONG CONSTRUCTOR (CÁCH 2) =====
+        TextureRegion first = walkAnim.getKeyFrame(0f);
+        float aspect = (float) first.getRegionWidth() / (float) first.getRegionHeight();
 
+        float zombieWorldH = ScaleManager.scaleByHeight(
+                DesignConfig.ZOMBIE_H,
+                ScaleManager.BASE_SCREEN_H);
+        setSize(zombieWorldH * aspect, zombieWorldH);
+
+        // STATS
         this.health = BODY_HEALTH;
         this.baseSpeed = INITIAL_SPEED;
         this.speed = this.baseSpeed;
@@ -108,27 +102,8 @@ public class BucketheadZombie extends Zombies {
         return anim;
     }
 
-    private void initSizeIfNeeded() {
-        if (sizeInitialized)
-            return;
-
-        float worldHeight = (getStage() != null && getStage().getViewport() != null)
-                ? getStage().getViewport().getWorldHeight()
-                : ScaleManager.BASE_SCREEN_H;
-
-        float zombieWorldH = ScaleManager.scaleByHeight(DesignConfig.ZOMBIE_H, worldHeight);
-        float aspect = originalW / originalH;
-        float zombieWorldW = zombieWorldH * aspect;
-
-        setSize(zombieWorldW, zombieWorldH);
-        sizeInitialized = true;
-    }
-
     @Override
     public void act(float delta) {
-        initSizeIfNeeded();
-
-        // --- DEATH LOGIC ---
         if (isDying) {
             stateTime += delta;
 
@@ -146,14 +121,11 @@ public class BucketheadZombie extends Zombies {
 
         super.act(delta);
 
-        // --- ANIMATION UPDATE ---
         if (isEating) {
             stateTime += delta;
         } else {
-            float animSpeedScale = (this.speed > 0) ? (this.speed / this.baseSpeed) : 1f;
-            if (animSpeedScale < 0.2f)
-                animSpeedScale = 1f;
-            stateTime += delta * animSpeedScale;
+            float animSpeedScale = (speed > 0f) ? (speed / baseSpeed) : 1f;
+            stateTime += delta * Math.max(animSpeedScale, 0.2f);
         }
     }
 
@@ -162,8 +134,8 @@ public class BucketheadZombie extends Zombies {
         if (dead)
             return;
 
-        Color color = getColor();
-        batch.setColor(color.r, color.g, color.b, color.a * parentAlpha);
+        Color c = getColor();
+        batch.setColor(c.r, c.g, c.b, c.a * parentAlpha);
 
         if (isDying) {
             TextureRegion bodyFrame = bodyDieAnim.getKeyFrame(stateTime);
@@ -174,8 +146,7 @@ public class BucketheadZombie extends Zombies {
                 batch.draw(headFrame, getX(), getY(), getWidth(), getHeight());
             }
         } else {
-            Animation<TextureRegion> currentAnim = isEating ? eatAnim : walkAnim;
-            TextureRegion frame = currentAnim.getKeyFrame(stateTime);
+            TextureRegion frame = (isEating ? eatAnim : walkAnim).getKeyFrame(stateTime);
             batch.draw(frame, getX(), getY(), getWidth(), getHeight());
         }
 
@@ -197,19 +168,17 @@ public class BucketheadZombie extends Zombies {
         if (isDying || dead)
             return;
 
-        // ===== ĐẶC TRƯNG BUCKETHEAD: trừ bucket trước =====
+        // bucket trước
         if (!bucketLost) {
             bucketHealth -= damage;
             if (bucketHealth <= 0) {
                 bucketLost = true;
                 bucketHealth = 0;
-                // Nếu bạn có assets “rụng xô” riêng thì cắm vào đây,
-                // còn theo yêu cầu: phần còn lại giữ nguyên.
             }
             return;
         }
 
-        // Sau khi mất xô -> trừ máu thân như NormalZombie
+        // thân
         health -= damage;
         if (health <= 0)
             startDeath();
@@ -239,14 +208,12 @@ public class BucketheadZombie extends Zombies {
         this.isEating = eating;
         stateTime = 0f;
 
-        if (eating) {
+        if (eating)
             this.speed = 0f;
-        } else {
+        else
             this.speed = this.baseSpeed;
-        }
     }
 
-    // Optional getters (nếu cần debug/UI)
     public boolean isBucketLost() {
         return bucketLost;
     }

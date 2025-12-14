@@ -11,34 +11,24 @@ import pvz.com.managers.ScaleManager;
 
 public class ChargeZombie extends Zombies {
 
-    // ===== CONST =====
     private static final float BASE_SPEED = 32f;
     private static final int BASE_HEALTH = 160;
 
-    // giống style NormalZombie
     private static final float WALK_FRAME_TIME = 0.12f;
     private static final float EAT_FRAME_TIME = 0.12f;
 
-    // ===== TEXTURES =====
+    private static final float DEAD_REMOVE_DELAY = 1.2f;
+
     private final Array<Texture> walkTextures;
     private final Array<Texture> eatTextures;
 
-    // ===== ANIMS =====
     private final Animation<TextureRegion> walkAnim;
     private final Animation<TextureRegion> eatAnim;
 
-    // ===== STATE =====
     private float stateTime = 0f;
     private boolean eating = false;
 
-    // remove sau khi chết (giữ logic cũ)
     private float deathTimer = 0f;
-    private static final float DEAD_REMOVE_DELAY = 1.2f;
-
-    // scale
-    private boolean sizeInitialized = false;
-    private float originalW;
-    private float originalH;
 
     public ChargeZombie() {
         super();
@@ -47,27 +37,28 @@ public class ChargeZombie extends Zombies {
         this.speed = BASE_SPEED;
         this.health = BASE_HEALTH;
 
-        // ===== LOAD WALK (PNG sequence) =====
+        // WALK
         walkTextures = new Array<>();
-        // Ví dụ: images/Zombies/ChargeZombie/Zombie/Zombie_0.png ...
         for (int i = 0; i <= 94; i++) {
             walkTextures.add(new Texture("images/Zombies/ChargeZombie/Zombie/Zombie_" + i + ".png"));
         }
         walkAnim = createAnimation(walkTextures, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        // ===== LOAD EAT (PNG sequence) =====
+        // EAT
         eatTextures = new Array<>();
-        // Ví dụ: images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_0.png ...
         for (int i = 0; i <= 114; i++) {
             eatTextures.add(new Texture("images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_" + i + ".png"));
         }
         eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
-        // ===== INIT SIZE =====
+        // ===== WORLD SIZE NGAY TRONG CONSTRUCTOR (CÁCH 2) =====
         TextureRegion first = walkAnim.getKeyFrame(0f);
-        originalW = first.getRegionWidth();
-        originalH = first.getRegionHeight();
-        setSize(originalW, originalH);
+        float aspect = (float) first.getRegionWidth() / (float) first.getRegionHeight();
+
+        float zombieWorldH = ScaleManager.scaleByHeight(
+                DesignConfig.ZOMBIE_H,
+                ScaleManager.BASE_SCREEN_H);
+        setSize(zombieWorldH * aspect, zombieWorldH);
     }
 
     private Animation<TextureRegion> createAnimation(Array<Texture> textures, float frameDuration,
@@ -81,27 +72,9 @@ public class ChargeZombie extends Zombies {
         return anim;
     }
 
-    private void initSizeIfNeeded() {
-        if (sizeInitialized)
-            return;
-
-        float worldHeight = (getStage() != null && getStage().getViewport() != null)
-                ? getStage().getViewport().getWorldHeight()
-                : ScaleManager.BASE_SCREEN_H;
-
-        float zombieWorldH = ScaleManager.scaleByHeight(DesignConfig.ZOMBIE_H, worldHeight);
-        float aspect = originalW / originalH;
-        float zombieWorldW = zombieWorldH * aspect;
-
-        setSize(zombieWorldW, zombieWorldH);
-        sizeInitialized = true;
-    }
-
     @Override
     public void act(float delta) {
-        initSizeIfNeeded();
-
-        // chết -> đếm timer rồi remove
+        // chết -> đếm timer rồi remove (giữ logic cũ)
         if (dead) {
             stateTime += delta;
             deathTimer += delta;
@@ -113,7 +86,14 @@ public class ChargeZombie extends Zombies {
         }
 
         super.act(delta);
-        stateTime += delta;
+
+        // update anim: đi bộ thì scale theo speed, ăn thì chạy đều
+        if (eating) {
+            stateTime += delta;
+        } else {
+            float animSpeedScale = (speed > 0f) ? (speed / baseSpeed) : 1f;
+            stateTime += delta * Math.max(animSpeedScale, 0.2f);
+        }
     }
 
     @Override
@@ -130,11 +110,10 @@ public class ChargeZombie extends Zombies {
         this.eating = eat;
         stateTime = 0f;
 
-        if (eat) {
+        if (eat)
             this.speed = 0f;
-        } else {
+        else
             this.speed = this.baseSpeed;
-        }
     }
 
     @Override
@@ -158,7 +137,6 @@ public class ChargeZombie extends Zombies {
 
     @Override
     public void killByCherryBomb() {
-        // giữ hành vi cũ: chết và remove sau 1.2s (không burnt anim)
         if (dead)
             return;
 
