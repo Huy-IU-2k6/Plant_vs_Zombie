@@ -22,8 +22,8 @@ public class PlantAttackSystem {
     // Zombie phải “vào màn” rồi mới cho plant bắn (đỡ bắn từ ngoài màn hình)
     private static final float ZOMBIE_ENTER_SCREEN_MARGIN = 100f;
 
-    // Tăng cooldown: > 1.0 = bắn chậm hơn, < 1.0 = bắn nhanh hơn
-    private static final float COOLDOWN_MULTIPLIER = 3.0f;
+    // Tăng/giảm tốc độ bắn tổng: >1.0 bắn chậm hơn, <1.0 bắn nhanh hơn
+    private static final float COOLDOWN_MULTIPLIER = 1.0f;
 
     private final IGameSpawner spawner;
     private final ZombieWaveController zombieController;
@@ -48,34 +48,86 @@ public class PlantAttackSystem {
 
             PlantAttackComponent atk = plant.getComponent(PlantAttackComponent.class);
             PositionComponent pos = plant.getComponent(PositionComponent.class);
-            if (atk == null || pos == null || atk.cooldown == null)
+            if (atk == null || pos == null)
                 continue;
 
-            // cooldown hiệu dụng
-            float effectiveCooldown = atk.cooldown.cooldownTime * COOLDOWN_MULTIPLIER;
+            // an toàn dữ liệu
+            if (atk.burstCount <= 0)
+                atk.burstCount = 1;
+            if (atk.burstDelay < 0f)
+                atk.burstDelay = 0f;
+            if (atk.attackSpeed < 0f)
+                atk.attackSpeed = 0f;
+            if (atk.shotsFiredInBurst < 0)
+                atk.shotsFiredInBurst = 0;
 
-            // tích thời gian
-            atk.cooldown.timer += deltaTime;
+            atk.timer += deltaTime;
+
+            // ===== PHASE B: đang ở giữa 1 burst =====
+            if (atk.shotsFiredInBurst > 0 && atk.shotsFiredInBurst < atk.burstCount) {
+                // Nếu trong burst mà không còn zombie hợp lệ -> hủy burst cho đỡ bắn vô định
+                if (!shouldShoot(pos, atk.range)) {
+                    atk.shotsFiredInBurst = 0;
+                    // giữ trạng thái "ready" để khi zombie xuất hiện lại có thể bắn ngay
+                    atk.timer = getEffectiveCooldown(atk);
+                    continue;
+                }
+
+                // Chờ burstDelay để bắn viên tiếp theo
+                if (atk.timer >= atk.burstDelay) {
+                    fire(pos, atk);
+                    atk.shotsFiredInBurst++;
+                    atk.timer = 0f;
+
+                    // Kết thúc burst -> reset về phase A (đợi cooldown chính)
+                    if (atk.shotsFiredInBurst >= atk.burstCount) {
+                        atk.shotsFiredInBurst = 0;
+                        atk.timer = 0f;
+                    }
+                }
+                continue;
+            }
+
+            // ===== PHASE A: đợi cooldown chính để bắt đầu burst mới =====
+            float effectiveCooldown = getEffectiveCooldown(atk);
 
             // chưa tới nhịp bắn
-            if (atk.cooldown.timer < effectiveCooldown)
+            if (atk.timer < effectiveCooldown)
                 continue;
 
-            // tới nhịp bắn: chỉ bắn nếu có zombie hợp lệ
+            // tới nhịp: chỉ bắn nếu có zombie hợp lệ
             if (shouldShoot(pos, atk.range)) {
-                atk.cooldown.timer = 0f;
+                // bắt đầu burst: bắn viên đầu
+                fire(pos, atk);
+                atk.shotsFiredInBurst = 1;
 
-                spawner.spawnProjectile(
-                        pos.x + PROJECTILE_SPAWN_OFFSET_X,
-                        pos.y + PROJECTILE_SPAWN_OFFSET_Y,
-                        atk.damage,
-                        atk.damageType,
-                        atk.projectileType);
+                // nếu chỉ bắn 1 viên thì kết thúc luôn và vào cooldown
+                if (atk.burstCount <= 1) {
+                    atk.shotsFiredInBurst = 0;
+                    atk.timer = 0f;
+                } else {
+                    // đang trong burst -> reset timer để đếm burstDelay
+                    atk.timer = 0f;
+                }
             } else {
                 // giữ ở ngưỡng để “ready-to-shoot”
-                atk.cooldown.timer = effectiveCooldown;
+                atk.timer = effectiveCooldown;
+                atk.shotsFiredInBurst = 0;
             }
         }
+    }
+
+    private float getEffectiveCooldown(PlantAttackComponent atk) {
+        return atk.attackSpeed * COOLDOWN_MULTIPLIER;
+    }
+
+    private void fire(PositionComponent pos, PlantAttackComponent atk) {
+        spawner.spawnProjectile(
+                pos.x + PROJECTILE_SPAWN_OFFSET_X,
+                pos.y + PROJECTILE_SPAWN_OFFSET_Y,
+                atk.damage,
+                atk.damageType,
+                atk.projectileClass);
     }
 
     // Kiểm tra có zombie “đủ điều kiện” để bắn không
