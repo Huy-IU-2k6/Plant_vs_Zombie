@@ -15,7 +15,7 @@ public class BucketheadZombie extends Zombies {
     // ===== CONST =====
     private static final int BODY_HEALTH = 100;
     private static final int BUCKET_HEALTH = 300; // Bucket HP (đặc trưng)
-    private static final float INITIAL_SPEED = 10f; // giống NormalZombie (muốn nhanh hơn thì đổi)
+    private static final float INITIAL_SPEED = 18f; // giống NormalZombie (muốn nhanh hơn thì đổi)
 
     // Animation Speeds (giống NormalZombie)
     private static final float WALK_FRAME_TIME = 0.12f;
@@ -60,7 +60,7 @@ public class BucketheadZombie extends Zombies {
 
         // 2) HEAD POP
         headPopTextures = new Array<>();
-        for (int i = 0; i <= 11; i++) {
+        for (int i = 0; i <= 10; i++) {
             headPopTextures.add(new Texture("images/Zombies/BucketheadZombie/ZombieHead/ZombieHead_" + i + ".png"));
         }
         headPopAnim = createAnimation(headPopTextures, HEAD_POP_FRAME_TIME, Animation.PlayMode.NORMAL);

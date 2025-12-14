@@ -15,7 +15,7 @@ public class ConeheadZombie extends Zombies {
     // ===== CONST =====
     private static final int BODY_HEALTH = 100;
     private static final int CONE_HEALTH = 200; // đặc trưng
-    private static final float INITIAL_SPEED = 10f; // giống NormalZombie
+    private static final float INITIAL_SPEED = 18f; // giống NormalZombie
 
     // Animation Speeds (giống NormalZombie)
     private static final float WALK_FRAME_TIME = 0.12f;

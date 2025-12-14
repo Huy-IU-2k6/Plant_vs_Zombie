@@ -14,7 +14,7 @@ public class NormalZombie extends Zombies {
 
     // ===== CONST =====
     private static final int BODY_HEALTH = 100;
-    private static final float INITIAL_SPEED = 10f;
+    private static final float INITIAL_SPEED = 15f;
 
     // Animation Speeds
     private static final float WALK_FRAME_TIME = 0.12f;
