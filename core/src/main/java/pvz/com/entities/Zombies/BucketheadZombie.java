@@ -68,7 +68,7 @@ public class BucketheadZombie extends Zombies {
 
         // EAT
         eatTextures = new Array<>();
-        for (int i = 0; i <= 11; i++) {
+        for (int i = 0; i <= 10; i++) {
             eatTextures.add(new Texture("images/Zombies/BucketheadZombie/ZombieAttack/ZombieAttack_" + i + ".png"));
         }
         eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);

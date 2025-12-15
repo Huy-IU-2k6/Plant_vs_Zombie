@@ -12,6 +12,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.utils.BufferUtils;
+
+import java.nio.ByteBuffer;
 
 public class GameOverScreen extends ScreenAdapter {
 
@@ -23,11 +26,9 @@ public class GameOverScreen extends ScreenAdapter {
     private BitmapFont font;
     private GlyphLayout layout;
 
-    private Texture pixel; // 1x1 white pixel để vẽ overlay
-    private FrameBuffer fbo; // chụp lại frame cuối
-    private Texture snapshot; // texture từ FBO (lưu ý bị lật Y)
+    private Texture pixel; // 1x1 white pixel
+    private Texture snapshotTex; // ✅ snapshot đúng chiều
 
-    // độ mờ overlay
     private static final float OVERLAY_ALPHA = 0.55f;
 
     public GameOverScreen(Game game, GameScreen gameScreen, boolean playerWon) {
@@ -42,7 +43,6 @@ public class GameOverScreen extends ScreenAdapter {
         font = new BitmapFont();
         layout = new GlyphLayout();
 
-        // pixel 1x1
         Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pm.setColor(Color.WHITE);
         pm.fill();
@@ -56,26 +56,61 @@ public class GameOverScreen extends ScreenAdapter {
         int w = Gdx.graphics.getBackBufferWidth();
         int h = Gdx.graphics.getBackBufferHeight();
 
-        if (fbo != null)
-            fbo.dispose();
-        fbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, false);
+        FrameBuffer fbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, false);
 
         fbo.begin();
+        Gdx.gl.glViewport(0, 0, w, h);
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Vẽ lại “frame cuối” của GameScreen, KHÔNG update logic
+        // vẽ lại frame cuối, không update logic
         gameScreen.renderFrozen();
+
+        // ✅ đọc pixels (không deprecated)
+        Pixmap shot = readPixelsToPixmapFlippedY(0, 0, w, h);
 
         fbo.end();
 
-        snapshot = fbo.getColorBufferTexture();
-        snapshot.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        // trả viewport về màn hình
+        Gdx.gl.glViewport(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+
+        // cập nhật texture snapshot
+        if (snapshotTex != null)
+            snapshotTex.dispose();
+        snapshotTex = new Texture(shot);
+        snapshotTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        shot.dispose();
+        fbo.dispose();
+    }
+
+    // glReadPixels cho dữ liệu gốc bottom-left -> cần flip Y để ra đúng chiều khi
+    // draw
+    private static Pixmap readPixelsToPixmapFlippedY(int x, int y, int w, int h) {
+        ByteBuffer pixels = BufferUtils.newByteBuffer(w * h * 4);
+        Gdx.gl.glReadPixels(x, y, w, h, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, pixels);
+
+        Pixmap pm = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+
+        int rowBytes = w * 4;
+        byte[] row = new byte[rowBytes];
+
+        for (int srcRow = 0; srcRow < h; srcRow++) {
+            int srcPos = srcRow * rowBytes;
+            pixels.position(srcPos);
+            pixels.get(row);
+
+            int dstRow = h - 1 - srcRow; // flip Y
+            pm.getPixels().position(dstRow * rowBytes);
+            pm.getPixels().put(row);
+        }
+
+        pm.getPixels().position(0);
+        return pm;
     }
 
     @Override
     public void render(float delta) {
-        // input cơ bản (tùy thích): ENTER/SPACE restart
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             game.setScreen(new GameScreen(game));
             return;
@@ -89,16 +124,17 @@ public class GameOverScreen extends ScreenAdapter {
 
         batch.begin();
 
-        // 1) Vẽ snapshot (FBO texture bị flip Y => v = 1 -> 0)
+        // 1) background snapshot (đúng chiều)
         batch.setColor(Color.WHITE);
-        batch.draw(snapshot, 0, 0, w, h, 0f, 1f, 1f, 0f);
+        if (snapshotTex != null)
+            batch.draw(snapshotTex, 0, 0, w, h);
 
-        // 2) Overlay mờ
+        // 2) overlay
         batch.setColor(0f, 0f, 0f, OVERLAY_ALPHA);
         batch.draw(pixel, 0, 0, w, h);
         batch.setColor(Color.WHITE);
 
-        // 3) Text giữa màn
+        // 3) text
         String title = playerWon ? "YOU WIN!" : "GAME OVER";
         font.getData().setScale(3.0f);
         layout.setText(font, title);
@@ -109,7 +145,6 @@ public class GameOverScreen extends ScreenAdapter {
         font.setColor(1f, 1f, 1f, 1f);
         font.draw(batch, layout, tx, ty);
 
-        // gợi ý nhỏ
         font.getData().setScale(1.2f);
         String hint = "Press ENTER to restart";
         layout.setText(font, hint);
@@ -121,9 +156,7 @@ public class GameOverScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
-        // nếu resize cửa sổ thì chụp lại snapshot cho đúng tỉ lệ
-        if (batch != null)
-            captureSnapshot();
+        captureSnapshot();
     }
 
     @Override
@@ -134,7 +167,7 @@ public class GameOverScreen extends ScreenAdapter {
             font.dispose();
         if (pixel != null)
             pixel.dispose();
-        if (fbo != null)
-            fbo.dispose(); // snapshot nằm trong fbo
+        if (snapshotTex != null)
+            snapshotTex.dispose();
     }
 }
