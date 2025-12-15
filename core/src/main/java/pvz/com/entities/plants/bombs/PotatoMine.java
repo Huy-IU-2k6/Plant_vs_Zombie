@@ -38,7 +38,7 @@ public class PotatoMine extends Plant {
     // ===== ASSET PATHS (đặt tên rõ ràng hơn) =====
     private static final String PATH_UNARMED_PREFIX = "images/Plants/PotatoMine/PotatoMineInit/PotatoMineInit_"; // 1
 
-    private static final String PATH_ARMED_PREFIX = "images/Plants/PotatoMine/PotatoMine_"; // 8 frames: _0..7.png
+    private static final String PATH_ARMED_PREFIX = "images/Plants/PotatoMine/PotatoMine/PotatoMine_"; // 8 frames:
 
     private static final String PATH_EXPLODE_PREFIX = "images/Plants/PotatoMine/PotatoMineExplode/PotatoMineExplode_"; // 1
 

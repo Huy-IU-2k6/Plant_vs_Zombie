@@ -6,7 +6,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -20,11 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.projectiles.FrozenPeaProjectile;
-import pvz.com.entities.projectiles.PeaProjectile;
-import pvz.com.entities.suns.Sun;
 import pvz.com.items.PlantCard;
 import pvz.com.logic.GameState;
 import pvz.com.logic.GameWorld;
@@ -37,19 +32,8 @@ import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.BackgroundManager;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
-import pvz.com.systems.AnimationSystem;
-import pvz.com.systems.CollisionSystem;
-import pvz.com.systems.ExplosionSystem;
-import pvz.com.systems.IGameSpawner;
-import pvz.com.systems.ISunReceiver;
-import pvz.com.systems.MovementSystem;
-import pvz.com.systems.PlantAttackSystem;
-import pvz.com.systems.RenderSystem;
-import pvz.com.systems.SunPickupSystem;
-import pvz.com.systems.SunProductionSystem;
-import pvz.com.systems.WallnutStateSystem;
 
-public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
+public class GameScreen implements Screen {
 
     // ===== World & layout =====
     private static final float WORLD_WIDTH = DesignConfig.BASE_SCREEN_W;
@@ -68,32 +52,19 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     private static final float GAME_BGM_VOLUME = 1f;
     private static final String GAME_BGM_PATH = "musics/Grasswalk.mp3";
 
-    private Music inheritedMenuMusic; // nhạc menu nhận từ MainMenu
-    private float inheritedMenuStartVolume = 1f;
-
-    private Music gameMusic; // nhạc gameplay do GameScreen tự load
-    private float crossfadeTimer = 0f;
-    private boolean startedFade = false;
-
-    // ===== Core refs =====
     private final Game game;
     private final SpriteBatch batch;
 
-    private final Stage hudStage;
+    // ===== Camera/viewport =====
     private final OrthographicCamera camera;
     private final Viewport viewport;
-    private final ShapeRenderer shapeRenderer;
 
-    // ===== ECS Systems =====
-    private final RenderSystem renderSystem;
-    private final AnimationSystem animationSystem;
-    private final SunProductionSystem sunSystem;
-    private final PlantAttackSystem attackSystem;
-    private final MovementSystem movementSystem;
-    private final CollisionSystem collisionSystem;
-    private final SunPickupSystem sunPickupSystem;
-    private final WallnutStateSystem wallnutStateSystem;
-    private final ExplosionSystem explosionSystem;
+    // ===== HUD =====
+    private final Stage hudStage;
+    private final HudController hudController;
+
+    // ===== Debug grid =====
+    private final ShapeRenderer shapeRenderer;
 
     // ===== ECS Data =====
     private final List<Entity> entities = new ArrayList<>();
@@ -103,17 +74,27 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     private final GameState gameState;
 
     // ===== Controllers =====
-    private final HudController hudController;
     private final PlantGridController plantGridController;
     private final LawnMowerController lawnMowerController;
     private final ZombieWaveController zombieWaveController;
     private final WorldRenderer worldRenderer;
 
-    // ===== World wrapper =====
+    // ===== World wrapper (chạy ECS) =====
     private final GameWorld gameWorld;
 
-    // ===== Placement Controller =====
+    // ===== Placement =====
     private final PlantPlacementController plantPlacementController;
+
+    // ===== GameOver switch guard =====
+    private boolean pushedGameOverScreen = false;
+
+    // ===== Music =====
+    private Music inheritedMenuMusic; // nhạc menu nhận từ MainMenu (có thể null)
+    private float inheritedMenuStartVolume = 1f;
+
+    private Music gameMusic;
+    private float crossfadeTimer = 0f;
+    private boolean startedFade = false;
 
     public GameScreen(Game game) {
         this(game, null);
@@ -129,7 +110,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         this.hudStage = new Stage(new ScreenViewport());
         this.hudStage.getRoot().setUserObject(this);
 
-        // World camera/viewport
+        // Camera/viewport
         this.camera = new OrthographicCamera();
         this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
         camera.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0f);
@@ -138,12 +119,11 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         // GridConfig init theo world size
         GridConfig.init(viewport.getWorldWidth(), viewport.getWorldHeight());
 
+        // State + HUD
         this.gameState = new GameState();
-
-        // HUD
         this.hudController = new HudController(hudStage, COUNTDOWN_DURATION, INITIAL_SUN);
 
-        // Grid
+        // Grid controller
         this.plantGridController = new PlantGridController(entities, plants, camera);
         this.plantGridController.setEnabled(false);
 
@@ -168,7 +148,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
                 lawnMowerController,
                 zombieWaveController);
 
-        // GameWorld
+        // GameWorld: nơi chạy ECS (attack/movement/collision/sun pickup/cleanup...)
         this.gameWorld = new GameWorld(
                 gameState,
                 hudController,
@@ -179,34 +159,23 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
                 plantGridController,
                 batch);
 
-        // Placement controller (bây giờ dùng cái này để đặt cây)
+        // Placement controller
         this.plantPlacementController = new PlantPlacementController(
                 viewport,
                 hudController,
                 plantGridController,
                 gameWorld);
 
-        // Shape debug
+        // Debug renderer
         this.shapeRenderer = new ShapeRenderer();
 
-        // ===== ECS Init =====
-        this.renderSystem = new RenderSystem(batch);
-        this.animationSystem = new AnimationSystem();
-        this.sunSystem = new SunProductionSystem(this, entities);
-        this.attackSystem = new PlantAttackSystem(this, zombieWaveController);
-        this.movementSystem = new MovementSystem();
-        this.collisionSystem = new CollisionSystem(entities, zombieWaveController, plantGridController);
-        this.sunPickupSystem = new SunPickupSystem(entities, camera, this);
-        this.wallnutStateSystem = new WallnutStateSystem();
-        this.explosionSystem = new ExplosionSystem(zombieWaveController, plantGridController);
-
-        // ===== Load game music =====
+        // Load game music
         this.gameMusic = Gdx.audio.newMusic(Gdx.files.internal(GAME_BGM_PATH));
         this.gameMusic.setLooping(true);
-        this.gameMusic.setVolume(0f); // sẽ fade in
+        this.gameMusic.setVolume(0f); // fade in
     }
 
-    // ================== Getters ==================
+    // ================== Public getters ==================
 
     public GameState getGameState() {
         return gameState;
@@ -216,46 +185,30 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         return hudController;
     }
 
-    // ================== Helpers ==================
-
-    private boolean isPlaying() {
-        return gameState.isPlaying();
-    }
-
-    private boolean isCountdown() {
-        return gameState.isCountdown();
-    }
-
-    private boolean isGameOver() {
-        return gameState.isGameOver();
-    }
-
-    // ================== HUD interaction ==================
+    // ================== Plant card interaction ==================
 
     public void onPlantCardClicked(PlantCard card) {
         if (card == null)
             return;
-        if (isGameOver())
+        if (gameState.isGameOver())
             return;
 
-        // Mode click-to-place (nếu muốn dùng lại) — hiện giờ chỉ trừ sun + cooldown
-        plantPlacementController.handleCardClicked(card, isPlaying());
+        // click-to-place (hiện tại xử lý trừ sun + cooldown ở controller)
+        plantPlacementController.handleCardClicked(card, gameState.isPlaying());
     }
 
     public void onPlantCardDragged(PlantCard card, float screenX, float screenY) {
         if (card == null)
             return;
-        if (isGameOver())
+        if (gameState.isGameOver())
             return;
 
-        // Quan trọng: dùng PlacementController (vì GridController không còn
-        // placePlantFromDrag)
-        plantPlacementController.handleCardDragged(card, screenX, screenY, isPlaying());
+        plantPlacementController.handleCardDragged(card, screenX, screenY, gameState.isPlaying());
     }
 
     // ================== AUDIO ==================
 
-    private void startCrossfade() {
+    private void startCrossfadeIfNeeded() {
         if (startedFade)
             return;
         startedFade = true;
@@ -265,7 +218,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
             gameMusic.play();
         }
 
-        // nếu nhạc menu có sẵn thì đảm bảo nó đang play
+        // nếu nhạc menu có thì đảm bảo nó đang play
         if (inheritedMenuMusic != null) {
             inheritedMenuStartVolume = inheritedMenuMusic.getVolume();
             if (inheritedMenuStartVolume <= 0f)
@@ -295,7 +248,6 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
 
         if (inheritedMenuMusic != null) {
             inheritedMenuMusic.setVolume(inheritedMenuStartVolume * (1f - progress));
-
             if (crossfadeTimer <= 0f) {
                 inheritedMenuMusic.stop();
                 inheritedMenuMusic.dispose();
@@ -324,17 +276,18 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         }
     }
 
-    // ================== Game State & Loop ==================
+    // ================== Game flow ==================
 
     private void updateState(float delta) {
-        if (isGameOver())
+        if (gameState.isGameOver())
             return;
-        if (!isCountdown())
+        if (!gameState.isCountdown())
             return;
 
         if (hudController.isCountdownFinished()) {
             gameState.setState(GameState.State.PLAYING);
             hudController.onCountdownFinished();
+
             zombieWaveController.startWave();
             lawnMowerController.createLawnMowers();
             plantGridController.setEnabled(true);
@@ -342,16 +295,62 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     }
 
     private void updateWorldControllers(float delta) {
-        if (!isPlaying())
+        if (!gameState.isPlaying())
             return;
+
         zombieWaveController.update(delta);
         lawnMowerController.update(delta, zombieWaveController.getZombies());
     }
 
     private void handleEscape() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            // pause trước khi qua ResumeScreen (đỡ phụ thuộc hide())
+            pauseMusics();
             game.setScreen(new ResumeScreen(game, this));
         }
+    }
+
+    private void pushGameOverOverlayIfNeeded() {
+        if (!gameState.isGameOver())
+            return;
+        if (pushedGameOverScreen)
+            return;
+
+        pushedGameOverScreen = true;
+        game.setScreen(new GameOverScreen(game, this, gameState.isPlayerWon()));
+    }
+
+    // ================== Render helpers ==================
+
+    private void clearScreen() {
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    }
+
+    private void renderWorldOnly(boolean isCountdown, boolean isPlaying) {
+        camera.update();
+        batch.setProjectionMatrix(camera.combined);
+
+        batch.begin();
+        worldRenderer.render(batch, isCountdown, isPlaying);
+        batch.end();
+    }
+
+    /**
+     * Dùng cho GameOverScreen chụp lại frame cuối:
+     * - KHÔNG update logic
+     * - CHỈ render world + entities + HUD đúng trạng thái hiện tại
+     */
+    public void renderFrozen() {
+        clearScreen();
+        renderWorldOnly(gameState.isCountdown(), true);
+
+        // entities (RenderSystem trong GameWorld sẽ begin/end batch riêng)
+        batch.setProjectionMatrix(camera.combined);
+        gameWorld.render(batch);
+
+        hudStage.act(0f);
+        hudStage.draw();
     }
 
     // ================== Screen ==================
@@ -360,7 +359,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     public void show() {
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(hudStage);
-        multiplexer.addProcessor(sunPickupSystem);
+        multiplexer.addProcessor(gameWorld.getSunPickupSystem()); // input pickup sun
         Gdx.input.setInputProcessor(multiplexer);
 
         // Nếu quay lại từ ResumeScreen, đảm bảo music chạy lại
@@ -369,69 +368,43 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         }
 
         // Lần đầu vào thì crossfade
-        startCrossfade();
+        startCrossfadeIfNeeded();
     }
 
     @Override
     public void render(float delta) {
         updateCrossfade(delta);
 
-        updateState(delta);
-        updateWorldControllers(delta);
         handleEscape();
 
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        // update countdown -> playing
+        updateState(delta);
 
-        camera.update();
-        batch.setProjectionMatrix(camera.combined);
+        // update controller “ngoài ECS” (zombie wave + lawnmower)
+        updateWorldControllers(delta);
 
-        // 1) World
-        batch.begin();
-        worldRenderer.render(batch, isCountdown(), isPlaying());
-        batch.end();
+        clearScreen();
 
-        drawDebugGrid();
+        // world layer
+        renderWorldOnly(gameState.isCountdown(), gameState.isPlaying());
 
-        // 2) ECS
-        if (isPlaying()) {
-            sunSystem.update(delta);
-            wallnutStateSystem.update(entities);
-            explosionSystem.update(entities, delta);
+        // debug (nếu muốn)
+        // drawDebugGrid();
 
-            animationSystem.update(entities, delta);
-            attackSystem.update(plants, delta);
-            movementSystem.update(entities, delta);
-            collisionSystem.update(delta);
-            sunPickupSystem.update(delta);
-
+        // ECS update + render entities (chỉ khi playing)
+        if (gameState.isPlaying()) {
             gameWorld.update(delta);
 
             batch.setProjectionMatrix(camera.combined);
-            renderSystem.update(entities);
+            gameWorld.render(batch);
         }
 
+        // HUD luôn vẽ (countdown / playing / gameover đều có thể cần)
         hudStage.act(delta);
         hudStage.draw();
-    }
 
-    private void drawDebugGrid() {
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(new Color(1f, 1f, 1f, 0.3f));
-
-        for (int row = 0; row < GridConfig.ROWS; row++) {
-            for (int col = 0; col < GridConfig.COLS; col++) {
-                float x = GridConfig.getCellOriginX(col);
-                float y = GridConfig.getCellOriginY(row);
-                shapeRenderer.rect(x, y, GridConfig.CELL_WIDTH, GridConfig.CELL_HEIGHT);
-            }
-        }
-
-        shapeRenderer.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+        // nếu game over -> đẩy overlay (1 lần)
+        pushGameOverOverlayIfNeeded();
     }
 
     @Override
@@ -447,11 +420,13 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
 
     @Override
     public void resume() {
-        /* show() sẽ xử lý play lại */ }
+        // show() sẽ xử lý play lại
+    }
 
     @Override
     public void hide() {
-        // Không dispose ở đây để tránh mất nhạc khi chuyển sang ResumeScreen
+        // giữ giống bản cũ: chuyển screen thì tạm pause
+        // (nếu muốn GameOver overlay vẫn nghe nhạc, có thể bỏ dòng này)
         pauseMusics();
     }
 
@@ -464,29 +439,8 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         hudController.dispose();
         worldRenderer.dispose();
         shapeRenderer.dispose();
+
+        // nếu có ZombieSounds static
         pvz.com.entities.Zombies.ZombieSounds.disposeAll();
-    }
-
-    // ================== IGameSpawner ==================
-
-    @Override
-    public void spawnSun(float x, float y, int amount) {
-        entities.add(new Sun(x, y, amount));
-    }
-
-    @Override
-    public void spawnProjectile(float x, float y, int damage, PlantDamageType type, Class<?> projectileClass) {
-        if (projectileClass == PeaProjectile.class) {
-            entities.add(new PeaProjectile(x, y, damage));
-        } else if (projectileClass == FrozenPeaProjectile.class) {
-            entities.add(new FrozenPeaProjectile(x, y, damage));
-        }
-    }
-
-    // ================== ISunReceiver ==================
-
-    @Override
-    public void addSun(int amount) {
-        hudController.addSun(amount);
     }
 }
