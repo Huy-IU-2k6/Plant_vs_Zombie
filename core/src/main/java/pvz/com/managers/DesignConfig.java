@@ -22,12 +22,12 @@ public class DesignConfig {
     public static final float ZOMBIE_W = 160f;
     public static final float ZOMBIE_H = 180f;
 
-    private static final float PEA_SIZE_RATIO = 0.14f;
+    private static final float PEA_SIZE_RATIO = 0.21f;
 
     public static final float PEA_WIDTH = FIXED_HEIGHT * PEA_SIZE_RATIO;
     public static final float PEA_HEIGHT = FIXED_HEIGHT * PEA_SIZE_RATIO;
 
-    private static final float SUN_SIZE_RATIO = 0.28f;
+    private static final float SUN_SIZE_RATIO = 0.42f;
 
     public static final float SUN_WIDTH = FIXED_HEIGHT * SUN_SIZE_RATIO;
     public static final float SUN_HEIGHT = FIXED_HEIGHT * SUN_SIZE_RATIO;

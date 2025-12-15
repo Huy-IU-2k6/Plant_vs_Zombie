@@ -12,7 +12,7 @@ public class Wallnut extends Plant {
 
     private static final float SCALE_X = 0.7f;
     private static final float SCALE_Y = 0.8f;
-    private static final float FRAME_DURATION = 0.15f; // Tốc độ animation
+    private static final float FRAME_DURATION = 0.12f; // Tốc độ animation
     private static final int TOTAL_HEALTH = 4000;
 
     public Wallnut(float x, float y, int gridCol, int gridRow) {
@@ -25,11 +25,14 @@ public class Wallnut extends Plant {
         // =================================================================
         // 1. LOAD ANIMATIONS CHO CẢ 3 TRẠNG THÁI
         // =================================================================
-        
+
         // Helper function để load ảnh cho gọn (xem bên dưới)
-        Animation<TextureRegion> animFull = loadAnimation("images/Plants/Wallnut/WallNut/WallNut_", 10); // Giả sử có 10 frame
-        Animation<TextureRegion> animCrack1 = loadAnimation("images/Plants/Wallnut/WallNut_cracked1/Wallnut_cracked1_", 10);
-        Animation<TextureRegion> animCrack2 = loadAnimation("images/Plants/Wallnut/WallNut_cracked2/Wallnut_cracked2_", 10);
+        Animation<TextureRegion> animFull = loadAnimation("images/Plants/Wallnut/WallNut/WallNut_", 10); // Giả sử có 10
+                                                                                                         // frame
+        Animation<TextureRegion> animCrack1 = loadAnimation("images/Plants/Wallnut/WallNut_cracked1/Wallnut_cracked1_",
+                10);
+        Animation<TextureRegion> animCrack2 = loadAnimation("images/Plants/Wallnut/WallNut_cracked2/Wallnut_cracked2_",
+                10);
 
         // =================================================================
         // 2. THIẾT LẬP CÁC COMPONENTS

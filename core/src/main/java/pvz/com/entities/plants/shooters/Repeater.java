@@ -13,10 +13,10 @@ import pvz.com.managers.GridConfig;
 public class Repeater extends Plant {
     // [FIX 1] Thêm tỷ lệ Scale (0.7f nghĩa là to bằng 70% ô đất)
     // Bạn có thể giảm xuống 0.6f nếu vẫn thấy to
-    private static final float SCALE_X = 0.7f; 
+    private static final float SCALE_X = 0.7f;
     private static final float SCALE_Y = 0.75f;
 
-    private static final int FRAME_COUNT = 15; 
+    private static final int FRAME_COUNT = 15;
     private static final float FRAME_DURATION = 0.12f;
 
     public Repeater(float x, float y, int col, int row) {
@@ -33,32 +33,31 @@ public class Repeater extends Plant {
         Animation<TextureRegion> anim = new Animation<>(FRAME_DURATION, frames, Animation.PlayMode.LOOP);
 
         this.addComponent(new SpriteComponent(frames.first()));
-        
+
         AnimationComponent animComp = new AnimationComponent();
         animComp.addAnimation(EntityState.IDLE, anim);
-        
+
         // [LƯU Ý] Kiểm tra kỹ xem hệ thống của bạn dùng "ATTACK" hay "ATTACKING"
         // Trong PlantAttackSystem hôm trước mình gửi thì dùng EntityState.ATTACK
-        animComp.addAnimation(EntityState.ATTACKING, anim); 
+        animComp.addAnimation(EntityState.ATTACKING, anim);
         this.addComponent(animComp);
 
         this.addComponent(new StateComponent(EntityState.IDLE));
-        this.addComponent(new HealthComponent(100)); 
+        this.addComponent(new HealthComponent(100));
         this.addComponent(new TeamComponent(Team.PLANT));
         this.addComponent(new GridCellComponent(col, row));
 
         // 2. CẤU HÌNH TẤN CÔNG
         PlantAttackComponent attackComp = new PlantAttackComponent(
-                20,                  
-                900f,                
-                PeaProjectile.class, 
+                20,
+                900f,
+                PeaProjectile.class,
                 PlantDamageType.NORMAL,
-                1.5f                 
-        );
-        
+                1.5f);
+
         // Bắn 2 viên
-        attackComp.setBurstFire(2, 0.15f); 
-        
+        attackComp.setBurstFire(2, 0.15f);
+
         this.addComponent(attackComp);
     }
 }

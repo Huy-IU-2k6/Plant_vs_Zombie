@@ -20,7 +20,7 @@ public class PlantCard extends Image {
     public final PlantType type;
     private final PlantDef def;
 
-    public static final float WIDTH = 95f;
+    public static final float WIDTH = 109f;
     public static final float HEIGHT = 120f;
 
     private static final float DISABLED_ALPHA = 0.4f;

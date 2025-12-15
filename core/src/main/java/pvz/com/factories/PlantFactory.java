@@ -43,8 +43,8 @@ public class PlantFactory {
 
     private static final float REPEATER_SCALE_X = 0.55f;
     private static final float REPEATER_SCALE_Y = 0.55f;
-    // =========================================================
-    // API CHÍNH: TẠO PLANT THEO Ô GRID (col, row)
+    // ========================================================= API CHÍNH: TẠO
+    // PLANT THEO Ô GRID (col, row)
     // =========================================================
 
     /**
