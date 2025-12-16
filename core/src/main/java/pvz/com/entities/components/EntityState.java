@@ -11,4 +11,5 @@ public enum EntityState {
     WALLNUT_CRACKED_1, // Nứt nhẹ ( 25% - 75%)
     WALLNUT_CRACKED_2,  // Nứt nặng ( < 25%)
     EXPLODING,
+    UNARMED,
 }
