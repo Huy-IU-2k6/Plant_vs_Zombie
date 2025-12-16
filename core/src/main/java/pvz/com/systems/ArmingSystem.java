@@ -12,17 +12,21 @@ public class ArmingSystem {
 
             if (arming == null || state == null) continue;
 
-            // Nếu chưa vũ trang (đang là cục đất)
+            // Nếu chưa vũ trang (đang là cục đất/nhấp nháy)
             if (!arming.isArmed) {
-                arming.armingTimer -= delta;
+                // Lưu ý: Chỉ trừ thời gian khi đang ở trạng thái UNARMED (nhấp nháy đèn)
+                // Tránh việc nó đếm giờ ngay cả khi đang GROWING
+                if (state.get() == EntityState.UNARMED) {
+                    arming.armingTimer -= delta;
 
-                if (arming.armingTimer <= 0) {
-                    // => ĐÃ CHÍN: Chuyển sang trạng thái sẵn sàng
-                    arming.isArmed = true;
-                    
-                    // Đổi trạng thái animation sang IDLE (Cây mọc lên)
-                    state.set(EntityState.IDLE);
-                    state.timeInState = 0f; // Reset thời gian animation
+                    if (arming.armingTimer <= 0) {
+                        // => ĐÃ CHÍN
+                        arming.isArmed = true;
+                        
+                        // [THAY ĐỔI] Chuyển sang trạng thái RISING (Trồi lên)
+                        state.set(EntityState.RISING);
+                        state.timeInState = 0f; 
+                    }
                 }
             }
         }

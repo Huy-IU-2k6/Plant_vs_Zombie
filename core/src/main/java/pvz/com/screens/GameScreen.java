@@ -39,6 +39,7 @@ import pvz.com.systems.MovementSystem;
 import pvz.com.systems.CollisionSystem;
 import pvz.com.systems.SunPickupSystem;
 import pvz.com.systems.AnimationSystem;
+import pvz.com.systems.ArmingSystem;
 import pvz.com.systems.ExplosionSystem;
 
 import pvz.com.logic.GameState;
@@ -86,6 +87,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
     private final SunPickupSystem sunPickupSystem;
     private final WallnutStateSystem wallnutStateSystem;
     private final ExplosionSystem explosionSystem;
+    private ArmingSystem armingSystem;
 
     // ===== ECS Data =====
     private final List<Entity> entities = new ArrayList<>();
@@ -185,6 +187,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         sunPickupSystem = new SunPickupSystem(entities, camera, this);
         wallnutStateSystem = new WallnutStateSystem();
         explosionSystem = new ExplosionSystem(zombieWaveController, plantGridController);
+        armingSystem = new ArmingSystem(); 
     }
 
     // ================== Getters ==================
@@ -262,6 +265,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         multiplexer.addProcessor(sunPickupSystem);
 
         Gdx.input.setInputProcessor(multiplexer);
+        armingSystem = new ArmingSystem();
     }
 
     @Override
@@ -288,7 +292,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
             sunSystem.update(delta);
             wallnutStateSystem.update(entities);
             explosionSystem.update(entities, delta); // Bom nổ
-            
+            armingSystem.update(entities, delta);
             animationSystem.update(entities, delta);
             attackSystem.update(plants, delta);      // Cây bắn
             movementSystem.update(entities, delta);
