@@ -18,7 +18,7 @@ public class NormalZombie extends Zombies {
 
     // Animation Speeds
     private static final float WALK_FRAME_TIME = 0.12f;
-    private static final float EAT_FRAME_TIME = 0.25f;
+    private static final float EAT_FRAME_TIME = 0.1f;
     private static final float BODY_DIE_FRAME_TIME = 0.15f; 
     private static final float HEAD_POP_FRAME_TIME = 0.1f;  
     private static final float CHARRED_FRAME_TIME = 0.15f; // [MỚI]
@@ -86,7 +86,9 @@ public class NormalZombie extends Zombies {
     private Array<Texture> loadTextures(String prefix, int count) {
         Array<Texture> textures = new Array<>();
         for (int i = 0; i <= count; i++) {
-            textures.add(new Texture(prefix + i + ".png"));
+            Texture tex = new Texture(prefix + i + ".png");
+            tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            textures.add(tex);
         }
         return textures;
     }
