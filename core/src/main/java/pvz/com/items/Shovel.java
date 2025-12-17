@@ -22,13 +22,19 @@ import pvz.com.systems.ISunReceiver;
 
 public class Shovel extends Actor {
 
+    // icon (trong seedbank/HUD)
     private final Texture texture;
+
+    // ghost texture (khi kéo/thả)
+    private final Texture ghostTexture;
+    private final TextureRegion ghostRegion;
+
     private final PlantGridController grid;
     private final ShovelController shovelController;
     private final ISunReceiver sunReceiver;
 
     // UI config
-    private float padding = 12f;
+    private float padding = 6f;
     private float iconSize = 64f;
 
     // state
@@ -48,7 +54,12 @@ public class Shovel extends Actor {
         this.shovelController = shovelController;
         this.sunReceiver = sunReceiver;
 
-        this.texture = new Texture(Gdx.files.internal("images/items/Shovel.png"));
+        // Icon texture (khung xẻng)
+        this.texture = new Texture(Gdx.files.internal("images/items/Shovel_Box.png"));
+
+        // Ghost texture (xẻng thật)
+        this.ghostTexture = new Texture(Gdx.files.internal("images/items/Shovel.png"));
+        this.ghostRegion = new TextureRegion(ghostTexture);
 
         setSize(iconSize, iconSize);
         setTouchable(Touchable.enabled);
@@ -65,9 +76,8 @@ public class Shovel extends Actor {
                 dragging = true;
 
                 ensureGhost(event.getStage());
-                moveGhostToStage(event, x, y); // đặt ghost đúng vị trí lúc bắt đầu
+                moveGhostToStage(event, x, y);
 
-                // Quan trọng: giành touch focus để tiếp tục nhận drag
                 return true;
             }
 
@@ -85,10 +95,8 @@ public class Shovel extends Actor {
 
                 dragging = false;
 
-                // Thả ghost -> thử đào tại vị trí thả
                 tryDigAtGhostPosition();
 
-                // Xong thì tắt + ẩn ghost
                 active = false;
                 removeGhost();
             }
@@ -103,10 +111,11 @@ public class Shovel extends Actor {
 
         removeGhost();
 
-        ghost = new GhostActor(new TextureRegion(texture));
+        // ✅ ghost dùng Shovel.png
+        ghost = new GhostActor(ghostRegion);
         ghost.setSize(iconSize, iconSize);
         ghost.setOrigin(Align.center);
-        ghost.setTouchable(Touchable.disabled); // ghost chỉ để vẽ
+        ghost.setTouchable(Touchable.disabled);
 
         stage.addActor(ghost);
     }
@@ -115,12 +124,9 @@ public class Shovel extends Actor {
         if (ghost == null)
             return;
 
-        // localX/localY là tọa độ trong Shovel actor,
-        // convert sang stage coords để đặt ghost
         float stageX = event.getStageX();
         float stageY = event.getStageY();
 
-        // đặt ghost sao cho tâm ghost nằm ở con trỏ
         ghost.setPosition(stageX - ghost.getWidth() / 2f, stageY - ghost.getHeight() / 2f);
     }
 
@@ -132,12 +138,10 @@ public class Shovel extends Actor {
         if (stage == null)
             return;
 
-        // tâm ghost (stage coords)
         Vector2 v = new Vector2(
                 ghost.getX() + ghost.getWidth() / 2f,
                 ghost.getY() + ghost.getHeight() / 2f);
 
-        // convert stage -> screen (screen coords chuẩn: (0,0) ở top-left)
         stage.stageToScreenCoordinates(v);
 
         int[] cell = grid.screenToNearestCell(Math.round(v.x), Math.round(v.y));
@@ -179,6 +183,7 @@ public class Shovel extends Actor {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
+        // icon vẫn vẽ Shovel_Box.png
         batch.draw(texture, getX(), getY(), getWidth(), getHeight());
     }
 
@@ -193,6 +198,8 @@ public class Shovel extends Actor {
     public void setIconSize(float iconSize) {
         this.iconSize = iconSize;
         setSize(iconSize, iconSize);
+        if (ghost != null)
+            ghost.setSize(iconSize, iconSize);
     }
 
     public void setRefundRatio(float refundRatio) {
@@ -201,6 +208,7 @@ public class Shovel extends Actor {
 
     public void dispose() {
         texture.dispose();
+        ghostTexture.dispose(); // ✅ nhớ dispose luôn ghost texture
     }
 
     // ===== Ghost actor: vẽ bóng mờ =====
@@ -213,7 +221,6 @@ public class Shovel extends Actor {
 
         @Override
         public void draw(Batch batch, float parentAlpha) {
-            // alpha mờ
             float old = batch.getColor().a;
             batch.setColor(1f, 1f, 1f, 0.45f);
             batch.draw(region, getX(), getY(), getWidth(), getHeight());
