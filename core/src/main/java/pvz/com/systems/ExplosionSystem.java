@@ -1,7 +1,5 @@
 package pvz.com.systems;
 
-import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
@@ -81,7 +79,7 @@ public class ExplosionSystem {
                         
                         pos.x -= offset;
                         pos.y -= offset;
-                        
+
                         size.width = newSize;
                         size.height = newSize;
                     }
@@ -104,7 +102,7 @@ public class ExplosionSystem {
 
                 // Chạy hết phim nổ thì xóa khỏi game
                 if (explosive.timer >= explodeAnimDuration) {
-                    toRemove.add(entity); 
+                    toRemove.add(entity);
                 }
             }
         }
@@ -120,7 +118,8 @@ public class ExplosionSystem {
         float centerY = bombPos.y + (currentSize / 2f);
 
         for (Zombies z : zombieController.getZombies()) {
-            if (z.isDead()) continue;
+            if (z.isDead())
+                continue;
 
             float zCenterX = z.getX() + z.getWidth() / 2f;
             float zCenterY = z.getY() + z.getHeight() / 2f;

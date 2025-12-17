@@ -27,7 +27,7 @@ public class LawnMowerController {
             // Grid center Y của row hiện tại
             float laneCenterY = GridConfig.getCellCenterY(row);
             // offset xuống 1 chút cho phù hợp sprite (giống logic cũ: -50f)
-            float mowerY = laneCenterY;
+            float mowerY = laneCenterY - 50f;
 
             lawnMowers.add(new LawnMower(mowerStartX, mowerY, worldWidth));
         }

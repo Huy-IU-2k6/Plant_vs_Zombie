@@ -10,7 +10,6 @@ public final class PlantCatalog {
     static {
         // ===== Cards / Shop / Cooldown =====
         DEFS.put(PlantType.CHERRYBOMB, new PlantDef("images/Cards/CherryBomb.png", 150, 15f));
-        DEFS.put(PlantType.CHOMPER, new PlantDef("images/Cards/Chomper.png", 150, 2.5f));
         DEFS.put(PlantType.PEASHOOTER, new PlantDef("images/Cards/PeaShooter.png", 100, 2.5f));
         DEFS.put(PlantType.POTATOMINE, new PlantDef("images/Cards/PotatoMine.png", 25, 10f));
         DEFS.put(PlantType.REPEATER, new PlantDef("images/Cards/Repeater.png", 200, 2.5f));

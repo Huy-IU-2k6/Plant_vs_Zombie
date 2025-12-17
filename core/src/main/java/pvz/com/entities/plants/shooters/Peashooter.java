@@ -17,7 +17,7 @@ public class Peashooter extends Plant {
 
     // Tốc độ animation (0.1 giây / frame)
     // Số càng nhỏ cây lắc lư càng nhanh
-    private static final float FRAME_DURATION = 0.1f;
+    private static final float FRAME_DURATION = 0.12f;
 
     public Peashooter(float x, float y, int col, int row) {
         super(

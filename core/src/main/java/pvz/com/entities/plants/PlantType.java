@@ -7,6 +7,5 @@ public enum PlantType {
     CHERRYBOMB,
     POTATOMINE,
     SNOWPEA,
-    CHOMPER,
     REPEATER,
 }

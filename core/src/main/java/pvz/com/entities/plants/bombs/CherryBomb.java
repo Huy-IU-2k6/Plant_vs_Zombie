@@ -7,9 +7,12 @@ import com.badlogic.gdx.utils.Array;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
-import pvz.com.managers.GridConfig;
 
 public class CherryBomb extends Plant {
+    private static final float FRAME_DURATION = 0.12f;
+
+    // Nếu muốn nổ nhanh hơn idle thì dùng multiplier (tuỳ chọn)
+    private static final float EXPLODE_FRAME_DURATION = FRAME_DURATION * 0.8f;
 
     public CherryBomb(float x, float y, int col, int row) {
         // Kích thước 90x90
@@ -18,21 +21,23 @@ public class CherryBomb extends Plant {
         // =============================================================
         // 1. TẠO ANIMATION
         // =============================================================
-        
+
         // A. IDLE (Ngòi nổ cháy): CherryBomb_0.png -> CherryBomb_6.png
         Array<TextureRegion> idleFrames = new Array<>();
         for (int i = 0; i <= 6; i++) {
-            idleFrames.add(new TextureRegion(new Texture("images/Plants/CherryBomb/CherryBomb/CherryBomb_" + i + ".png")));
+            idleFrames.add(
+                    new TextureRegion(new Texture("images/Plants/CherryBomb/CherryBomb/CherryBomb_" + i + ".png")));
         }
-        Animation<TextureRegion> idleAnim = new Animation<>(0.15f, idleFrames, Animation.PlayMode.LOOP);
+        Animation<TextureRegion> idleAnim = new Animation<>(FRAME_DURATION, idleFrames, Animation.PlayMode.LOOP);
 
-        // B. EXPLODE (Nổ Bùm): Boom_0.png -> Boom_4.png
+        // B. EXPLODE (Nổ Bùm): powie_18.png -> powie_28.png
         Array<TextureRegion> explodeFrames = new Array<>();
         for (int i = 18; i <= 28; i++) {
-            explodeFrames.add(new TextureRegion(new Texture("images/Plants/CherryBomb/powie/powie_" + i + ".png")));
+            explodeFrames.add(
+                    new TextureRegion(new Texture("images/Plants/CherryBomb/powie/powie_" + i + ".png")));
         }
-        // Quan trọng: Animation nổ chỉ chạy 1 lần (NORMAL), không lặp
-        Animation<TextureRegion> explodeAnim = new Animation<>(0.1f, explodeFrames, Animation.PlayMode.NORMAL);
+        Animation<TextureRegion> explodeAnim = new Animation<>(EXPLODE_FRAME_DURATION, explodeFrames,
+                Animation.PlayMode.NORMAL);
 
         // =============================================================
         // 2. COMPONENTS
@@ -51,8 +56,6 @@ public class CherryBomb extends Plant {
         this.addComponent(new GridCellComponent(col, row));
 
         // [CƠ CHẾ NỔ]
-        // Range 150f: Bán kính nổ.
-        // Ô lưới khoảng 80x90. 150f tính từ tâm sẽ quét được 3x3 ô xung quanh.
-        this.addComponent(new ExplosiveComponent(1800, 250f, 1.0f)); 
+        this.addComponent(new ExplosiveComponent(1800, 250f, 1.0f));
     }
 }
