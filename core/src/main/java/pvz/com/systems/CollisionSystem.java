@@ -37,7 +37,8 @@ public class CollisionSystem {
         float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
 
         for (Zombies zombie : zombieWaveController.getZombies()) {
-            if (zombie == null) continue;
+            if (zombie == null)
+                continue;
 
             if (zombie.isDead()) {
                 zombie.setEating(false);
@@ -56,16 +57,20 @@ public class CollisionSystem {
 
     private void handleZombieProjectiles(Zombies zombie, Rectangle zRect) {
         for (Entity projectile : entities) {
-            if (projectile == null || projectile.markedForRemoval) continue;
-            if (projectile.getComponent(ProjectileTagComponent.class) == null) continue;
+            if (projectile == null || projectile.markedForRemoval)
+                continue;
+            if (projectile.getComponent(ProjectileTagComponent.class) == null)
+                continue;
 
             BoundsComponent pBounds = projectile.getComponent(BoundsComponent.class);
             DamageComponent damage = projectile.getComponent(DamageComponent.class);
-            if (pBounds == null || damage == null) continue;
+            if (pBounds == null || damage == null)
+                continue;
 
             syncBoundsWithPosition(projectile);
 
-            if (!pBounds.bounds.overlaps(zRect)) continue;
+            if (!pBounds.bounds.overlaps(zRect))
+                continue;
 
             zombie.takeDamage(damage.amount);
             projectile.markedForRemoval = true;
@@ -103,13 +108,14 @@ public class CollisionSystem {
             // Kiểm tra lại nếu cây là Potato Mine
             ArmingComponent arming = currentTarget.getComponent(ArmingComponent.class);
             // [LOGIC GỐC]: Nếu mìn chưa chín -> Vẫn tiếp tục ăn
-            // Nếu mìn ĐÃ CHÍN -> Ngừng ăn để kích hoạt nổ (trường hợp hiếm khi đang ăn thì chín)
+            // Nếu mìn ĐÃ CHÍN -> Ngừng ăn để kích hoạt nổ (trường hợp hiếm khi đang ăn thì
+            // chín)
             if (arming != null && arming.isArmed) {
-                 // Kích hoạt nổ ngay lập tức
-                 handlePotatoMine(zombie, currentTarget);
-                 eatingTargets.remove(zombie);
-                 zombie.setEating(false);
-                 return;
+                // Kích hoạt nổ ngay lập tức
+                handlePotatoMine(zombie, currentTarget);
+                eatingTargets.remove(zombie);
+                zombie.setEating(false);
+                return;
             }
 
             zombie.setEating(true);
@@ -120,22 +126,27 @@ public class CollisionSystem {
         // 2. Tìm cây mới
         Plant[] rowPlants = grid[zombieRow];
         for (Plant plant : rowPlants) {
-            if (plant == null || plant.markedForRemoval) continue;
-            if (!plant.hasComponent(BoundsComponent.class)) continue;
+            if (plant == null || plant.markedForRemoval)
+                continue;
+            if (!plant.hasComponent(BoundsComponent.class))
+                continue;
 
             TeamComponent team = plant.getComponent(TeamComponent.class);
-            if (team == null || team.team != Team.PLANT) continue;
+            if (team == null || team.team != Team.PLANT)
+                continue;
 
             BoundsComponent pb = plant.getComponent(BoundsComponent.class);
             Rectangle plantHitbox = pb.bounds;
-            if (!Intersector.overlaps(zRect, plantHitbox)) continue;
+            if (!Intersector.overlaps(zRect, plantHitbox))
+                continue;
 
             // Xử lý Potato Mine
             if (plant.hasComponent(ArmingComponent.class)) {
                 boolean handled = handlePotatoMine(zombie, plant);
                 // Nếu handled = true (đã kích nổ) -> return
                 // Nếu handled = false (chưa chín) -> chạy tiếp xuống dưới để zombie ăn
-                if (handled) return; 
+                if (handled)
+                    return;
             }
 
             // Bắt đầu ăn cây (Bao gồm cả Potato Mine chưa chín)
@@ -150,10 +161,11 @@ public class CollisionSystem {
 
     private void damagePlantAndMaybeRemove(Plant plant, float deltaTime) {
         HealthComponent health = plant.getComponent(HealthComponent.class);
-        if (health == null) return;
+        if (health == null)
+            return;
 
         // Có thể thay bằng DesignConfig.DAMAGE_PER_SECOND nếu có
-        float damagePerSecond = 100f; 
+        float damagePerSecond = DesignConfig.DAMAGE_PER_SECOND;
         health.currentHealth -= damagePerSecond * deltaTime;
 
         if (health.isDead()) {

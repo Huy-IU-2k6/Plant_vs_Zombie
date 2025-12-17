@@ -44,6 +44,7 @@ public class DesignConfig {
 
     private DesignConfig() {
     }
+
     public static final float SUN_COOL_DOWN = 15f; // Thời gian tạo ra 1 quả sun
 
     public static final float DAMAGE_PER_SECOND = 10f;
