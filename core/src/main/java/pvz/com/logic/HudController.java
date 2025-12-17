@@ -2,6 +2,7 @@ package pvz.com.logic;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.utils.Array;
 
 import pvz.com.entities.plants.PlantType;
@@ -27,7 +28,7 @@ public class HudController implements ISunReceiver {
     private CountdownActor countdown;
     private final BitmapFont hudFont;
 
-    // NEW: shovel
+    // shovel
     private final Shovel shovel;
 
     // SUN owner duy nhất nằm ở đây
@@ -57,8 +58,10 @@ public class HudController implements ISunReceiver {
         // Plant cards
         createPlantCards();
 
-        // NEW: Shovel (refund sun sẽ gọi qua ISunReceiver = HudController)
+        // Shovel: ✅ ẨN cho tới khi countdown xong
         shovel = new Shovel(plantGridController, shovelController, this);
+        shovel.setVisible(false);
+        shovel.setTouchable(Touchable.disabled);
         hudStage.addActor(shovel);
 
         // Layout ban đầu
@@ -85,10 +88,8 @@ public class HudController implements ISunReceiver {
             countdown.setPosition(countdownX, countdownY);
         }
 
-        // đặt shovel góc trái trên
-        if (shovel != null) {
-            shovel.layoutTopLeft(worldWidth, worldHeight);
-        }
+        // đặt shovel góc trái trên (dù đang ẩn vẫn set pos ok)
+        shovel.layoutTopLeft(worldWidth, worldHeight);
     }
 
     /** GameScreen gọi khi resize */
@@ -104,12 +105,19 @@ public class HudController implements ISunReceiver {
     }
 
     public void onCountdownFinished() {
+        // remove countdown
         if (countdown != null) {
             countdown.remove();
             countdown = null;
         }
+
+        // mở seedbank + unlock cards
         unlockPlantCards();
         seedBank.setVisible(true);
+
+        // ✅ hiện shovel sau countdown
+        shovel.setVisible(true);
+        shovel.setTouchable(Touchable.enabled);
     }
 
     private void unlockPlantCards() {
