@@ -8,11 +8,13 @@ import pvz.com.entities.plants.PlantType;
 import pvz.com.items.PlantCard;
 import pvz.com.items.PlantCatalog;
 import pvz.com.items.SeedBank;
-import pvz.com.managers.FontManager;
 import pvz.com.items.CountdownActor;
+import pvz.com.items.Shovel;
+import pvz.com.managers.FontManager;
 import pvz.com.managers.HudLayoutConfig;
+import pvz.com.systems.ISunReceiver;
 
-public class HudController {
+public class HudController implements ISunReceiver {
 
     private static final float COUNTDOWN_POS_X_RATIO = HudLayoutConfig.getCountdownPosXRatio();
     private static final float COUNTDOWN_POS_Y_RATIO = HudLayoutConfig.getCountdownPosYRatio();
@@ -25,10 +27,18 @@ public class HudController {
     private CountdownActor countdown;
     private final BitmapFont hudFont;
 
+    // NEW: shovel
+    private final Shovel shovel;
+
     // SUN owner duy nhất nằm ở đây
     private int sunPoints;
 
-    public HudController(Stage hudStage, float countdownDuration, int initialSun) {
+    public HudController(Stage hudStage,
+            float countdownDuration,
+            int initialSun,
+            PlantGridController plantGridController,
+            ShovelController shovelController) {
+
         this.hudStage = hudStage;
         this.sunPoints = initialSun;
 
@@ -46,6 +56,10 @@ public class HudController {
 
         // Plant cards
         createPlantCards();
+
+        // NEW: Shovel (refund sun sẽ gọi qua ISunReceiver = HudController)
+        shovel = new Shovel(plantGridController, shovelController, this);
+        hudStage.addActor(shovel);
 
         // Layout ban đầu
         updateHudLayout();
@@ -69,6 +83,11 @@ public class HudController {
             float countdownX = worldWidth * COUNTDOWN_POS_X_RATIO;
             float countdownY = worldHeight * COUNTDOWN_POS_Y_RATIO;
             countdown.setPosition(countdownX, countdownY);
+        }
+
+        // đặt shovel góc trái trên
+        if (shovel != null) {
+            shovel.layoutTopLeft(worldWidth, worldHeight);
         }
     }
 
@@ -101,6 +120,7 @@ public class HudController {
 
     // ===== Sun HUD (owner duy nhất) =====
 
+    @Override
     public void addSun(int amount) {
         sunPoints += amount;
         seedBank.setSunAmount(sunPoints);
@@ -133,7 +153,13 @@ public class HudController {
         return plantCards;
     }
 
+    public Shovel getShovel() {
+        return shovel;
+    }
+
     public void dispose() {
         seedBank.dispose();
+        if (shovel != null)
+            shovel.dispose();
     }
 }
