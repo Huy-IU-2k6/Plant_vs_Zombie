@@ -1,5 +1,7 @@
 package pvz.com.logic;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
@@ -15,32 +17,44 @@ public class LawnMowerController {
     private final float worldWidth;
     private final float mowerStartX;
 
+    // [TỐI ƯU] Load Texture 1 lần ở đây để dùng chung
+    private final Texture idleTexture;
+    private final Texture activeTexture;
+
     public LawnMowerController(float worldWidth, float mowerStartX) {
         this.worldWidth = worldWidth;
         this.mowerStartX = mowerStartX;
+
+        // Load ảnh (Nên dùng .png thay vì .gif)
+        // Lưu ý: Texture mặc định không chạy animation gif
+        this.idleTexture = new Texture(Gdx.files.internal("images/items/lawnMower_Idle.png"));
+        this.activeTexture = new Texture(Gdx.files.internal("images/items/lawnMower_Idle.png")); // Đổi đuôi sang png
+        
+        // Bật lọc ảnh cho mượt
+        this.idleTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        this.activeTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
     }
 
     public void createLawnMowers() {
+        disposeMowers(); // Xóa cũ nếu có
         lawnMowers.clear();
 
         for (int row = 0; row < laneCount; row++) {
-            // Grid center Y của row hiện tại
             float laneCenterY = GridConfig.getCellCenterY(row);
-            // offset xuống 1 chút cho phù hợp sprite (giống logic cũ: -50f)
-            float mowerY = laneCenterY - 50f;
+            // Canh chỉnh lại Y cho chuẩn tâm
+            float mowerY = laneCenterY - (DesignConfig.FIXED_WIDTH / 2f); 
 
-            lawnMowers.add(new LawnMower(mowerStartX, mowerY, worldWidth));
+            // Truyền Texture vào constructor
+            lawnMowers.add(new LawnMower(mowerStartX, mowerY, worldWidth, idleTexture, activeTexture));
         }
     }
 
-    /**
-     * zombies: list zombie hiện tại trong game (base class Zombies)
-     */
     public void update(float delta, Array<Zombies> zombies) {
         for (int i = lawnMowers.size - 1; i >= 0; i--) {
             LawnMower mower = lawnMowers.get(i);
             mower.update(delta, zombies);
 
+            // Chỉ xóa khỏi list quản lý, không dispose texture (vì texture dùng chung)
             if (mower.isUsed()) {
                 lawnMowers.removeIndex(i);
             }
@@ -53,12 +67,15 @@ public class LawnMowerController {
         }
     }
 
-    public void dispose() {
-        for (LawnMower mower : lawnMowers) {
-            if (!mower.isUsed()) {
-                mower.dispose();
-            }
-        }
+    private void disposeMowers() {
+        // Mower không giữ tài nguyên nặng nữa nên không cần gọi dispose từng cái
         lawnMowers.clear();
+    }
+
+    public void dispose() {
+        disposeMowers();
+        // [QUAN TRỌNG] Dispose texture gốc ở đây
+        if (idleTexture != null) idleTexture.dispose();
+        if (activeTexture != null) activeTexture.dispose();
     }
 }

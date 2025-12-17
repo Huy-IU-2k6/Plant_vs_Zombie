@@ -1,6 +1,5 @@
 package pvz.com.items;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
@@ -12,72 +11,76 @@ import pvz.com.entities.Zombies.Zombies;
 public class LawnMower {
 
     private static final float DEFAULT_SPEED = 300f;
+    
+    // Kích thước hiển thị (Vẽ)
+    private static final float WIDTH = 110f; 
+    private static final float HEIGHT = 90f;
 
-    private static final float FIXED_WIDTH = DesignConfig.FIXED_WIDTH;
-    private static final float FIXED_HEIGHT = DesignConfig.FIXED_WIDTH;
+    // Kích thước Hitbox (Va chạm) - Nhỏ hơn hình vẽ chút cho chuẩn
+    private static final float HITBOX_W = 90f; 
+    private static final float HITBOX_H = 70f;
 
     private final Texture idleTexture;
     private final Texture activeTexture;
-    private Texture currentTexture; // texture đang dùng để vẽ
+    private Texture currentTexture;
 
     private final Rectangle bounds;
 
-    private float x;
-    private float y;
+    private float x, y;
     private float speed;
-
     private boolean active = false;
     private boolean used = false;
-
     private final float worldWidth;
 
-    public LawnMower(float startX, float startY, float worldWidth) {
-        this.idleTexture = new Texture(
-                Gdx.files.internal("images/items/lawnMower_Idle.png"));
-        this.activeTexture = new Texture(
-                Gdx.files.internal("images/items/lawnMower_Active.gif"));
-
-        this.currentTexture = idleTexture; // mặc định đứng yên
-
+    // Constructor nhận Texture thay vì tự load
+    public LawnMower(float startX, float startY, float worldWidth, Texture idle, Texture active) {
         this.worldWidth = worldWidth;
         this.x = startX;
         this.y = startY;
         this.speed = DEFAULT_SPEED;
+        
+        this.idleTexture = idle;
+        this.activeTexture = active;
+        this.currentTexture = idleTexture;
 
-        this.bounds = new Rectangle(x, y, FIXED_WIDTH, FIXED_HEIGHT);
+        // Tạo hitbox căn giữa hình ảnh
+        this.bounds = new Rectangle(x + 10, y + 5, HITBOX_W, HITBOX_H);
     }
 
     public void update(float delta, Array<Zombies> zombies) {
-        if (used)
-            return;
+        if (used) return;
 
-        // Chưa active thì check va chạm để trigger
+        // 1. Logic kích hoạt
         if (!active) {
             for (Zombies z : zombies) {
-                if (z.isDead())
-                    continue;
+                if (z.isDead()) continue;
+                // Chỉ check va chạm nếu hitbox chạm nhau
                 if (bounds.overlaps(z.getBounds())) {
                     trigger();
-                    break;
+                    break; 
                 }
             }
         }
 
-        // Nếu đã active thì chạy + giết zombie trên đường
+        // 2. Logic chạy và giết
         if (active) {
             x += speed * delta;
-            bounds.setPosition(x, y);
+            
+            // Cập nhật hitbox theo vị trí mới
+            bounds.setPosition(x + 10, y + 5);
 
             for (Zombies z : zombies) {
-                if (z.isDead())
-                    continue;
+                if (z.isDead()) continue;
+                
+                // Va chạm khi đang chạy -> Giết
                 if (bounds.overlaps(z.getBounds())) {
-                    z.instantKillByMower(); // base class Zombies phải có hàm này
+                    // [LƯU Ý] Đảm bảo class Zombies có hàm này
+                    z.killByMower(); 
                 }
             }
 
-            // chạy khỏi màn thì đánh dấu used
-            if (x > worldWidth + currentTexture.getWidth()) {
+            // Ra khỏi màn hình -> Hủy
+            if (x > worldWidth + 100) {
                 active = false;
                 used = true;
             }
@@ -85,38 +88,20 @@ public class LawnMower {
     }
 
     public void render(SpriteBatch batch) {
-        if (used)
-            return;
-        batch.draw(currentTexture, x, y, FIXED_WIDTH, FIXED_HEIGHT);
+        if (used) return;
+        // Vẽ texture
+        batch.draw(currentTexture, x, y, WIDTH, HEIGHT);
     }
 
     public void trigger() {
         if (!used && !active) {
             active = true;
-            currentTexture = activeTexture; // 👉 đổi qua ảnh đang chạy
+            currentTexture = activeTexture;
+            // Có thể play sound ở đây nếu muốn
         }
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
-    public boolean isUsed() {
-        return used;
-    }
-
-    public Rectangle getBounds() {
-        return bounds;
-    }
-
-    public void setPosition(float x, float y) {
-        this.x = x;
-        this.y = y;
-        bounds.setPosition(x, y);
-    }
-
-    public void dispose() {
-        idleTexture.dispose();
-        activeTexture.dispose();
-    }
+    public boolean isUsed() { return used; }
+    
+    // Không cần hàm dispose ở đây nữa vì Texture do Controller quản lý
 }

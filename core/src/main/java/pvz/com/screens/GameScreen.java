@@ -159,7 +159,7 @@ public class GameScreen implements Screen, IGameSpawner, ISunReceiver {
         // Lawn mower
         this.lawnMowerController = new LawnMowerController(
                 WORLD_WIDTH - 50f,
-                DesignConfig.START_X - 150f);
+                DesignConfig.START_X - 80f);
 
         // Zombie waves
         this.zombieWaveController = new ZombieWaveController(
