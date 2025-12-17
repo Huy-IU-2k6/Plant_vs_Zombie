@@ -68,7 +68,8 @@ public class NormalZombie extends Zombies {
 
     // Hàm thiết lập kích thước (Chỉ chạy 1 lần)
     private void initSize() {
-        if (sizeInitialized) return;
+        if (sizeInitialized)
+            return;
 
         float worldH = (getStage() != null) ? getStage().getViewport().getWorldHeight() : ScaleManager.BASE_SCREEN_H;
         float displayH = ScaleManager.scaleByHeight(DesignConfig.ZOMBIE_H, worldH);
@@ -86,14 +87,15 @@ public class NormalZombie extends Zombies {
         // Logic chết
         if (isDying) {
             stateTime += delta;
-            boolean finished = isCharredDeath 
-                    ? charredAnim.isAnimationFinished(stateTime) 
+            boolean finished = isCharredDeath
+                    ? charredAnim.isAnimationFinished(stateTime)
                     : bodyDieAnim.isAnimationFinished(stateTime);
 
             if (finished && !dead) {
                 dead = true;
                 speed = 0f;
-                if (zombieCount > 0) zombieCount--;
+                if (zombieCount > 0)
+                    zombieCount--;
                 remove();
             }
             return;
@@ -106,14 +108,16 @@ public class NormalZombie extends Zombies {
             stateTime += delta;
         } else {
             float scale = (speed > 0) ? (speed / baseSpeed) : 1f;
-            if (scale < 0.2f) scale = 1f;
+            if (scale < 0.2f)
+                scale = 1f;
             stateTime += delta * scale;
         }
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        if (dead) return;
+        if (dead)
+            return;
 
         Color c = getColor();
         batch.setColor(c.r, c.g, c.b, c.a * parentAlpha);
@@ -143,13 +147,16 @@ public class NormalZombie extends Zombies {
 
     @Override
     public void takeDamage(int damage) {
-        if (dead || isDying) return;
+        if (dead || isDying)
+            return;
         health -= damage;
-        if (health <= 0) startDeath(false);
+        if (health <= 0)
+            startDeath(false);
     }
 
     private void startDeath(boolean burnt) {
-        if (isDying) return;
+        if (isDying)
+            return;
         isDying = true;
         isCharredDeath = burnt;
         speed = 0f;
@@ -158,19 +165,31 @@ public class NormalZombie extends Zombies {
         setColor(Color.WHITE);
     }
 
-    @Override public void killByMower() { startDeath(false); }
-    @Override public void killByCherryBomb() { startDeath(true); }
+    @Override
+    public void killByMower() {
+        startDeath(false);
+    }
+
+    @Override
+    public void killByCherryBomb() {
+        startDeath(true);
+    }
 
     @Override
     public void setEating(boolean eating) {
-        if (isDying || dead || this.isEating == eating) return;
+        if (isDying || dead || this.isEating == eating)
+            return;
         this.isEating = eating;
         this.speed = eating ? 0f : baseSpeed;
         // Reset time để animation ăn bắt đầu từ đầu cho mượt
-        if (eating) stateTime = 0f; 
+        if (eating)
+            stateTime = 0f;
     }
-    
-    @Override public boolean isEating() { return isEating; }
+
+    @Override
+    public boolean isEating() {
+        return isEating;
+    }
 
     // ================= UTIL & DISPOSE =================
 
@@ -187,13 +206,15 @@ public class NormalZombie extends Zombies {
                 Texture t = new Texture(prefix + i + ".png");
                 t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
                 arr.add(t);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
     }
 
     private Animation<TextureRegion> anim(Array<Texture> textures, float time, Animation.PlayMode mode) {
         TextureRegion[] frames = new TextureRegion[textures.size];
-        for (int i = 0; i < textures.size; i++) frames[i] = new TextureRegion(textures.get(i));
+        for (int i = 0; i < textures.size; i++)
+            frames[i] = new TextureRegion(textures.get(i));
         Animation<TextureRegion> a = new Animation<>(time, frames);
         a.setPlayMode(mode);
         return a;
@@ -209,6 +230,8 @@ public class NormalZombie extends Zombies {
     }
 
     private void disposeArr(Array<Texture> arr) {
-        if (arr != null) for (Texture t : arr) t.dispose();
+        if (arr != null)
+            for (Texture t : arr)
+                t.dispose();
     }
 }
