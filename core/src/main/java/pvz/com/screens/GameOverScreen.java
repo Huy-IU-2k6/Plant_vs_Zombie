@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
 public class GameOverScreen extends ScreenAdapter {
 
     private final Game game;
-    private final GameScreen gameScreen;
+    private final GameScreen gameScreen; // screen cũ để renderFrozen snapshot
     private final boolean playerWon;
 
     private SpriteBatch batch;
@@ -27,9 +27,10 @@ public class GameOverScreen extends ScreenAdapter {
     private GlyphLayout layout;
 
     private Texture pixel; // 1x1 white pixel
-    private Texture snapshotTex; // ✅ snapshot đúng chiều
+    private Texture snapshotTex; // snapshot đúng chiều
 
     private static final float OVERLAY_ALPHA = 0.55f;
+    private boolean restarting = false;
 
     public GameOverScreen(Game game, GameScreen gameScreen, boolean playerWon) {
         this.game = game;
@@ -43,6 +44,7 @@ public class GameOverScreen extends ScreenAdapter {
         font = new BitmapFont();
         layout = new GlyphLayout();
 
+        // 1x1 pixel để vẽ overlay
         Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pm.setColor(Color.WHITE);
         pm.fill();
@@ -52,7 +54,32 @@ public class GameOverScreen extends ScreenAdapter {
         captureSnapshot();
     }
 
+    // ================= Restart =================
+    private void restartToNewGame() {
+        if (restarting)
+            return;
+        restarting = true;
+
+        // Tạo màn mới trước
+        GameScreen newScreen = new GameScreen(game);
+
+        // Switch
+        game.setScreen(newScreen);
+
+        // Dispose GameOverScreen hiện tại (textures/batch/font...)
+        dispose();
+
+        // QUAN TRỌNG: dispose GameScreen cũ (Game#setScreen không tự dispose)
+        if (gameScreen != null) {
+            gameScreen.dispose();
+        }
+    }
+
+    // ================= Snapshot =================
     private void captureSnapshot() {
+        if (gameScreen == null)
+            return;
+
         int w = Gdx.graphics.getBackBufferWidth();
         int h = Gdx.graphics.getBackBufferHeight();
 
@@ -66,26 +93,24 @@ public class GameOverScreen extends ScreenAdapter {
         // vẽ lại frame cuối, không update logic
         gameScreen.renderFrozen();
 
-        // ✅ đọc pixels (không deprecated)
+        // đọc pixels (gốc bottom-left) -> flip Y cho đúng chiều
         Pixmap shot = readPixelsToPixmapFlippedY(0, 0, w, h);
 
         fbo.end();
+        fbo.dispose();
 
         // trả viewport về màn hình
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
 
-        // cập nhật texture snapshot
+        // update texture snapshot
         if (snapshotTex != null)
             snapshotTex.dispose();
         snapshotTex = new Texture(shot);
         snapshotTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         shot.dispose();
-        fbo.dispose();
     }
 
-    // glReadPixels cho dữ liệu gốc bottom-left -> cần flip Y để ra đúng chiều khi
-    // draw
     private static Pixmap readPixelsToPixmapFlippedY(int x, int y, int w, int h) {
         ByteBuffer pixels = BufferUtils.newByteBuffer(w * h * 4);
         Gdx.gl.glReadPixels(x, y, w, h, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, pixels);
@@ -109,10 +134,12 @@ public class GameOverScreen extends ScreenAdapter {
         return pm;
     }
 
+    // ================= Render =================
     @Override
     public void render(float delta) {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            game.setScreen(new GameScreen(game));
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+                || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            restartToNewGame();
             return;
         }
 
@@ -124,7 +151,7 @@ public class GameOverScreen extends ScreenAdapter {
 
         batch.begin();
 
-        // 1) background snapshot (đúng chiều)
+        // 1) background snapshot
         batch.setColor(Color.WHITE);
         if (snapshotTex != null)
             batch.draw(snapshotTex, 0, 0, w, h);
@@ -169,5 +196,9 @@ public class GameOverScreen extends ScreenAdapter {
             pixel.dispose();
         if (snapshotTex != null)
             snapshotTex.dispose();
+        batch = null;
+        font = null;
+        pixel = null;
+        snapshotTex = null;
     }
 }
