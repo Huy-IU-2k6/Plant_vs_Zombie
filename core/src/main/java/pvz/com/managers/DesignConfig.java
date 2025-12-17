@@ -7,11 +7,9 @@ public class DesignConfig {
     public static final float START_X = 588f;
     public static final float START_Y = 54f;
 
-    // Số hàng / cột của lawn
     public static final int ROWS = 5;
     public static final int COLS = 9;
 
-    // Kích thước 1 ô (theo world units)
     public static final float CELL_WIDTH = 147.6f;
     public static final float CELL_HEIGHT = 180f;
 
@@ -23,13 +21,27 @@ public class DesignConfig {
     public static final float ZOMBIE_H = 180f;
 
     private static final float PEA_SIZE_RATIO = 0.21f;
-
     public static final float PEA_WIDTH = FIXED_HEIGHT * PEA_SIZE_RATIO;
     public static final float PEA_HEIGHT = FIXED_HEIGHT * PEA_SIZE_RATIO;
 
     private static final float SUN_SIZE_RATIO = 0.42f;
-
     public static final float SUN_WIDTH = FIXED_HEIGHT * SUN_SIZE_RATIO;
     public static final float SUN_HEIGHT = FIXED_HEIGHT * SUN_SIZE_RATIO;
 
+    // =========================================================
+    // SHOVEL (BASE 1920x1080) CONFIG
+    // =========================================================
+    public static final float SHOVEL_PAD_X = 815f; // padding left theo base px
+    public static final float SHOVEL_PAD_Y = 40f; // padding top theo base px
+    public static final float SHOVEL_ICON_SIZE = 64f; // size icon theo base px
+
+    // refund mặc định (100%)
+    public static final float SHOVEL_REFUND_RATIO = 1.0f;
+
+    // assets
+    public static final String SHOVEL_ICON_PATH = "images/items/Shovel_Box.png";
+    public static final String SHOVEL_GHOST_PATH = "images/items/Shovel.png";
+
+    private DesignConfig() {
+    }
 }

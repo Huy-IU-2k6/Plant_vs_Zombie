@@ -20,6 +20,9 @@ import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ShovelController;
 import pvz.com.systems.ISunReceiver;
 
+import pvz.com.managers.ScaleManager;
+import pvz.com.managers.DesignConfig;
+
 public class Shovel extends Actor {
 
     // icon (trong seedbank/HUD)
@@ -33,16 +36,15 @@ public class Shovel extends Actor {
     private final ShovelController shovelController;
     private final ISunReceiver sunReceiver;
 
-    // UI config
-    private float padding = 6f;
-    private float iconSize = 64f;
+    // ===== RUNTIME (WORLD) CACHE =====
+    private float worldIconSize = 64f;
 
     // state
     private boolean active = false;
     private boolean dragging = false;
 
     // refund
-    private float refundRatio = 1.0f;
+    private float refundRatio = DesignConfig.SHOVEL_REFUND_RATIO;
 
     // ghost
     private GhostActor ghost;
@@ -54,19 +56,15 @@ public class Shovel extends Actor {
         this.shovelController = shovelController;
         this.sunReceiver = sunReceiver;
 
-        // Icon texture (khung xẻng)
-        this.texture = new Texture(Gdx.files.internal("images/items/Shovel_Box.png"));
-
-        // Ghost texture (xẻng thật)
-        this.ghostTexture = new Texture(Gdx.files.internal("images/items/Shovel.png"));
+        this.texture = new Texture(Gdx.files.internal(DesignConfig.SHOVEL_ICON_PATH));
+        this.ghostTexture = new Texture(Gdx.files.internal(DesignConfig.SHOVEL_GHOST_PATH));
         this.ghostRegion = new TextureRegion(ghostTexture);
 
-        setSize(iconSize, iconSize);
+        // size tạm theo base; layoutTopLeft() sẽ scale chuẩn theo hudWorldH
+        setSize(DesignConfig.SHOVEL_ICON_SIZE, DesignConfig.SHOVEL_ICON_SIZE);
         setTouchable(Touchable.enabled);
 
-        // Kéo trực tiếp từ icon xẻng
         addListener(new DragListener() {
-
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 if (button != Input.Buttons.LEFT)
@@ -76,7 +74,7 @@ public class Shovel extends Actor {
                 dragging = true;
 
                 ensureGhost(event.getStage());
-                moveGhostToStage(event, x, y);
+                moveGhostToStage(event);
 
                 return true;
             }
@@ -85,7 +83,7 @@ public class Shovel extends Actor {
             public void touchDragged(InputEvent event, float x, float y, int pointer) {
                 if (!dragging)
                     return;
-                moveGhostToStage(event, x, y);
+                moveGhostToStage(event);
             }
 
             @Override
@@ -94,13 +92,26 @@ public class Shovel extends Actor {
                     return;
 
                 dragging = false;
-
                 tryDigAtGhostPosition();
 
                 active = false;
                 removeGhost();
             }
         });
+    }
+
+    // gọi trong HudController sau khi biết hudWorldW/H (và mỗi lần resize)
+    public void layoutTopLeft(float hudWorldWidth, float hudWorldHeight) {
+        worldIconSize = ScaleManager.scaleByHeight(DesignConfig.SHOVEL_ICON_SIZE, hudWorldHeight);
+        setSize(worldIconSize, worldIconSize);
+
+        if (ghost != null)
+            ghost.setSize(worldIconSize, worldIconSize);
+
+        float worldPadX = ScaleManager.toWorldX(DesignConfig.SHOVEL_PAD_X, hudWorldWidth);
+        float worldPadY = ScaleManager.toWorldY(DesignConfig.SHOVEL_PAD_Y, hudWorldHeight);
+
+        setPosition(worldPadX, hudWorldHeight - getHeight() - worldPadY);
     }
 
     private void ensureGhost(Stage stage) {
@@ -111,22 +122,20 @@ public class Shovel extends Actor {
 
         removeGhost();
 
-        // ✅ ghost dùng Shovel.png
         ghost = new GhostActor(ghostRegion);
-        ghost.setSize(iconSize, iconSize);
+        ghost.setSize(worldIconSize, worldIconSize);
         ghost.setOrigin(Align.center);
         ghost.setTouchable(Touchable.disabled);
 
         stage.addActor(ghost);
     }
 
-    private void moveGhostToStage(InputEvent event, float localX, float localY) {
+    private void moveGhostToStage(InputEvent event) {
         if (ghost == null)
             return;
 
         float stageX = event.getStageX();
         float stageY = event.getStageY();
-
         ghost.setPosition(stageX - ghost.getWidth() / 2f, stageY - ghost.getHeight() / 2f);
     }
 
@@ -141,7 +150,6 @@ public class Shovel extends Actor {
         Vector2 v = new Vector2(
                 ghost.getX() + ghost.getWidth() / 2f,
                 ghost.getY() + ghost.getHeight() / 2f);
-
         stage.stageToScreenCoordinates(v);
 
         int[] cell = grid.screenToNearestCell(Math.round(v.x), Math.round(v.y));
@@ -183,23 +191,7 @@ public class Shovel extends Actor {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        // icon vẫn vẽ Shovel_Box.png
         batch.draw(texture, getX(), getY(), getWidth(), getHeight());
-    }
-
-    public void layoutTopLeft(float hudWorldWidth, float hudWorldHeight) {
-        setPosition(padding, hudWorldHeight - getHeight() - padding);
-    }
-
-    public void setPadding(float padding) {
-        this.padding = padding;
-    }
-
-    public void setIconSize(float iconSize) {
-        this.iconSize = iconSize;
-        setSize(iconSize, iconSize);
-        if (ghost != null)
-            ghost.setSize(iconSize, iconSize);
     }
 
     public void setRefundRatio(float refundRatio) {
@@ -208,10 +200,9 @@ public class Shovel extends Actor {
 
     public void dispose() {
         texture.dispose();
-        ghostTexture.dispose(); // ✅ nhớ dispose luôn ghost texture
+        ghostTexture.dispose();
     }
 
-    // ===== Ghost actor: vẽ bóng mờ =====
     private static class GhostActor extends Actor {
         private final TextureRegion region;
 
@@ -221,10 +212,10 @@ public class Shovel extends Actor {
 
         @Override
         public void draw(Batch batch, float parentAlpha) {
-            float old = batch.getColor().a;
+            float oldA = batch.getColor().a;
             batch.setColor(1f, 1f, 1f, 0.45f);
             batch.draw(region, getX(), getY(), getWidth(), getHeight());
-            batch.setColor(1f, 1f, 1f, old);
+            batch.setColor(1f, 1f, 1f, oldA);
         }
     }
 }
