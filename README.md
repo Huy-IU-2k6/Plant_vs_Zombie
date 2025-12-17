@@ -35,17 +35,14 @@ A simplified **Plants vs Zombies–style** game clone built for an **Object-Orie
 
 ## Project Structure (high level)
 
-```
-
 pvz.com/
-screens/        # GameScreen, GameOverScreen, screen flow
-logic/          # GameWorld, GameState, controllers (HUD, placement, waves...)
-entities/       # Entity, Plant, Zombies, Sun, Projectile...
-entities/components/  # Position, Bounds, Health, Animation, Damage, Cooldown...
-systems/        # Render, Movement, Collision, Cleanup, Attack, Sun systems...
-managers/       # Config, scale/design helpers, background, assets...
-
-````
+├─ screens/ # GameScreen, GameOverScreen, screen flow
+├─ logic/ # GameWorld, GameState, controllers (HUD, placement, waves...)
+├─ entities/ # Entity, Plant, Zombies, Sun, Projectile...
+│ └─ components/ # Position, Bounds, Health, Animation, Damage, Cooldown...
+├─ systems/ # Render, Movement, Collision, Cleanup, Attack, Sun systems...
+└─ managers/ # Config, scale/design helpers, background, assets...
+```
 
 ---
 
@@ -113,11 +110,11 @@ Recommended diagrams:
 
 *(Replace names/IDs below)*
 
-| Member        | Role        | Student ID |
-| ------------- | ----------- | ---------- |
-| [TEAM INSERT] | UI Designer | [ID]       |
-| [TEAM INSERT] | Zombies     | [ID]       |
-| [TEAM INSERT] | Plants      | [ID]       |
+| Member           | Role        | Student ID        |
+| ---------------- | ----------- | ----------------- |
+| Lê Thái Đức Tùng | UI Designer | ITDSIU24055       |
+| Nguyễn Duy Phước | Zombies     | ITITWE23026       |
+| Phạm Gia Huy     | Plants      | ITCSIU24034       |
 
 ---
 

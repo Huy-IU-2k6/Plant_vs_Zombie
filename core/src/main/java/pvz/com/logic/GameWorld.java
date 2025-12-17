@@ -6,11 +6,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
 
 import pvz.com.entities.Entity;
+import pvz.com.entities.Zombies.Zombies; // [NEW] Needed to check zombies for game over
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.entities.suns.Sun;
+import pvz.com.managers.GridConfig; // [NEW] Needed for coordinate calculations
 import pvz.com.systems.AnimationSystem;
 import pvz.com.systems.CleanupSystem;
 import pvz.com.systems.CollisionSystem;
@@ -28,6 +30,9 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
     private final List<Plant> plants;
     private final GameState gameState;
 
+    // We need to keep this to check zombie positions in update()
+    private final ZombieWaveController zombieWaveController; 
+
     // Systems
     private final RenderSystem renderSystem;
     private final AnimationSystem animationSystem;
@@ -38,7 +43,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
     private final SunPickupSystem sunPickupSystem;
     private final CleanupSystem cleanupSystem;
 
-    // HUD là nơi giữ SUN duy nhất
+    // HUD is the only place holding SUN
     private final HudController hudController;
 
     public GameWorld(GameState gameState,
@@ -54,6 +59,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         this.entities = entities;
         this.plants = plants;
         this.hudController = hudController;
+        this.zombieWaveController = zombieWaveController; // Store this for later use
 
         this.renderSystem = new RenderSystem(batch);
         this.animationSystem = new AnimationSystem();
@@ -64,48 +70,60 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         this.movementSystem = new MovementSystem();
 
         // ===========================
-        // [SỬA] truyền gameState để CollisionSystem tự set GAME OVER (thua)
+        // [FIX] CollisionSystem constructor now only takes 3 arguments
+        // We removed 'gameState' from here to avoid circular dependency
         // ===========================
         this.collisionSystem = new CollisionSystem(
                 entities,
                 zombieWaveController,
-                plantGridController,
-                gameState);
+                plantGridController
+                // gameState REMOVED
+        );
 
-        // SunPickupSystem sẽ gọi addSun(...) qua ISunReceiver
         this.sunPickupSystem = new SunPickupSystem(entities, camera, this);
-
         this.cleanupSystem = new CleanupSystem(entities);
     }
 
     public void update(float delta) {
-        // ===========================
-        // [SỬA] nếu game over thì dừng update hệ thống gameplay
-        // (overlay GameOverScreen sẽ renderFrozen frame cuối)
-        // ===========================
-        if (gameState.isGameOver()) {
-            return;
-        }
-        if (!gameState.isPlaying()) {
-            return;
-        }
+        // Stop updates if game is over
+        if (gameState.isGameOver()) return;
+        if (!gameState.isPlaying()) return;
 
+        // 1. Update Systems
         sunSystem.update(delta);
         animationSystem.update(entities, delta);
-
         attackSystem.update(plants, delta);
         movementSystem.update(entities, delta);
-
-        // CollisionSystem có thể set game over ngay trong update()
+        
+        // Update collisions (Damage calculations)
         collisionSystem.update(delta);
 
-        // Nếu vừa set game over thì khỏi chạy tiếp để tránh trạng thái “trượt”
-        if (gameState.isGameOver()) {
-            return;
-        }
+        // 2. [NEW] Check Game Over Condition HERE (Moved from CollisionSystem)
+        checkGameOverCondition();
+
+        // Stop if game just ended
+        if (gameState.isGameOver()) return;
 
         sunPickupSystem.update(delta);
         cleanupSystem.update();
+    }
+
+    // Logic to check if any zombie has reached the house
+    private void checkGameOverCondition() {
+        if (zombieWaveController == null) return;
+
+        // Define the "Lose Line" (Left edge of column 0)
+        float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
+
+        for (Zombies z : zombieWaveController.getZombies()) {
+            if (z.isDead()) continue;
+
+            // If a zombie crosses the line -> GAME OVER (Player Lost)
+            if (z.getX() <= loseX) {
+                gameState.setGameOver(false); 
+                break; 
+            }
+        }
     }
 
     public void render(SpriteBatch batch) {

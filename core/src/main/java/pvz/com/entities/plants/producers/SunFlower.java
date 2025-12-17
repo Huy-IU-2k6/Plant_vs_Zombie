@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Array;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
+import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
 
 public class SunFlower extends Plant {
@@ -62,7 +63,7 @@ public class SunFlower extends Plant {
         this.addComponent(new GridCellComponent(col, row));
 
         // E. Sinh Sun (7 giây ra 1 lần, mỗi lần 25 sun)
-        this.addComponent(new SunProducerComponent(7.0f, 25));
+        this.addComponent(new SunProducerComponent(DesignConfig.SUN_COOL_DOWN, 25));
     }
 
     // Constructor phụ để tương thích code cũ

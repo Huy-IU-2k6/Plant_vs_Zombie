@@ -39,14 +39,14 @@ public class ChargeZombie extends Zombies {
 
         // WALK
         walkTextures = new Array<>();
-        for (int i = 0; i <= 94; i++) {
+        for (int i = 0; i <= 86; i++) {
             walkTextures.add(new Texture("images/Zombies/ChargeZombie/Zombie/Zombie_" + i + ".png"));
         }
         walkAnim = createAnimation(walkTextures, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
 
         // EAT
         eatTextures = new Array<>();
-        for (int i = 0; i <= 114; i++) {
+        for (int i = 0; i <= 24; i++) {
             eatTextures.add(new Texture("images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_" + i + ".png"));
         }
         eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);

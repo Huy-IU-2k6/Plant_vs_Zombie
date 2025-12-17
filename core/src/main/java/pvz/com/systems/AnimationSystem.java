@@ -3,42 +3,75 @@ package pvz.com.systems;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.AnimationComponent;
-import pvz.com.entities.components.SpriteComponent;
-import pvz.com.entities.components.StateComponent;
+import pvz.com.entities.components.*;
+// [MỚI] Import class PotatoMine và GridConfig để lấy kích thước
+import pvz.com.entities.plants.bombs.PotatoMine; 
+import pvz.com.managers.GridConfig;
 
 import java.util.List;
 
 public class AnimationSystem {
 
-    // Hàm này được gọi mỗi khung hình (trong GameScreen.render)
     public void update(List<Entity> entities, float deltaTime) {
-        
         for (Entity entity : entities) {
-            // 1. Lấy các nguyên liệu cần thiết
             AnimationComponent animComp = entity.getComponent(AnimationComponent.class);
             StateComponent stateComp = entity.getComponent(StateComponent.class);
             SpriteComponent spriteComp = entity.getComponent(SpriteComponent.class);
 
-            // Nếu thiếu 1 trong 3 cái thì bỏ qua (ví dụ cục đá không có animation)
-            if (animComp == null || stateComp == null || spriteComp == null) {
-                continue;
-            }
+            if (animComp == null || stateComp == null || spriteComp == null) continue;
 
-            // 2. Tăng thời gian tích lũy cho trạng thái hiện tại
             stateComp.timeInState += deltaTime;
-
-            // 3. Lấy Animation tương ứng với State hiện tại (Ví dụ: IDLE, ATTACK)
-            Animation<TextureRegion> animation = animComp.getAnimation(stateComp.get());
+            EntityState currentState = stateComp.get();
+            Animation<TextureRegion> animation = animComp.getAnimation(currentState);
 
             if (animation != null) {
-                // 4. Tính toán xem tại thời điểm này nên hiện Frame nào
-                // (Nó tự xử lý việc lặp lại dựa trên PlayMode đã set lúc tạo Animation)
                 TextureRegion currentFrame = animation.getKeyFrame(stateComp.timeInState);
-
-                // 5. [QUAN TRỌNG] Cập nhật hình ảnh mới vào Sprite
-                // (Hàm này bạn vừa thêm vào SpriteComponent ở bước trước)
                 spriteComp.setRegion(currentFrame);
+
+                // =========================================================
+                // LOGIC CHUYỂN ĐỔI TRẠNG THÁI TỰ ĐỘNG
+                // =========================================================
+                
+                // 1. GROWING -> UNARMED
+                if (currentState == EntityState.GROWING) {
+                    if (animation.isAnimationFinished(stateComp.timeInState)) {
+                        stateComp.set(EntityState.UNARMED);
+                        stateComp.timeInState = 0f;
+                    }
+                }
+                
+                // 2. RISING -> IDLE (KẾT HỢP PHÓNG TO KÍCH THƯỚC)
+                if (currentState == EntityState.RISING) {
+                    
+                    // [MỚI] PHÓNG TO NGAY KHI BẮT ĐẦU TRỒI LÊN
+                    SizeComponent size = entity.getComponent(SizeComponent.class);
+                    
+                    // Nếu chiều rộng hiện tại < chiều rộng chuẩn (tức là vẫn đang ở dạng nhỏ)
+                    if (size != null && size.width < PotatoMine.BIG_WIDTH - 1f) {
+                        
+                        // A. Set kích thước TO
+                        size.width = PotatoMine.BIG_WIDTH;
+                        size.height = PotatoMine.BIG_HEIGHT;
+
+                        // B. Căn giữa lại vị trí (Vì to ra nên phải tính lại X,Y)
+                        PositionComponent pos = entity.getComponent(PositionComponent.class);
+                        GridCellComponent grid = entity.getComponent(GridCellComponent.class);
+
+                        if (pos != null && grid != null) {
+                            float centerX = GridConfig.getCellCenterX(grid.col);
+                            float centerY = GridConfig.getCellCenterY(grid.row);
+                            
+                            pos.x = centerX - (size.width / 2f);
+                            pos.y = centerY - (size.height / 2f);
+                        }
+                    }
+
+                    // Chuyển sang IDLE khi diễn xong cảnh RISING
+                    if (animation.isAnimationFinished(stateComp.timeInState)) {
+                        stateComp.set(EntityState.IDLE);
+                        stateComp.timeInState = 0f;
+                    }
+                }
             }
         }
     }

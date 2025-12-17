@@ -12,6 +12,10 @@ public enum EntityState {
     WALLNUT_CRACKED_1, // Nứt nhẹ ( 25% - 75%)
     WALLNUT_CRACKED_2, // Nứt nặng ( < 25%)
     EXPLODING,
+    UNARMED,
+    GROWING,
+    RISING,
+
 
     // --- POTATO MINE (chuẩn PvZ) ---
     POTATOMINE_UNARMED, // chôn dưới đất / chưa kích hoạt
