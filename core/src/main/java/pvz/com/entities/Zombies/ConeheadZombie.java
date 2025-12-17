@@ -15,7 +15,7 @@ public class ConeheadZombie extends Zombies {
     // Thông số cơ bản
     private static final int BODY_HEALTH = 200;
     private static final int CONE_HEALTH = 370;
-    private static final float INITIAL_SPEED = 15f; 
+    private static final float INITIAL_SPEED = 15f;
 
     // Tốc độ Animation (nhanh giống Normal)
     private static final float ANIM_SPEED = 0.055f;
@@ -50,7 +50,8 @@ public class ConeheadZombie extends Zombies {
         super();
 
         // 1. Load Animation (Dùng Linear cho mượt)
-        coneWalkTex = load("images/Zombies/ConeheadZombie/Zombie/Zombie_", 63); // Code cũ 63, sửa lại 21 cho nhẹ nếu không đủ ảnh
+        coneWalkTex = load("images/Zombies/ConeheadZombie/Zombie/Zombie_", 20); // Code cũ 63, sửa lại 21 cho nhẹ nếu
+                                                                                // không đủ ảnh
         coneWalkAnim = anim(coneWalkTex, Animation.PlayMode.LOOP);
 
         coneEatTex = load("images/Zombies/ConeheadZombie/ConeheadZombieAttack/ConeheadZombieAttack_", 10);
@@ -77,7 +78,7 @@ public class ConeheadZombie extends Zombies {
         TextureRegion firstFrame = coneWalkAnim.getKeyFrame(0f);
         originalW = firstFrame.getRegionWidth();
         originalH = firstFrame.getRegionHeight();
-        
+
         this.health = BODY_HEALTH;
         this.baseSpeed = INITIAL_SPEED;
         this.speed = baseSpeed;
@@ -85,10 +86,11 @@ public class ConeheadZombie extends Zombies {
 
     // Hàm thiết lập kích thước (Chỉ chạy 1 lần khi Act)
     private void initSize() {
-        if (sizeInitialized) return;
-        
+        if (sizeInitialized)
+            return;
+
         float worldH = (getStage() != null) ? getStage().getViewport().getWorldHeight() : ScaleManager.BASE_SCREEN_H;
-        
+
         // Chiều cao hiển thị mong muốn (theo màn hình)
         float displayH = ScaleManager.scaleByHeight(DesignConfig.ZOMBIE_H, worldH);
         float aspect = originalW / originalH;
@@ -96,8 +98,8 @@ public class ConeheadZombie extends Zombies {
 
         // [MẤU CHỐT SỬA LỖI LỆCH HÀNG]
         // Set hitbox thấp hơn thực tế để tâm (CenterY) khớp với NormalZombie
-        setSize(displayW, displayH * HITBOX_SCALE); 
-        
+        setSize(displayW, displayH * HITBOX_SCALE);
+
         sizeInitialized = true;
     }
 
@@ -108,7 +110,8 @@ public class ConeheadZombie extends Zombies {
         // Logic chết
         if (isDying) {
             stateTime += delta;
-            boolean done = isCharredDeath ? charredAnim.isAnimationFinished(stateTime) : dieAnim.isAnimationFinished(stateTime);
+            boolean done = isCharredDeath ? charredAnim.isAnimationFinished(stateTime)
+                    : dieAnim.isAnimationFinished(stateTime);
             if (done && !dead) {
                 dead = true;
                 remove();
@@ -119,17 +122,20 @@ public class ConeheadZombie extends Zombies {
         super.act(delta);
 
         // Update time
-        if (isEating) stateTime += delta;
+        if (isEating)
+            stateTime += delta;
         else {
-             float scale = (speed > 0) ? (speed / baseSpeed) : 1f;
-             if (scale < 0.2f) scale = 1f;
-             stateTime += delta * scale;
+            float scale = (speed > 0) ? (speed / baseSpeed) : 1f;
+            if (scale < 0.2f)
+                scale = 1f;
+            stateTime += delta * scale;
         }
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        if (dead) return;
+        if (dead)
+            return;
 
         Color c = getColor();
         batch.setColor(c.r, c.g, c.b, c.a * parentAlpha);
@@ -139,19 +145,21 @@ public class ConeheadZombie extends Zombies {
         if (isDying) {
             frame = isCharredDeath ? charredAnim.getKeyFrame(stateTime) : dieAnim.getKeyFrame(stateTime);
         } else {
-            if (coneOnHead) frame = isEating ? coneEatAnim.getKeyFrame(stateTime) : coneWalkAnim.getKeyFrame(stateTime);
-            else            frame = isEating ? normEatAnim.getKeyFrame(stateTime) : normWalkAnim.getKeyFrame(stateTime);
+            if (coneOnHead)
+                frame = isEating ? coneEatAnim.getKeyFrame(stateTime) : coneWalkAnim.getKeyFrame(stateTime);
+            else
+                frame = isEating ? normEatAnim.getKeyFrame(stateTime) : normWalkAnim.getKeyFrame(stateTime);
         }
 
         // =================================================================
         // [FIX LỖI ZOMBIE BỊ TEO/BÓP MÉO]
         // =================================================================
-        
+
         // B1: Tính chiều cao vẽ (Visual Height)
         float drawHeight;
         if (coneOnHead) {
             // Nếu có nón -> Vẽ to hơn hitbox (khôi phục 100% kích thước)
-            drawHeight = getHeight() / HITBOX_SCALE; 
+            drawHeight = getHeight() / HITBOX_SCALE;
         } else {
             // Nếu mất nón -> Vẽ bằng hitbox (vì zombie đã lùn đi, vừa với hitbox hiện tại)
             drawHeight = getHeight();
@@ -166,7 +174,7 @@ public class ConeheadZombie extends Zombies {
         // B3: Căn giữa hình ảnh vào Hitbox
         // (HitboxWidth - DrawWidth) / 2 sẽ ra khoảng cách để căn giữa
         float drawX = getX() + (getWidth() - drawWidth) / 2f;
-        
+
         // Vẽ từ chân (getY) lên
         batch.draw(frame, drawX, getY(), drawWidth, drawHeight);
 
@@ -186,21 +194,25 @@ public class ConeheadZombie extends Zombies {
 
     @Override
     public void takeDamage(int damage) {
-        if (dead || isDying) return;
+        if (dead || isDying)
+            return;
 
         if (coneOnHead) {
             coneHealth -= damage;
-            if (coneHealth <= 0) coneOnHead = false; // Vỡ nón -> Hiện đầu trọc
+            if (coneHealth <= 0)
+                coneOnHead = false; // Vỡ nón -> Hiện đầu trọc
             return;
         }
         health -= damage;
-        if (health <= 0) startDeath(false);
+        if (health <= 0)
+            startDeath(false);
     }
 
     // --- Các hàm tiện ích ngắn gọn ---
-    
+
     private void startDeath(boolean burnt) {
-        if (isDying) return;
+        if (isDying)
+            return;
         isDying = true;
         isCharredDeath = burnt;
         speed = 0f;
@@ -209,24 +221,39 @@ public class ConeheadZombie extends Zombies {
         setColor(Color.WHITE);
     }
 
-    @Override public void killByMower() { startDeath(false); }
-    @Override public void killByCherryBomb() { startDeath(true); }
+    @Override
+    public void killByMower() {
+        startDeath(false);
+    }
+
+    @Override
+    public void killByCherryBomb() {
+        startDeath(true);
+    }
 
     @Override
     public void setEating(boolean eating) {
-        if (isDying || dead || this.isEating == eating) return;
+        if (isDying || dead || this.isEating == eating)
+            return;
         this.isEating = eating;
         stateTime = 0f;
         this.speed = eating ? 0f : baseSpeed;
     }
-    
-    @Override public boolean isEating() { return isEating; }
+
+    @Override
+    public boolean isEating() {
+        return isEating;
+    }
 
     @Override
     public void dispose() {
-        disposeArr(coneWalkTex); disposeArr(coneEatTex);
-        disposeArr(normWalkTex); disposeArr(normEatTex);
-        disposeArr(dieTex); disposeArr(headTex); disposeArr(charredTex);
+        disposeArr(coneWalkTex);
+        disposeArr(coneEatTex);
+        disposeArr(normWalkTex);
+        disposeArr(normEatTex);
+        disposeArr(dieTex);
+        disposeArr(headTex);
+        disposeArr(charredTex);
     }
 
     private Array<Texture> load(String prefix, int count) {
@@ -236,18 +263,24 @@ public class ConeheadZombie extends Zombies {
                 Texture t = new Texture(prefix + i + ".png");
                 t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
                 arr.add(t);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         return arr;
     }
 
     private Animation<TextureRegion> anim(Array<Texture> tex, Animation.PlayMode mode) {
         TextureRegion[] frames = new TextureRegion[tex.size];
-        for(int i=0; i<tex.size; i++) frames[i] = new TextureRegion(tex.get(i));
+        for (int i = 0; i < tex.size; i++)
+            frames[i] = new TextureRegion(tex.get(i));
         Animation<TextureRegion> a = new Animation<>(ANIM_SPEED, frames);
         a.setPlayMode(mode);
         return a;
     }
-    
-    private void disposeArr(Array<Texture> arr) { if(arr!=null) for(Texture t : arr) t.dispose(); }
+
+    private void disposeArr(Array<Texture> arr) {
+        if (arr != null)
+            for (Texture t : arr)
+                t.dispose();
+    }
 }
