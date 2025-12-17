@@ -10,7 +10,7 @@ import pvz.com.entities.Zombies.Zombies;
 import pvz.com.entities.components.*;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
-import pvz.com.managers.GridConfig; // [MỚI] Import cái này để tính tọa độ
+import pvz.com.managers.GridConfig;
 
 public class ExplosionSystem {
     private final ZombieWaveController zombieController;
@@ -31,45 +31,52 @@ public class ExplosionSystem {
             AnimationComponent anim = entity.getComponent(AnimationComponent.class);
             SizeComponent size = entity.getComponent(SizeComponent.class);
 
-            // [LƯU Ý] Đã xóa dòng lấy GridPositionComponent ở đây
+            if (explosive == null || state == null || pos == null) continue;
 
-            if (explosive == null || state == null || pos == null)
-                continue;
-
-            // --- GIAI ĐOẠN 1: ĐẾM NGƯỢC ---
+            // --- GIAI ĐOẠN 1: CHỜ KÍCH NỔ (Đếm ngược HOẶC Chờ đạp trúng) ---
             if (!explosive.hasExploded) {
-                explosive.timer += delta;
+                
+                // A. XỬ LÝ ĐẾM NGƯỢC (Chỉ dành cho bom hẹn giờ như CherryBomb)
+                // Nếu fuseTime < 0 (PotatoMine) thì bỏ qua đoạn này
+                if (explosive.fuseTime >= 0) {
+                    explosive.timer += delta;
+                    if (explosive.timer >= explosive.fuseTime) {
+                        // Hết giờ -> Ép trạng thái sang EXPLODING
+                        state.set(EntityState.EXPLODING);
+                    }
+                }
 
-                if (explosive.timer >= explosive.fuseTime) {
-                    // === KÍCH HOẠT NỔ ===
+                // B. KÍCH HOẠT NỔ THỰC SỰ
+                // Điều kiện: State đã chuyển sang EXPLODING (do hết giờ Ở TRÊN hoặc do CollisionSystem SET)
+                if (state.get() == EntityState.EXPLODING) {
+                    
+                    // Đánh dấu đã nổ để không chạy lại đoạn này nữa
                     explosive.hasExploded = true;
-                    state.set(EntityState.EXPLODING);
-                    explosive.timer = 0f;
+                    
+                    // Reset timer về 0 để dùng cho việc đếm thời gian Animation nổ (Giai đoạn 2)
+                    explosive.timer = 0f; 
 
-                    // 1. Xóa sự tồn tại vật lý (Hitbox & Máu)
+                    // 1. Xóa sự tồn tại vật lý
                     entity.removeComponent(HealthComponent.class);
                     entity.removeComponent(BoundsComponent.class);
 
-                    // 2. [FIX - QUAN TRỌNG] XÓA KHỎI GRID (Không cần GridPositionComponent)
-                    // Chúng ta tính ngược từ vị trí X, Y ra Hàng và Cột
-                    // Lưu ý: Phải làm bước này TRƯỚC khi dịch chuyển pos (bước 3)
+                    // 2. XÓA KHỎI GRID (Tính toán trước khi dịch chuyển hình ảnh)
                     if (plantGridController != null) {
-                        // Dùng hàm tiện ích có sẵn trong GridConfig của bạn
+                        // Tính ra hàng/cột dựa trên tọa độ hiện tại
                         int[] cell = GridConfig.worldToNearestCell(pos.x, pos.y);
                         int row = cell[0];
                         int col = cell[1];
-
-                        // Gọi Controller xóa cây khỏi bộ nhớ
+                        
+                        // Báo cho controller biết ô này đã trống
                         plantGridController.unregisterPlantAtCell(row, col);
                     }
 
-                    // 3. Phóng to hình ảnh nổ (Logic dịch chuyển Pos)
+                    // 3. Phóng to hình ảnh nổ (Hiệu ứng bùm to hơn cây)
                     if (size != null) {
                         float oldSize = size.width;
-                        float newSize = 250f;
-                        float offset = (newSize - oldSize) / 2f;
-
-                        // Giờ mới dịch chuyển pos (sau khi đã tính grid ở trên)
+                        float newSize = 250f;       
+                        float offset = (newSize - oldSize) / 2f; 
+                        
                         pos.x -= offset;
                         pos.y -= offset;
 
@@ -77,19 +84,23 @@ public class ExplosionSystem {
                         size.height = newSize;
                     }
 
-                    // 4. Gây sát thương
+                    // 4. Gây sát thương diện rộng
                     dealAreaDamage(pos, size, explosive);
                 }
-            }
-            // --- GIAI ĐOẠN 2: CHỜ ANIMATION NỔ XONG ---
+            } 
+            // --- GIAI ĐOẠN 2: CHỜ ANIMATION NỔ XONG RỒI XÓA ENTITY ---
             else {
                 explosive.timer += delta;
-
-                float explodeAnimDuration = 0.8f;
+                
+                // Mặc định nổ trong 0.8s nếu không tìm thấy animation
+                float explodeAnimDuration = 0.8f; 
+                
+                // Lấy thời gian thực của Animation EXPLODING (nếu có)
                 if (anim != null && anim.getAnimation(EntityState.EXPLODING) != null) {
                     explodeAnimDuration = anim.getAnimation(EntityState.EXPLODING).getAnimationDuration();
                 }
 
+                // Chạy hết phim nổ thì xóa khỏi game
                 if (explosive.timer >= explodeAnimDuration) {
                     toRemove.add(entity);
                 }
@@ -100,9 +111,10 @@ public class ExplosionSystem {
     }
 
     private void dealAreaDamage(PositionComponent bombPos, SizeComponent size, ExplosiveComponent explosive) {
-        float currentSize = (size != null) ? size.width : 90f;
-
-        float centerX = bombPos.x + (currentSize / 2f);
+        float currentSize = (size != null) ? size.width : 90f; 
+        
+        // Tính tâm vụ nổ
+        float centerX = bombPos.x + (currentSize / 2f); 
         float centerY = bombPos.y + (currentSize / 2f);
 
         for (Zombies z : zombieController.getZombies()) {
@@ -114,9 +126,12 @@ public class ExplosionSystem {
 
             float dist = Vector2.dst(centerX, centerY, zCenterX, zCenterY);
 
+            // Nếu nằm trong bán kính nổ
             if (dist <= explosive.range) {
-                z.killByCherryBomb();
-                z.setEating(false);
+                // PotatoMine damage rất to (1800), giết được hầu hết zombie
+                // Hàm killByCherryBomb() thường xử lý việc biến thành tro đen
+                z.killByCherryBomb(); 
+                z.setEating(false); 
             }
         }
     }

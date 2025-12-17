@@ -16,10 +16,10 @@ public class NormalZombie extends Zombies {
     private static final float INITIAL_SPEED = 15f;
 
     private static final float WALK_FRAME_TIME = 0.12f;
-    private static final float EAT_FRAME_TIME = 0.25f;
-    private static final float BODY_DIE_FRAME_TIME = 0.15f;
-    private static final float HEAD_POP_FRAME_TIME = 0.1f;
-    private static final float CHARRED_FRAME_TIME = 0.15f;
+    private static final float EAT_FRAME_TIME = 0.1f;
+    private static final float BODY_DIE_FRAME_TIME = 0.15f; 
+    private static final float HEAD_POP_FRAME_TIME = 0.1f;  
+    private static final float CHARRED_FRAME_TIME = 0.15f; // [MỚI]
 
     private final Array<Texture> walkTextures;
     private final Array<Texture> headPopTextures;
@@ -69,7 +69,17 @@ public class NormalZombie extends Zombies {
 
         this.health = BODY_HEALTH;
         this.baseSpeed = INITIAL_SPEED;
-        this.speed = baseSpeed;
+        this.speed = this.baseSpeed;
+    }
+
+    private Array<Texture> loadTextures(String prefix, int count) {
+        Array<Texture> textures = new Array<>();
+        for (int i = 0; i <= count; i++) {
+            Texture tex = new Texture(prefix + i + ".png");
+            tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            textures.add(tex);
+        }
+        return textures;
     }
 
     // ================= CORE =================

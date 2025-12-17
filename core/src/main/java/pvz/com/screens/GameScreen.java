@@ -21,6 +21,21 @@ import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
 import pvz.com.items.PlantCard;
+
+// [1] IMPORT CÁC SYSTEM VÀ INTERFACE
+import pvz.com.systems.IGameSpawner;
+import pvz.com.systems.ISunReceiver;
+import pvz.com.systems.RenderSystem;
+import pvz.com.systems.SunProductionSystem;
+import pvz.com.systems.WallnutStateSystem;
+import pvz.com.systems.PlantAttackSystem;
+import pvz.com.systems.MovementSystem;
+import pvz.com.systems.CollisionSystem;
+import pvz.com.systems.SunPickupSystem;
+import pvz.com.systems.AnimationSystem;
+import pvz.com.systems.ArmingSystem;
+import pvz.com.systems.ExplosionSystem;
+
 import pvz.com.logic.GameState;
 import pvz.com.logic.GameWorld;
 import pvz.com.logic.HudController;
@@ -58,13 +73,19 @@ public class GameScreen implements Screen {
     // ===== Camera/viewport =====
     private final OrthographicCamera camera;
     private final Viewport viewport;
+    private ShapeRenderer shapeRenderer;
 
-    // ===== HUD =====
-    private final Stage hudStage;
-    private final HudController hudController;
-
-    // ===== Debug grid =====
-    private final ShapeRenderer shapeRenderer;
+    // ===== ECS Systems (KHAI BÁO LẠI CÁC BIẾN BỊ THIẾU) =====
+    private final RenderSystem renderSystem;
+    private final AnimationSystem animationSystem;
+    private final SunProductionSystem sunSystem;
+    private final PlantAttackSystem attackSystem;
+    private final MovementSystem movementSystem;
+    private final CollisionSystem collisionSystem;
+    private final SunPickupSystem sunPickupSystem;
+    private final WallnutStateSystem wallnutStateSystem;
+    private final ExplosionSystem explosionSystem;
+    private ArmingSystem armingSystem;
 
     // ===== ECS Data =====
     private final List<Entity> entities = new ArrayList<>();
@@ -169,10 +190,18 @@ public class GameScreen implements Screen {
         // Debug renderer
         this.shapeRenderer = new ShapeRenderer();
 
-        // Load game music
-        this.gameMusic = Gdx.audio.newMusic(Gdx.files.internal(GAME_BGM_PATH));
-        this.gameMusic.setLooping(true);
-        this.gameMusic.setVolume(0f); // fade in
+        // [3] KHỞI TẠO CÁC SYSTEM (QUAN TRỌNG)
+        // Nếu không khởi tạo ở đây, khi chạy render sẽ bị NullPointerException
+        renderSystem = new RenderSystem(batch);
+        animationSystem = new AnimationSystem();
+        sunSystem = new SunProductionSystem(this, entities);
+        attackSystem = new PlantAttackSystem(this, zombieWaveController);
+        movementSystem = new MovementSystem();
+        collisionSystem = new CollisionSystem(entities, zombieWaveController, plantGridController);
+        sunPickupSystem = new SunPickupSystem(entities, camera, this);
+        wallnutStateSystem = new WallnutStateSystem();
+        explosionSystem = new ExplosionSystem(zombieWaveController, plantGridController);
+        armingSystem = new ArmingSystem(); 
     }
 
     // ================== Public getters ==================
@@ -361,14 +390,7 @@ public class GameScreen implements Screen {
         multiplexer.addProcessor(hudStage);
         multiplexer.addProcessor(gameWorld.getSunPickupSystem()); // input pickup sun
         Gdx.input.setInputProcessor(multiplexer);
-
-        // Nếu quay lại từ ResumeScreen, đảm bảo music chạy lại
-        if (gameMusic != null && startedFade && !gameMusic.isPlaying()) {
-            gameMusic.play();
-        }
-
-        // Lần đầu vào thì crossfade
-        startCrossfadeIfNeeded();
+        armingSystem = new ArmingSystem();
     }
 
     @Override
@@ -391,8 +413,22 @@ public class GameScreen implements Screen {
         // debug (nếu muốn)
         // drawDebugGrid();
 
-        // ECS update + render entities (chỉ khi playing)
-        if (gameState.isPlaying()) {
+        drawDebugGrid();
+
+        // 3. Update & Vẽ ECS
+        if (isPlaying()) {
+            // Cập nhật tất cả hệ thống ECS
+            sunSystem.update(delta);
+            wallnutStateSystem.update(entities);
+            explosionSystem.update(entities, delta); // Bom nổ
+            armingSystem.update(entities, delta);
+            animationSystem.update(entities, delta);
+            attackSystem.update(plants, delta);      // Cây bắn
+            movementSystem.update(entities, delta);
+            collisionSystem.update(delta);           // Va chạm
+            sunPickupSystem.update(delta);
+
+            // GameWorld update (để đồng bộ nếu cần)
             gameWorld.update(delta);
 
             batch.setProjectionMatrix(camera.combined);

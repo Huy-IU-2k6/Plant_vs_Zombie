@@ -5,116 +5,81 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.entities.components.AnimationComponent;
-import pvz.com.entities.components.ArmingComponent;
-import pvz.com.entities.components.EntityState;
-import pvz.com.entities.components.ExplosiveComponent;
-import pvz.com.entities.components.GridCellComponent;
-import pvz.com.entities.components.HealthComponent;
-import pvz.com.entities.components.SpriteComponent;
-import pvz.com.entities.components.StateComponent;
-import pvz.com.entities.components.Team;
-import pvz.com.entities.components.TeamComponent;
 import pvz.com.entities.plants.Plant;
+import pvz.com.entities.components.*;
 import pvz.com.managers.GridConfig;
 
 public class PotatoMine extends Plant {
 
-    // ===== SIZE / ANIM =====
-    private static final float SCALE_X = 0.65f;
-    private static final float SCALE_Y = 0.70f;
-    private static final float FRAME_DURATION = 0.12f;
+    // [CẤU HÌNH KÍCH THƯỚC]
+    // Kích thước chuẩn (Lớn) dùng cho lúc đã mọc và nổ (80% ô đất)
+    public static final float BIG_WIDTH = GridConfig.CELL_WIDTH * 0.8f;
+    public static final float BIG_HEIGHT = GridConfig.CELL_HEIGHT * 0.8f;
 
-    // ===== STATS =====
-    private static final int MAX_HEALTH = 300;
+    // Kích thước lúc còn là cái núm (Nhỏ) (40% ô đất)
+    public static final float SMALL_WIDTH = GridConfig.CELL_WIDTH * 0.4f;
+    public static final float SMALL_HEIGHT = GridConfig.CELL_HEIGHT * 0.4f;
 
-    // PvZ chuẩn: 14s (test nhanh thì đổi nhỏ hơn)
-    private static final float ARMING_TIME = 14f;
-
-    private static final int DAMAGE = 1800;
-    private static final float RADIUS = 50f;
-    private static final float FUSE_TIME = 0f; // dẫm là nổ ngay
-
-    // ===== ASSET PATHS (đặt tên rõ ràng hơn) =====
-    private static final String PATH_UNARMED_PREFIX = "images/Plants/PotatoMine/PotatoMineInit/PotatoMineInit_"; // 1
-
-    private static final String PATH_ARMED_PREFIX = "images/Plants/PotatoMine/PotatoMine/PotatoMine_"; // 8 frames:
-
-    private static final String PATH_EXPLODE_PREFIX = "images/Plants/PotatoMine/PotatoMineExplode/PotatoMineExplode_"; // 1
+    private static final float FRAME_DURATION = 0.06f; 
 
     public PotatoMine(float x, float y, int col, int row) {
-        super(
-                x,
-                y,
-                GridConfig.CELL_WIDTH * SCALE_X,
-                GridConfig.CELL_HEIGHT * SCALE_Y);
+        // 1. [QUAN TRỌNG] Khởi tạo với kích thước NHỎ (SMALL)
+        super(x, y, SMALL_WIDTH, SMALL_HEIGHT);
 
-        // =========================================================
-        // 1) LOAD FRAMES (giống style SunFlower: for-loop + Array)
-        // =========================================================
+        // 2. [CĂN GIỮA] Vì nó nhỏ đi, ta phải tính toán lại vị trí để nó nằm giữa ô
+        float centerX = GridConfig.getCellCenterX(col);
+        float centerY = GridConfig.getCellCenterY(row);
 
-        // Unarmed: 1 frame (0..0)
-        Animation<TextureRegion> unarmedAnim = buildAnimation(
-                PATH_UNARMED_PREFIX, 0, 0, Animation.PlayMode.LOOP);
-
-        // Armed loop: 8 frames (0..7)
-        Animation<TextureRegion> armedLoopAnim = buildAnimation(
-                PATH_ARMED_PREFIX, 0, 7, Animation.PlayMode.LOOP);
-
-        // Explode: 1 frame (0..0)
-        Animation<TextureRegion> explodeAnim = buildAnimation(
-                PATH_EXPLODE_PREFIX, 0, 0, Animation.PlayMode.NORMAL);
-
-        // =========================================================
-        // 2) COMPONENTS
-        // =========================================================
-
-        // Sprite start: UNARMED frame đầu
-        this.addComponent(new SpriteComponent(unarmedAnim.getKeyFrame(0)));
-
-        // Animation map: bỏ animArming dư (trùng armed)
-        AnimationComponent animComp = new AnimationComponent();
-        animComp.addAnimation(EntityState.POTATOMINE_UNARMED, unarmedAnim);
-
-        // Nếu system vẫn dùng state POTATOMINE_ARMING, map chung vào armedLoopAnim luôn
-        animComp.addAnimation(EntityState.POTATOMINE_ARMING, armedLoopAnim);
-        animComp.addAnimation(EntityState.POTATOMINE_ARMED, armedLoopAnim);
-
-        animComp.addAnimation(EntityState.POTATOMINE_EXPLODING, explodeAnim);
-        this.addComponent(animComp);
-
-        // State ban đầu
-        this.addComponent(new StateComponent(EntityState.POTATOMINE_UNARMED));
-
-        // Stats / team / cell
-        this.addComponent(new HealthComponent(MAX_HEALTH));
-        this.addComponent(new TeamComponent(Team.PLANT));
-        this.addComponent(new GridCellComponent(col, row));
-
-        // Logic giữ nguyên
-        this.addComponent(new ArmingComponent(ARMING_TIME));
-        this.addComponent(new ExplosiveComponent(DAMAGE, RADIUS, FUSE_TIME));
-    }
-
-    public PotatoMine(float x, float y) {
-        this(x, y, -1, -1);
-    }
-
-    // =========================================================
-    // Helpers: load frames bằng vòng lặp như SunFlower
-    // =========================================================
-    private Animation<TextureRegion> buildAnimation(
-            String prefix, int startFrame, int endFrameInclusive, Animation.PlayMode playMode) {
-
-        Array<TextureRegion> frames = new Array<>();
-
-        for (int i = startFrame; i <= endFrameInclusive; i++) {
-            Texture tex = new Texture(prefix + i + ".png");
-            tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-            frames.add(new TextureRegion(tex));
+        // Cập nhật lại PositionComponent (ghi đè lên vị trí của super)
+        PositionComponent pos = this.getComponent(PositionComponent.class);
+        if (pos != null) {
+            pos.x = centerX - (SMALL_WIDTH / 2f);
+            pos.y = centerY - (SMALL_HEIGHT / 2f);
         }
 
-        Animation<TextureRegion> anim = new Animation<>(FRAME_DURATION, frames, playMode);
-        return anim;
+        // --- LOAD ANIMATION ---
+        AnimationComponent animComp = new AnimationComponent();
+
+        Animation<TextureRegion> growAnim = loadAnimation("images/Plants/PotatoMine/planted/planted_", 29, Animation.PlayMode.NORMAL);
+        animComp.addAnimation(EntityState.GROWING, growAnim);
+
+        Animation<TextureRegion> initAnim = loadAnimation("images/Plants/PotatoMine/init/init_", 1, Animation.PlayMode.LOOP);
+        animComp.addAnimation(EntityState.UNARMED, initAnim);
+
+        Animation<TextureRegion> riseAnim = loadAnimation("images/Plants/PotatoMine/grow/grow_", 25, Animation.PlayMode.NORMAL);
+        animComp.addAnimation(EntityState.RISING, riseAnim);
+
+        Animation<TextureRegion> idleAnim = loadAnimation("images/Plants/PotatoMine/Idle/idle_", 30, Animation.PlayMode.LOOP);
+        animComp.addAnimation(EntityState.IDLE, idleAnim);
+
+        Animation<TextureRegion> boomAnim = loadAnimation("images/Plants/PotatoMine/explode/explode_", 26, Animation.PlayMode.NORMAL);
+        animComp.addAnimation(EntityState.EXPLODING, boomAnim);
+        
+        this.addComponent(animComp);
+
+        // KHỞI TẠO TRẠNG THÁI
+        this.addComponent(new StateComponent(EntityState.GROWING));
+        this.addComponent(new SpriteComponent(growAnim.getKeyFrame(0)));
+
+        this.addComponent(new HealthComponent(300));
+        this.addComponent(new ArmingComponent(3.0f)); 
+        this.addComponent(new TeamComponent(Team.PLANT));
+        this.addComponent(new GridCellComponent(col, row));
+        
+        // Range nổ vẫn giữ nguyên
+        this.addComponent(new ExplosiveComponent(1800, 150f, -1f));
+    }
+
+    private Animation<TextureRegion> loadAnimation(String prefix, int count, Animation.PlayMode mode) {
+        Array<TextureRegion> frames = new Array<>();
+        for (int i = 0; i < count; i++) {
+             try {
+                Texture tex = new Texture(prefix + i + ".png");
+                tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+                frames.add(new TextureRegion(tex));
+             } catch (Exception e) {}
+        }
+        if (frames.size == 0) return null;
+        return new Animation<>(FRAME_DURATION, frames, mode);
     }
 }

@@ -17,7 +17,7 @@ public class BucketheadZombie extends Zombies {
     private static final float INITIAL_SPEED = 18f;
 
     private static final float WALK_FRAME_TIME = 0.12f;
-    private static final float EAT_FRAME_TIME = 0.25f;
+    private static final float EAT_FRAME_TIME = 0.1f;
     private static final float BODY_DIE_FRAME_TIME = 0.15f;
     private static final float HEAD_POP_FRAME_TIME = 0.1f;
 
