@@ -50,18 +50,19 @@ public class ConeheadZombie extends Zombies {
         super();
 
         // 1. Load Animation (Dùng Linear cho mượt)
-        coneWalkTex = load("images/Zombies/ConeheadZombie/Zombie/Zombie_", 20); // Code cũ 63, sửa lại 21 cho nhẹ nếu
-                                                                                // không đủ ảnh
+        coneWalkTex = load("images/Zombies/ConeheadZombie/Zombie/ConeheadZombie_", 20); // Code cũ 63, sửa lại 21 cho
+                                                                                        // nhẹ nếu
+        // không đủ ảnh
         coneWalkAnim = anim(coneWalkTex, Animation.PlayMode.LOOP);
 
-        coneEatTex = load("images/Zombies/ConeheadZombie/ConeheadZombieAttack/ConeheadZombieAttack_", 10);
+        coneEatTex = load("images/Zombies/ConeheadZombie/ZombieAttack/ConeheadZombieAttack_", 10);
         coneEatAnim = anim(coneEatTex, Animation.PlayMode.LOOP);
 
         // Load bộ Normal (khi mất nón)
         normWalkTex = load("images/Zombies/NormalZombie/Zombie/Zombie_", 21);
         normWalkAnim = anim(normWalkTex, Animation.PlayMode.LOOP);
 
-        normEatTex = load("images/Zombies/NormalZombie/ZombieAttack/ZombieAttack_", 10);
+        normEatTex = load("images/Zombies/NormalZombie/ZombieAttack/ZombieAttack_", 21);
         normEatAnim = anim(normEatTex, Animation.PlayMode.LOOP);
 
         // Load bộ chết
@@ -258,21 +259,28 @@ public class ConeheadZombie extends Zombies {
 
     private Array<Texture> load(String prefix, int count) {
         Array<Texture> arr = new Array<>();
-        for (int i = 0; i <= count; i++) {
+        for (int i = 0; i < count; i++) { // NOTE: dùng < count cho đúng "count frame"
+            String path = prefix + i + ".png";
             try {
-                Texture t = new Texture(prefix + i + ".png");
+                Texture t = new Texture(path);
                 t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
                 arr.add(t);
             } catch (Exception e) {
+                System.out.println("[LOAD FAIL] " + path + " -> " + e.getMessage());
             }
         }
         return arr;
     }
 
     private Animation<TextureRegion> anim(Array<Texture> tex, Animation.PlayMode mode) {
+        if (tex == null || tex.size == 0) {
+            throw new IllegalStateException("Animation has 0 frames. Check asset path/prefix.");
+        }
+
         TextureRegion[] frames = new TextureRegion[tex.size];
         for (int i = 0; i < tex.size; i++)
             frames[i] = new TextureRegion(tex.get(i));
+
         Animation<TextureRegion> a = new Animation<>(ANIM_SPEED, frames);
         a.setPlayMode(mode);
         return a;
