@@ -153,7 +153,7 @@ public class GameScreen implements Screen {
                 zombieWaveController
         );
 
-        // GameWorld (NEW): truyền batch để GameWorld tự giữ RenderSystem nội bộ
+        // GameWorld: giữ RenderSystem nội bộ, nên truyền batch vào đây
         this.gameWorld = new GameWorld(
                 gameState,
                 hudController,
@@ -229,7 +229,7 @@ public class GameScreen implements Screen {
         // background + lanes + mowers + zombies render base
         renderWorldOnly(gameState.isCountdown(), true);
 
-        // entities (plants/projectiles/suns...) -> dùng GameWorld mới
+        // entities (plants/projectiles/suns...) -> dùng GameWorld.render()
         batch.setProjectionMatrix(camera.combined);
         gameWorld.render(batch);
 
@@ -366,7 +366,7 @@ public class GameScreen implements Screen {
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(hudStage);
 
-        // NEW: cho phép input lên grid controller (đụng tới shovel/remove/logic grid khi enabled)
+        // input cho grid controller (shovel/remove khi enabled)
         multiplexer.addProcessor(plantGridController);
 
         // Sun pickup input

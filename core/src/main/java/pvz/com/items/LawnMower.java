@@ -5,19 +5,18 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.managers.DesignConfig;
 import pvz.com.entities.Zombies.Zombies;
 
 public class LawnMower {
 
-    private static final float DEFAULT_SPEED = 300f;
-    
+    private static final float DEFAULT_SPEED = 500f;
+
     // Kích thước hiển thị (Vẽ)
-    private static final float WIDTH = 110f; 
+    private static final float WIDTH = 110f;
     private static final float HEIGHT = 90f;
 
     // Kích thước Hitbox (Va chạm) - Nhỏ hơn hình vẽ chút cho chuẩn
-    private static final float HITBOX_W = 90f; 
+    private static final float HITBOX_W = 90f;
     private static final float HITBOX_H = 70f;
 
     private final Texture idleTexture;
@@ -38,7 +37,7 @@ public class LawnMower {
         this.x = startX;
         this.y = startY;
         this.speed = DEFAULT_SPEED;
-        
+
         this.idleTexture = idle;
         this.activeTexture = active;
         this.currentTexture = idleTexture;
@@ -48,16 +47,18 @@ public class LawnMower {
     }
 
     public void update(float delta, Array<Zombies> zombies) {
-        if (used) return;
+        if (used)
+            return;
 
         // 1. Logic kích hoạt
         if (!active) {
             for (Zombies z : zombies) {
-                if (z.isDead()) continue;
+                if (z.isDead())
+                    continue;
                 // Chỉ check va chạm nếu hitbox chạm nhau
                 if (bounds.overlaps(z.getBounds())) {
                     trigger();
-                    break; 
+                    break;
                 }
             }
         }
@@ -65,17 +66,18 @@ public class LawnMower {
         // 2. Logic chạy và giết
         if (active) {
             x += speed * delta;
-            
+
             // Cập nhật hitbox theo vị trí mới
             bounds.setPosition(x + 10, y + 5);
 
             for (Zombies z : zombies) {
-                if (z.isDead()) continue;
-                
+                if (z.isDead())
+                    continue;
+
                 // Va chạm khi đang chạy -> Giết
                 if (bounds.overlaps(z.getBounds())) {
                     // [LƯU Ý] Đảm bảo class Zombies có hàm này
-                    z.killByMower(); 
+                    z.killByMower();
                 }
             }
 
@@ -88,7 +90,8 @@ public class LawnMower {
     }
 
     public void render(SpriteBatch batch) {
-        if (used) return;
+        if (used)
+            return;
         // Vẽ texture
         batch.draw(currentTexture, x, y, WIDTH, HEIGHT);
     }
@@ -101,7 +104,9 @@ public class LawnMower {
         }
     }
 
-    public boolean isUsed() { return used; }
-    
+    public boolean isUsed() {
+        return used;
+    }
+
     // Không cần hàm dispose ở đây nữa vì Texture do Controller quản lý
 }

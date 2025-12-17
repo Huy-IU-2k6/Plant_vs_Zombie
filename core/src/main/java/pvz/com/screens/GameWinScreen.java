@@ -16,11 +16,10 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 import java.nio.ByteBuffer;
 
-public class GameOverScreen extends ScreenAdapter {
+public class GameWinScreen extends ScreenAdapter {
 
     private final Game game;
     private final GameScreen gameScreen; // screen cũ để renderFrozen snapshot
-    private final boolean playerWon;
 
     private SpriteBatch batch;
     private BitmapFont font;
@@ -32,10 +31,9 @@ public class GameOverScreen extends ScreenAdapter {
     private static final float OVERLAY_ALPHA = 0.55f;
     private boolean restarting = false;
 
-    public GameOverScreen(Game game, GameScreen gameScreen, boolean playerWon) {
+    public GameWinScreen(Game game, GameScreen gameScreen) {
         this.game = game;
         this.gameScreen = gameScreen;
-        this.playerWon = playerWon;
     }
 
     @Override
@@ -60,16 +58,13 @@ public class GameOverScreen extends ScreenAdapter {
             return;
         restarting = true;
 
-        // Tạo màn mới trước
         GameScreen newScreen = new GameScreen(game);
-
-        // Switch
         game.setScreen(newScreen);
 
-        // Dispose GameOverScreen hiện tại (textures/batch/font...)
+        // dispose màn hiện tại
         dispose();
 
-        // QUAN TRỌNG: dispose GameScreen cũ (Game#setScreen không tự dispose)
+        // QUAN TRỌNG: dispose GameScreen cũ
         if (gameScreen != null) {
             gameScreen.dispose();
         }
@@ -93,7 +88,7 @@ public class GameOverScreen extends ScreenAdapter {
         // vẽ lại frame cuối, không update logic
         gameScreen.renderFrozen();
 
-        // đọc pixels (gốc bottom-left) -> flip Y cho đúng chiều
+        // đọc pixels -> flip Y
         Pixmap shot = readPixelsToPixmapFlippedY(0, 0, w, h);
 
         fbo.end();
@@ -102,7 +97,6 @@ public class GameOverScreen extends ScreenAdapter {
         // trả viewport về màn hình
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
 
-        // update texture snapshot
         if (snapshotTex != null)
             snapshotTex.dispose();
         snapshotTex = new Texture(shot);
@@ -162,7 +156,7 @@ public class GameOverScreen extends ScreenAdapter {
         batch.setColor(Color.WHITE);
 
         // 3) text
-        String title = playerWon ? "YOU WIN!" : "GAME OVER";
+        String title = "YOU WIN!";
         font.getData().setScale(3.0f);
         layout.setText(font, title);
 
@@ -173,7 +167,7 @@ public class GameOverScreen extends ScreenAdapter {
         font.draw(batch, layout, tx, ty);
 
         font.getData().setScale(1.2f);
-        String hint = "Press ENTER to restart";
+        String hint = "All zombies defeated! Press ENTER to restart";
         layout.setText(font, hint);
         font.setColor(1f, 1f, 1f, 0.85f);
         font.draw(batch, layout, (w - layout.width) / 2f, ty - 90f);
@@ -196,6 +190,7 @@ public class GameOverScreen extends ScreenAdapter {
             pixel.dispose();
         if (snapshotTex != null)
             snapshotTex.dispose();
+
         batch = null;
         font = null;
         pixel = null;

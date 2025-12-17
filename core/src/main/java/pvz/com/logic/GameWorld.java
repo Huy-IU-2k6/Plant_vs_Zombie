@@ -1,28 +1,30 @@
 package pvz.com.logic;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.List;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.Zombies.Zombies; // [NEW] Needed to check zombies for game over
+import pvz.com.entities.Zombies.Zombies;
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.entities.suns.Sun;
-import pvz.com.managers.GridConfig; // [NEW] Needed for coordinate calculations
+import pvz.com.managers.GridConfig;
+
 import pvz.com.systems.AnimationSystem;
+import pvz.com.systems.ArmingSystem;
 import pvz.com.systems.CleanupSystem;
 import pvz.com.systems.CollisionSystem;
+import pvz.com.systems.ExplosionSystem;
 import pvz.com.systems.IGameSpawner;
 import pvz.com.systems.ISunReceiver;
 import pvz.com.systems.MovementSystem;
 import pvz.com.systems.PlantAttackSystem;
-import pvz.com.systems.RenderSystem;
 import pvz.com.systems.SunPickupSystem;
 import pvz.com.systems.SunProductionSystem;
+import pvz.com.systems.WallnutStateSystem;
 
 public class GameWorld implements IGameSpawner, ISunReceiver {
 
@@ -30,21 +32,22 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
     private final List<Plant> plants;
     private final GameState gameState;
 
-    // We need to keep this to check zombie positions in update()
-    private final ZombieWaveController zombieWaveController; 
+    private final ZombieWaveController zombieWaveController;
+
+    // HUD holds SUN
+    private final HudController hudController;
 
     // Systems
-    private final RenderSystem renderSystem;
-    private final AnimationSystem animationSystem;
     private final SunProductionSystem sunSystem;
+    private final WallnutStateSystem wallnutStateSystem;
+    private final ExplosionSystem explosionSystem;
+    private final ArmingSystem armingSystem;
+    private final AnimationSystem animationSystem;
     private final PlantAttackSystem attackSystem;
     private final MovementSystem movementSystem;
     private final CollisionSystem collisionSystem;
     private final SunPickupSystem sunPickupSystem;
     private final CleanupSystem cleanupSystem;
-
-    // HUD is the only place holding SUN
-    private final HudController hudController;
 
     public GameWorld(GameState gameState,
             HudController hudController,
@@ -52,86 +55,94 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
             List<Plant> plants,
             OrthographicCamera camera,
             ZombieWaveController zombieWaveController,
-            PlantGridController plantGridController,
-            SpriteBatch batch) {
+            PlantGridController plantGridController) {
 
         this.gameState = gameState;
+        this.hudController = hudController;
         this.entities = entities;
         this.plants = plants;
-        this.hudController = hudController;
-        this.zombieWaveController = zombieWaveController; // Store this for later use
 
-        this.renderSystem = new RenderSystem(batch);
-        this.animationSystem = new AnimationSystem();
+        this.zombieWaveController = zombieWaveController;
 
+        // Systems init
         this.sunSystem = new SunProductionSystem(this, entities);
+        this.wallnutStateSystem = new WallnutStateSystem();
+        this.explosionSystem = new ExplosionSystem(zombieWaveController, plantGridController);
+        this.armingSystem = new ArmingSystem();
+        this.animationSystem = new AnimationSystem();
         this.attackSystem = new PlantAttackSystem(this, zombieWaveController);
-
         this.movementSystem = new MovementSystem();
-
-        // ===========================
-        // [FIX] CollisionSystem constructor now only takes 3 arguments
-        // We removed 'gameState' from here to avoid circular dependency
-        // ===========================
-        this.collisionSystem = new CollisionSystem(
-                entities,
-                zombieWaveController,
-                plantGridController
-                // gameState REMOVED
-        );
-
+        this.collisionSystem = new CollisionSystem(entities, zombieWaveController, plantGridController);
         this.sunPickupSystem = new SunPickupSystem(entities, camera, this);
         this.cleanupSystem = new CleanupSystem(entities);
     }
 
     public void update(float delta) {
-        // Stop updates if game is over
-        if (gameState.isGameOver()) return;
-        if (!gameState.isPlaying()) return;
+        if (gameState.isGameOver())
+            return;
+        if (!gameState.isPlaying())
+            return;
 
-        // 1. Update Systems
+        // ===== ECS update order =====
         sunSystem.update(delta);
+        wallnutStateSystem.update(entities);
+        explosionSystem.update(entities, delta);
+        armingSystem.update(entities, delta);
         animationSystem.update(entities, delta);
         attackSystem.update(plants, delta);
         movementSystem.update(entities, delta);
-        
-        // Update collisions (Damage calculations)
         collisionSystem.update(delta);
 
-        // 2. [NEW] Check Game Over Condition HERE (Moved from CollisionSystem)
-        checkGameOverCondition();
+        // ===== End conditions =====
+        checkLoseCondition();
+        if (!gameState.isGameOver()) {
+            checkWinCondition();
+        }
 
-        // Stop if game just ended
-        if (gameState.isGameOver()) return;
+        if (gameState.isGameOver())
+            return;
 
         sunPickupSystem.update(delta);
         cleanupSystem.update();
     }
 
-    // Logic to check if any zombie has reached the house
-    private void checkGameOverCondition() {
-        if (zombieWaveController == null) return;
+    // LOSE: zombie vượt "lose line"
+    private void checkLoseCondition() {
+        if (zombieWaveController == null)
+            return;
 
-        // Define the "Lose Line" (Left edge of column 0)
         float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
 
         for (Zombies z : zombieWaveController.getZombies()) {
-            if (z.isDead()) continue;
-
-            // If a zombie crosses the line -> GAME OVER (Player Lost)
+            if (z == null || z.isDead())
+                continue;
             if (z.getX() <= loseX) {
-                gameState.setGameOver(false); 
-                break; 
+                gameState.setGameOver(false); // playerWon = false
+                return;
             }
         }
     }
 
-    public void render(SpriteBatch batch) {
-        renderSystem.update(entities);
+    // WIN: wave kết thúc + không còn zombie sống
+    private void checkWinCondition() {
+        if (zombieWaveController == null)
+            return;
+
+        // BẮT BUỘC: ZombieWaveController phải có một flag/hàm báo wave đã spawn xong.
+        // Nếu bạn chưa có hàm này, thêm vào controller: public boolean isFinished()
+        if (!zombieWaveController.isWaveFinished())
+            return;
+
+        for (Zombies z : zombieWaveController.getZombies()) {
+            if (z != null && !z.isDead()) {
+                return; // còn zombie sống => chưa win
+            }
+        }
+
+        gameState.setGameOver(true); // playerWon = true
     }
 
     // ===== IGameSpawner =====
-
     @Override
     public void spawnSun(float x, float y, int amount) {
         entities.add(new Sun(x, y, amount));
@@ -150,14 +161,12 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
     }
 
     // ===== ISunReceiver =====
-
     @Override
     public void addSun(int amount) {
         hudController.addSun(amount);
     }
 
     // ===== Helpers =====
-
     public SunPickupSystem getSunPickupSystem() {
         return sunPickupSystem;
     }
