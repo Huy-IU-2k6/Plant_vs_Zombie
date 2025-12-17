@@ -113,11 +113,11 @@ Recommended diagrams:
 
 *(Replace names/IDs below)*
 
-| Member           | Role        | Student ID        |
-| ---------------- | ----------- | ----------------- |
-| Lê Thái Đức Tùng | UI Designer | ITDSIU24055       |
-| Nguyễn Duy Phước | Zombies     | ITITWE23026       |
-| Phạm Gia Huy     | Plants      | ITCSIU24034       |
+| Member        | Role        | Student ID |
+| ------------- | ----------- | ---------- |
+| [TEAM INSERT] | UI Designer | [ID]       |
+| [TEAM INSERT] | Zombies     | [ID]       |
+| [TEAM INSERT] | Plants      | [ID]       |
 
 ---
 
@@ -135,3 +135,5 @@ Recommended diagrams:
 * [ ] Balance tuning (sun economy, wave pacing)
 * [ ] Sound effects + music toggle
 * [ ] Save/load or level selection
+
+---

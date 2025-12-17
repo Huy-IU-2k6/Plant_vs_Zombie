@@ -4,6 +4,8 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import pvz.com.entities.Entity;
 import pvz.com.entities.Zombies.Zombies;
@@ -18,66 +20,76 @@ import pvz.com.entities.components.ProjectileTagComponent;
 import pvz.com.entities.components.Team;
 import pvz.com.entities.components.TeamComponent;
 import pvz.com.entities.plants.Plant;
+import pvz.com.logic.GameState;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.GridConfig;
 
-import java.util.Map;
-import java.util.HashMap;
-
 public class CollisionSystem {
 
-    // ECS entities: Plants, đạn, mìn,...
     private final List<Entity> entities;
-
-    // OOP zombie controller (wave)
     private final ZombieWaveController zombieWaveController;
-
-    // Grid cây
     private final PlantGridController plantGridController;
+
+    // [MỚI] để set game over
+    private final GameState gameState;
 
     private final Map<Zombies, Plant> eatingTargets = new HashMap<>();
 
     public CollisionSystem(List<Entity> entities,
             ZombieWaveController zombieWaveController,
-            PlantGridController plantGridController) {
+            PlantGridController plantGridController,
+            GameState gameState) {
         this.entities = entities;
         this.zombieWaveController = zombieWaveController;
         this.plantGridController = plantGridController;
+        this.gameState = gameState;
     }
 
     public void update(float deltaTime) {
+        if (gameState != null && gameState.isGameOver())
+            return;
+
         Plant[][] grid = plantGridController.getPlantGrid();
 
-        // Duyệt từng zombie, xử lý cả: đạn trúng + ăn cây
+        // “cổng thua”: zombie qua mép trái của cột 0 một chút
+        float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
+
         for (Zombies zombie : zombieWaveController.getZombies()) {
+            if (zombie == null)
+                continue;
+
             if (zombie.isDead()) {
                 zombie.setEating(false);
+                eatingTargets.remove(zombie);
                 continue;
             }
 
-            // Dùng hitbox trong class Zombies
             Rectangle zRect = zombie.getBounds();
+
+            // =============================
+            // [MỚI] THUA: zombie tới cổng trái
+            // =============================
+            if (zRect.x <= loseX) {
+                if (gameState != null)
+                    gameState.setGameOver(false);
+                // dọn trạng thái ăn cho sạch
+                eatingTargets.clear();
+                zombie.setEating(false);
+                return; // dừng update ngay
+            }
+
             int zombieRow = getRowForZombie(zRect);
 
-            // 1) ZOMBIE vs PROJECTILE
             handleZombieProjectiles(zombie, zRect);
-
-            // 2) ZOMBIE vs PLANT (GRID)
             handleZombiePlants(zombie, zombieRow, grid, zRect, deltaTime);
         }
     }
 
-    // =========================
-    // ZOMBIE vs BULLET
-    // =========================
     private void handleZombieProjectiles(Zombies zombie, Rectangle zRect) {
-
         for (Entity projectile : entities) {
-            if (projectile.markedForRemoval)
+            if (projectile == null || projectile.markedForRemoval)
                 continue;
-
-            // Chỉ quan tâm entity là đạn
             if (projectile.getComponent(ProjectileTagComponent.class) == null)
                 continue;
 
@@ -86,30 +98,22 @@ public class CollisionSystem {
             if (pBounds == null || damage == null)
                 continue;
 
-            // Đồng bộ bounds với position mỗi frame
             syncBoundsWithPosition(projectile);
 
             if (!pBounds.bounds.overlaps(zRect))
                 continue;
 
-            // Trúng đạn -> trừ máu
             zombie.takeDamage(damage.amount);
-
-            // Đạn biến mất: dùng cờ, để hệ thống cleanup chung xử lý
             projectile.markedForRemoval = true;
         }
     }
 
-    // =========================
-    // ZOMBIE vs PLANT
-    // =========================
     private void handleZombiePlants(Zombies zombie,
             int zombieRow,
             Plant[][] grid,
             Rectangle zRect,
             float deltaTime) {
 
-        // Ngoài lawn -> không ăn cây
         if (!GridConfig.isInsideGrid(zombieRow, 0)) {
             eatingTargets.remove(zombie);
             zombie.setEating(false);
@@ -118,101 +122,70 @@ public class CollisionSystem {
 
         Plant currentTarget = eatingTargets.get(zombie);
 
-        // ========================
-        // 1) ĐÃ CÓ TARGET ĐANG ĂN
-        // ========================
         if (currentTarget != null) {
-
-            // Plant đã bị xóa / chết -> bỏ ăn, đi tiếp
-            if (currentTarget.markedForRemoval
-                    || !currentTarget.hasComponent(HealthComponent.class)) {
+            if (currentTarget.markedForRemoval || !currentTarget.hasComponent(HealthComponent.class)) {
                 eatingTargets.remove(zombie);
                 zombie.setEating(false);
                 return;
             }
 
-            // Optional: nếu muốn kiểm tra vẫn còn overlaps
             BoundsComponent pb = currentTarget.getComponent(BoundsComponent.class);
             if (pb == null || !Intersector.overlaps(zRect, pb.bounds)) {
-                // Có thể bỏ check này nếu muốn zombie cứ đứng ăn đến khi plant chết
-                // Còn nếu giữ thì khi hết overlaps cũng cho nó đi tiếp
                 eatingTargets.remove(zombie);
                 zombie.setEating(false);
                 return;
             }
 
-            // Vẫn còn target -> tiếp tục ăn nó
             zombie.setEating(true);
             damagePlantAndMaybeRemove(currentTarget, deltaTime);
-
-            // Nếu plant chết trong damagePlantAndMaybeRemove, vòng sau sẽ vào nhánh remove
-            // ở trên
             return;
         }
 
-        // ===========================
-        // 2) CHƯA CÓ TARGET -> TÌM MỚI
-        // ===========================
         Plant[] rowPlants = grid[zombieRow];
-
         for (Plant plant : rowPlants) {
             if (plant == null || plant.markedForRemoval)
                 continue;
             if (!plant.hasComponent(BoundsComponent.class))
                 continue;
-            if (!plant.hasComponent(TeamComponent.class))
-                continue;
 
             TeamComponent team = plant.getComponent(TeamComponent.class);
-            if (team.team != Team.PLANT)
+            if (team == null || team.team != Team.PLANT)
                 continue;
 
             BoundsComponent pb = plant.getComponent(BoundsComponent.class);
             if (!Intersector.overlaps(zRect, pb.bounds))
                 continue;
 
-            // ==== POTATO MINE ====
+            // potato mine
             if (plant.hasComponent(ArmingComponent.class)) {
                 handlePotatoMine(zombie, plant);
-                // Mine nổ xong thì thường zombie chết hoặc bị damage ở system khác.
-                // Ở đây không set target ăn mìn (optional, tùy thiết kế).
                 return;
             }
 
-            // ==== CÂY THƯỜNG: CHỌN LÀM TARGET ====
             eatingTargets.put(zombie, plant);
             zombie.setEating(true);
 
-            // "Chốt" vị trí zombie sát mép plant để tránh lệch bounding box
-            // (tùy hướng di chuyển, mình giả sử zombie đi từ phải sang trái)
             float newX = pb.bounds.x + pb.bounds.width - zRect.width * 0.8f;
             zombie.setX(newX);
 
-            // Cắn cây ngay frame này luôn
             damagePlantAndMaybeRemove(plant, deltaTime);
             return;
         }
 
-        // Không đụng cây nào & không có target -> đảm bảo zombie không ăn
         zombie.setEating(false);
     }
 
-    // =========================
-    // PLANT DAMAGE
-    // =========================
     private void damagePlantAndMaybeRemove(Plant plant, float deltaTime) {
         HealthComponent health = plant.getComponent(HealthComponent.class);
         if (health == null)
             return;
 
-        // Có thể scale theo thời gian: 20 máu / giây chẳng hạn
         float damagePerSecond = 20f;
         health.currentHealth -= damagePerSecond * deltaTime;
 
         if (health.isDead()) {
             plant.markedForRemoval = true;
 
-            // Dọn ô trong grid
             GridCellComponent cell = plant.getComponent(GridCellComponent.class);
             if (cell != null) {
                 plantGridController.unregisterPlantAtCell(cell.row, cell.col);
@@ -220,43 +193,30 @@ public class CollisionSystem {
         }
     }
 
-    // =========================
-    // POTATO MINE
-    // =========================
     private void handlePotatoMine(Zombies zombie, Entity potatoMine) {
         ArmingComponent arming = potatoMine.getComponent(ArmingComponent.class);
 
-        // CASE 1: Đã trồi lên (Armed) -> BÙM!
         if (arming != null && arming.isArmed) {
             ExplosiveComponent explosive = potatoMine.getComponent(ExplosiveComponent.class);
             if (explosive != null && !explosive.hasExploded) {
-                // Kích hoạt nổ ngay lập tức (Fuse = 0)
                 explosive.fuseTime = 0;
-                // ExplosionSystem sẽ lo phần gây damage diện rộng và xóa mìn ở vòng sau
             }
             return;
         }
 
-        // CASE 2: Chưa trồi lên -> Bị ăn như cây thường
         HealthComponent health = potatoMine.getComponent(HealthComponent.class);
         if (health != null) {
-            // Zombie ăn nhanh hơn chút
             health.currentHealth -= 2;
-            if (health.isDead()) {
+            if (health.isDead())
                 potatoMine.markedForRemoval = true;
-            }
         }
     }
 
-    // =========================
-    // UTIL
-    // =========================
     private void syncBoundsWithPosition(Entity e) {
         PositionComponent pos = e.getComponent(PositionComponent.class);
         BoundsComponent bounds = e.getComponent(BoundsComponent.class);
-        if (pos != null && bounds != null) {
+        if (pos != null && bounds != null)
             bounds.bounds.setPosition(pos.x, pos.y);
-        }
     }
 
     private int getRowForZombie(Rectangle zRect) {

@@ -1,7 +1,5 @@
 package pvz.com.systems;
 
-import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
@@ -35,7 +33,8 @@ public class ExplosionSystem {
 
             // [LƯU Ý] Đã xóa dòng lấy GridPositionComponent ở đây
 
-            if (explosive == null || state == null || pos == null) continue;
+            if (explosive == null || state == null || pos == null)
+                continue;
 
             // --- GIAI ĐOẠN 1: ĐẾM NGƯỢC ---
             if (!explosive.hasExploded) {
@@ -44,8 +43,8 @@ public class ExplosionSystem {
                 if (explosive.timer >= explosive.fuseTime) {
                     // === KÍCH HOẠT NỔ ===
                     explosive.hasExploded = true;
-                    state.set(EntityState.EXPLODING); 
-                    explosive.timer = 0f; 
+                    state.set(EntityState.EXPLODING);
+                    explosive.timer = 0f;
 
                     // 1. Xóa sự tồn tại vật lý (Hitbox & Máu)
                     entity.removeComponent(HealthComponent.class);
@@ -59,7 +58,7 @@ public class ExplosionSystem {
                         int[] cell = GridConfig.worldToNearestCell(pos.x, pos.y);
                         int row = cell[0];
                         int col = cell[1];
-                        
+
                         // Gọi Controller xóa cây khỏi bộ nhớ
                         plantGridController.unregisterPlantAtCell(row, col);
                     }
@@ -67,13 +66,13 @@ public class ExplosionSystem {
                     // 3. Phóng to hình ảnh nổ (Logic dịch chuyển Pos)
                     if (size != null) {
                         float oldSize = size.width;
-                        float newSize = 250f;       
-                        float offset = (newSize - oldSize) / 2f; 
-                        
+                        float newSize = 250f;
+                        float offset = (newSize - oldSize) / 2f;
+
                         // Giờ mới dịch chuyển pos (sau khi đã tính grid ở trên)
                         pos.x -= offset;
                         pos.y -= offset;
-                        
+
                         size.width = newSize;
                         size.height = newSize;
                     }
@@ -81,18 +80,18 @@ public class ExplosionSystem {
                     // 4. Gây sát thương
                     dealAreaDamage(pos, size, explosive);
                 }
-            } 
+            }
             // --- GIAI ĐOẠN 2: CHỜ ANIMATION NỔ XONG ---
             else {
                 explosive.timer += delta;
-                
-                float explodeAnimDuration = 0.8f; 
+
+                float explodeAnimDuration = 0.8f;
                 if (anim != null && anim.getAnimation(EntityState.EXPLODING) != null) {
                     explodeAnimDuration = anim.getAnimation(EntityState.EXPLODING).getAnimationDuration();
                 }
 
                 if (explosive.timer >= explodeAnimDuration) {
-                    toRemove.add(entity); 
+                    toRemove.add(entity);
                 }
             }
         }
@@ -101,13 +100,14 @@ public class ExplosionSystem {
     }
 
     private void dealAreaDamage(PositionComponent bombPos, SizeComponent size, ExplosiveComponent explosive) {
-        float currentSize = (size != null) ? size.width : 90f; 
-        
-        float centerX = bombPos.x + (currentSize / 2f); 
+        float currentSize = (size != null) ? size.width : 90f;
+
+        float centerX = bombPos.x + (currentSize / 2f);
         float centerY = bombPos.y + (currentSize / 2f);
 
         for (Zombies z : zombieController.getZombies()) {
-            if (z.isDead()) continue;
+            if (z.isDead())
+                continue;
 
             float zCenterX = z.getX() + z.getWidth() / 2f;
             float zCenterY = z.getY() + z.getHeight() / 2f;
@@ -115,8 +115,8 @@ public class ExplosionSystem {
             float dist = Vector2.dst(centerX, centerY, zCenterX, zCenterY);
 
             if (dist <= explosive.range) {
-                z.killByCherryBomb(); 
-                z.setEating(false); 
+                z.killByCherryBomb();
+                z.setEating(false);
             }
         }
     }

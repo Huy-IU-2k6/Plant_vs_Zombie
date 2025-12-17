@@ -62,10 +62,15 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         this.attackSystem = new PlantAttackSystem(this, zombieWaveController);
 
         this.movementSystem = new MovementSystem();
+
+        // ===========================
+        // [SỬA] truyền gameState để CollisionSystem tự set GAME OVER (thua)
+        // ===========================
         this.collisionSystem = new CollisionSystem(
                 entities,
                 zombieWaveController,
-                plantGridController);
+                plantGridController,
+                gameState);
 
         // SunPickupSystem sẽ gọi addSun(...) qua ISunReceiver
         this.sunPickupSystem = new SunPickupSystem(entities, camera, this);
@@ -74,15 +79,31 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
     }
 
     public void update(float delta) {
-        if (!gameState.isPlaying())
+        // ===========================
+        // [SỬA] nếu game over thì dừng update hệ thống gameplay
+        // (overlay GameOverScreen sẽ renderFrozen frame cuối)
+        // ===========================
+        if (gameState.isGameOver()) {
             return;
+        }
+        if (!gameState.isPlaying()) {
+            return;
+        }
 
         sunSystem.update(delta);
         animationSystem.update(entities, delta);
 
         attackSystem.update(plants, delta);
         movementSystem.update(entities, delta);
+
+        // CollisionSystem có thể set game over ngay trong update()
         collisionSystem.update(delta);
+
+        // Nếu vừa set game over thì khỏi chạy tiếp để tránh trạng thái “trượt”
+        if (gameState.isGameOver()) {
+            return;
+        }
+
         sunPickupSystem.update(delta);
         cleanupSystem.update();
     }
@@ -95,8 +116,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
     @Override
     public void spawnSun(float x, float y, int amount) {
-        Sun sun = new Sun(x, y, amount);
-        entities.add(sun);
+        entities.add(new Sun(x, y, amount));
     }
 
     @Override
@@ -109,14 +129,12 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         } else if (projectileClass == FrozenPeaProjectile.class) {
             entities.add(new FrozenPeaProjectile(x, y, damage));
         }
-        // Nếu còn loại khác thì thêm ở đây
     }
 
     // ===== ISunReceiver =====
 
     @Override
     public void addSun(int amount) {
-        // Sun chỉ update ở HUD (owner duy nhất)
         hudController.addSun(amount);
     }
 
@@ -124,6 +142,10 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
     public SunPickupSystem getSunPickupSystem() {
         return sunPickupSystem;
+    }
+
+    public GameState getGameState() {
+        return gameState;
     }
 
     public void addPlant(Plant plant) {
