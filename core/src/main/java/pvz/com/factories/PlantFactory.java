@@ -10,6 +10,7 @@ import pvz.com.entities.plants.defenders.Wallnut;
 import pvz.com.entities.plants.bombs.CherryBomb;
 import pvz.com.entities.plants.bombs.PotatoMine;
 import pvz.com.entities.plants.shooters.Repeater;
+import pvz.com.entities.components.PlantTypeComponent;
 
 import pvz.com.managers.GridConfig;
 
@@ -51,25 +52,42 @@ public class PlantFactory {
      * Tạo Plant đặt vào đúng ô grid (col, row).
      * Tự canh giữa ô dựa theo kích thước mong muốn.
      */
+
     public static Plant createPlantAtCell(PlantType type, int col, int row) {
+        Plant plant = null;
+
         switch (type) {
             case SUNFLOWER:
-                return createSunflowerAtCell(col, row);
+                plant = createSunflowerAtCell(col, row);
+                break;
             case PEASHOOTER:
-                return createPeashooterAtCell(col, row);
+                plant = createPeashooterAtCell(col, row);
+                break;
             case WALLNUT:
-                return createWallnutAtCell(col, row);
+                plant = createWallnutAtCell(col, row);
+                break;
             case CHERRYBOMB:
-                return createCherryBombAtCell(col, row);
+                plant = createCherryBombAtCell(col, row);
+                break;
             case POTATOMINE:
-                return createPotatoMineAtCell(col, row);
-            case SNOWPEA: // [FIX] Thêm case SnowPea
-                return createSnowPeaAtCell(col, row);
+                plant = createPotatoMineAtCell(col, row);
+                break;
+            case SNOWPEA:
+                plant = createSnowPeaAtCell(col, row);
+                break;
             case REPEATER:
-                return createRepeaterAtCell(col, row);
+                plant = createRepeaterAtCell(col, row);
+                break;
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }
+
+        // ✅ ensure type component for shovel refund
+        if (plant != null && !plant.hasComponent(PlantTypeComponent.class)) {
+            plant.addComponent(new PlantTypeComponent(type));
+        }
+
+        return plant;
     }
 
     // =========================================================
@@ -152,23 +170,38 @@ public class PlantFactory {
      * Nhưng đa số trường hợp nên dùng createPlantAtCell cho đỡ lệch grid.
      */
     public static Plant createPlant(PlantType type, float x, float y, int col, int row) {
+        Plant plant = null;
+
         switch (type) {
             case SUNFLOWER:
-                return new SunFlower(x, y, col, row);
+                plant = new SunFlower(x, y, col, row);
+                break;
             case PEASHOOTER:
-                return new Peashooter(x, y, col, row);
+                plant = new Peashooter(x, y, col, row);
+                break;
             case WALLNUT:
-                return new Wallnut(x, y, col, row);
+                plant = new Wallnut(x, y, col, row);
+                break;
             case CHERRYBOMB:
-                return new CherryBomb(x, y, col, row);
+                plant = new CherryBomb(x, y, col, row);
+                break;
             case POTATOMINE:
-                return new PotatoMine(x, y, col, row);
-            case SNOWPEA: // [FIX] Thêm case SnowPea vào đây luôn
-                return new SnowPea(x, y, col, row);
+                plant = new PotatoMine(x, y, col, row);
+                break;
+            case SNOWPEA:
+                plant = new SnowPea(x, y, col, row);
+                break;
             case REPEATER:
-                return new Repeater(x, y, col, row);
+                plant = new Repeater(x, y, col, row);
+                break;
             default:
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }
+
+        if (plant != null && !plant.hasComponent(PlantTypeComponent.class)) {
+            plant.addComponent(new PlantTypeComponent(type));
+        }
+
+        return plant;
     }
 }
