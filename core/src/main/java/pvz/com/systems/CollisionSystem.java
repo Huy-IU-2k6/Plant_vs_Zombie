@@ -13,6 +13,7 @@ import pvz.com.entities.components.*;
 import pvz.com.entities.plants.Plant;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
+import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
 
 public class CollisionSystem {
@@ -26,8 +27,8 @@ public class CollisionSystem {
     // [FIX 1] Constructor rút gọn còn 3 tham số (Bỏ GameState)
     // Để khớp với code gọi bên GameScreen/GameWorld
     public CollisionSystem(List<Entity> entities,
-                           ZombieWaveController zombieWaveController,
-                           PlantGridController plantGridController) {
+            ZombieWaveController zombieWaveController,
+            PlantGridController plantGridController) {
         this.entities = entities;
         this.zombieWaveController = zombieWaveController;
         this.plantGridController = plantGridController;
@@ -36,11 +37,13 @@ public class CollisionSystem {
     public void update(float deltaTime) {
         Plant[][] grid = plantGridController.getPlantGrid();
 
-        // Mép thua cuộc (cổng nhà) - Chỉ dùng để tham khảo, GameWorld sẽ check việc thua
+        // Mép thua cuộc (cổng nhà) - Chỉ dùng để tham khảo, GameWorld sẽ check việc
+        // thua
         float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
 
         for (Zombies zombie : zombieWaveController.getZombies()) {
-            if (zombie == null) continue;
+            if (zombie == null)
+                continue;
 
             if (zombie.isDead()) {
                 zombie.setEating(false);
@@ -50,11 +53,12 @@ public class CollisionSystem {
 
             Rectangle zRect = zombie.getBounds();
 
-            // Check Game Over (Chỉ in log hoặc xử lý logic khác vì không có biến GameState ở đây)
+            // Check Game Over (Chỉ in log hoặc xử lý logic khác vì không có biến GameState
+            // ở đây)
             // Việc setGameOver sẽ do GameWorld đảm nhận
             if (zRect.x <= loseX) {
                 // zombie.setEating(false);
-                // return; 
+                // return;
             }
 
             int zombieRow = getRowForZombie(zRect);
@@ -87,10 +91,10 @@ public class CollisionSystem {
     }
 
     private void handleZombiePlants(Zombies zombie,
-                                    int zombieRow,
-                                    Plant[][] grid,
-                                    Rectangle zRect,
-                                    float deltaTime) {
+            int zombieRow,
+            Plant[][] grid,
+            Rectangle zRect,
+            float deltaTime) {
 
         if (!GridConfig.isInsideGrid(zombieRow, 0)) {
             eatingTargets.remove(zombie);
@@ -116,7 +120,8 @@ public class CollisionSystem {
                 return;
             }
 
-            // [FIX QUAN TRỌNG] Kiểm tra lại nếu cây này bỗng nhiên biến thành Potato Mine chưa chín (hiếm gặp nhưng an toàn)
+            // [FIX QUAN TRỌNG] Kiểm tra lại nếu cây này bỗng nhiên biến thành Potato Mine
+            // chưa chín (hiếm gặp nhưng an toàn)
             ArmingComponent arming = currentTarget.getComponent(ArmingComponent.class);
             if (arming != null && !arming.isArmed) {
                 eatingTargets.remove(zombie);
@@ -143,7 +148,7 @@ public class CollisionSystem {
                 continue;
 
             BoundsComponent pb = plant.getComponent(BoundsComponent.class);
-            
+
             // Tinh chỉnh vùng va chạm để zombie đi sâu vào cây một chút mới ăn
             Rectangle plantHitbox = pb.bounds;
             if (!Intersector.overlaps(zRect, plantHitbox))
@@ -152,7 +157,8 @@ public class CollisionSystem {
             // [FIX 2] Xử lý Potato Mine
             if (plant.hasComponent(ArmingComponent.class)) {
                 boolean handled = handlePotatoMine(zombie, plant);
-                if (handled) return; // Nếu là mìn, xử lý xong thì return (không ăn)
+                if (handled)
+                    return; // Nếu là mìn, xử lý xong thì return (không ăn)
                 // Nếu handled = false (ví dụ mìn đã nổ xong), code chạy tiếp xuống dưới
             }
 
@@ -170,9 +176,10 @@ public class CollisionSystem {
 
     private void damagePlantAndMaybeRemove(Plant plant, float deltaTime) {
         HealthComponent health = plant.getComponent(HealthComponent.class);
-        if (health == null) return;
+        if (health == null)
+            return;
 
-        float damagePerSecond = 100f; // Tốc độ ăn của Zombie
+        float damagePerSecond = DesignConfig.DAMAGE_PER_SECOND; // Tốc độ ăn của Zombie
         health.currentHealth -= damagePerSecond * deltaTime;
 
         if (health.isDead()) {
@@ -191,24 +198,24 @@ public class CollisionSystem {
         // Trường hợp 1: Mìn chưa chín -> Zombie đi xuyên qua (IGNORE)
         // Return true để báo hiệu "Đã xử lý xong, đừng cho zombie ăn cây này"
         if (arming != null && !arming.isArmed) {
-            return true; 
+            return true;
         }
 
         // Trường hợp 2: Mìn đã chín -> Kích hoạt nổ
         if (arming != null && arming.isArmed) {
             ExplosiveComponent explosive = potatoMine.getComponent(ExplosiveComponent.class);
             StateComponent state = potatoMine.getComponent(StateComponent.class);
-            
+
             // Kích hoạt nổ bằng cách set State = EXPLODING
             // ExplosionSystem sẽ lo phần còn lại (gây dam, xóa cây)
             if (state != null) {
                 state.set(EntityState.EXPLODING);
             }
-            
+
             // Return true để zombie không dừng lại ăn mìn (nó sẽ chết vì nổ)
             return true;
         }
-        
+
         return false;
     }
 

@@ -32,4 +32,5 @@ public class DesignConfig {
     public static final float SUN_WIDTH = FIXED_HEIGHT * SUN_SIZE_RATIO;
     public static final float SUN_HEIGHT = FIXED_HEIGHT * SUN_SIZE_RATIO;
 
+    public static final float DAMAGE_PER_SECOND = 10f;
 }
