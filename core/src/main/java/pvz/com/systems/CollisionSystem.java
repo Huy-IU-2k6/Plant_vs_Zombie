@@ -203,7 +203,6 @@ public class CollisionSystem {
 
         // Trường hợp 2: Mìn đã chín -> Kích hoạt nổ
         if (arming != null && arming.isArmed) {
-            ExplosiveComponent explosive = potatoMine.getComponent(ExplosiveComponent.class);
             StateComponent state = potatoMine.getComponent(StateComponent.class);
 
             // Kích hoạt nổ bằng cách set State = EXPLODING

@@ -46,27 +46,27 @@ public class ZombieWaveController {
     private boolean triggeredWin = false;
 
     public ZombieWaveController(float worldWidth,
-            float worldHeight,
-            float startOffsetXDesign,
-            int maxZombiesInWave) {
+                               float worldHeight,
+                               float startOffsetXDesign,
+                               int maxZombiesInWave) {
         this(worldWidth, worldHeight, startOffsetXDesign, maxZombiesInWave, DEFAULT_LEVEL_DURATION, null);
     }
 
     public ZombieWaveController(float worldWidth,
-            float worldHeight,
-            float startOffsetXDesign,
-            int maxZombiesInWave,
-            float levelDuration) {
+                               float worldHeight,
+                               float startOffsetXDesign,
+                               int maxZombiesInWave,
+                               float levelDuration) {
         this(worldWidth, worldHeight, startOffsetXDesign, maxZombiesInWave, levelDuration, null);
     }
 
     // [MỚI] constructor có GameState
     public ZombieWaveController(float worldWidth,
-            float worldHeight,
-            float startOffsetXDesign,
-            int maxZombiesInWave,
-            float levelDuration,
-            GameState gameState) {
+                               float worldHeight,
+                               float startOffsetXDesign,
+                               int maxZombiesInWave,
+                               float levelDuration,
+                               GameState gameState) {
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
         this.startOffsetXDesign = startOffsetXDesign;
@@ -75,9 +75,7 @@ public class ZombieWaveController {
         this.gameState = gameState;
     }
 
-    public Array<Zombies> getZombies() {
-        return zombies;
-    }
+    public Array<Zombies> getZombies() { return zombies; }
 
     public void setMaxZombiesInWave(int maxZombiesInWave) {
         this.maxZombiesInWave = maxZombiesInWave;
@@ -99,10 +97,7 @@ public class ZombieWaveController {
         triggeredWin = false;
 
         int demoSpawned = 0;
-        if (laneCount > 0) {
-            spawnZombieInLane(0, ZombieType.NORMAL);
-            demoSpawned++;
-        }
+        if (laneCount > 0) { spawnZombieInLane(0, ZombieType.NORMAL); demoSpawned++; }
         if (laneCount > 1 && demoSpawned < DEMO_ZOMBIE_COUNT) {
             spawnZombieInLane(laneCount - 1, ZombieType.NORMAL);
             demoSpawned++;
@@ -113,10 +108,8 @@ public class ZombieWaveController {
     }
 
     public void update(float delta) {
-        if (!waveStarted)
-            return;
-        if (gameState != null && gameState.isGameOver())
-            return;
+        if (!waveStarted) return;
+        if (gameState != null && gameState.isGameOver()) return;
 
         elapsedTime += delta;
         float levelProgress = MathUtils.clamp(elapsedTime / levelDuration, 0f, 1f);
@@ -137,10 +130,7 @@ public class ZombieWaveController {
 
         for (int i = zombies.size - 1; i >= 0; i--) {
             Zombies z = zombies.get(i);
-            if (z == null) {
-                zombies.removeIndex(i);
-                continue;
-            }
+            if (z == null) { zombies.removeIndex(i); continue; }
 
             z.act(delta);
 
@@ -159,15 +149,13 @@ public class ZombieWaveController {
         // ==========================
         if (!triggeredWin && isWaveFinished()) {
             triggeredWin = true;
-            if (gameState != null)
-                gameState.setGameOver(true);
+            if (gameState != null) gameState.setGameOver(true);
         }
     }
 
     public void render(SpriteBatch batch) {
         for (Zombies z : zombies) {
-            if (z != null)
-                z.draw(batch, 1f);
+            if (z != null) z.draw(batch, 1f);
         }
     }
 
@@ -197,19 +185,15 @@ public class ZombieWaveController {
         float p = MathUtils.clamp(levelProgress, 0f, 1f);
         float r = MathUtils.random();
 
-        if (p < 0.25f)
-            return ZombieType.NORMAL;
+        if (p < 0.25f) return ZombieType.NORMAL;
 
         if (p < 0.70f) {
             return (r < 0.80f) ? ZombieType.NORMAL : ZombieType.CONEHEAD;
         }
 
-        if (r < 0.55f)
-            return ZombieType.NORMAL;
-        if (r < 0.78f)
-            return ZombieType.CONEHEAD;
-        if (r < 0.92f)
-            return ZombieType.BUCKETHEAD;
+        if (r < 0.55f) return ZombieType.NORMAL;
+        if (r < 0.78f) return ZombieType.CONEHEAD;
+        if (r < 0.92f) return ZombieType.BUCKETHEAD;
         return ZombieType.CHARGE;
     }
 
@@ -231,21 +215,11 @@ public class ZombieWaveController {
 
         Zombies z;
         switch (type) {
-            case NORMAL:
-                z = new NormalZombie();
-                break;
-            case CONEHEAD:
-                z = new ConeheadZombie();
-                break;
-            case BUCKETHEAD:
-                z = new BucketheadZombie();
-                break;
-            case CHARGE:
-                z = new ChargeZombie();
-                break;
-            default:
-                z = new NormalZombie();
-                break;
+            case NORMAL:    z = new NormalZombie(); break;
+            case CONEHEAD:  z = new ConeheadZombie(); break;
+            case BUCKETHEAD:z = new BucketheadZombie(); break;
+            case CHARGE:    z = new ChargeZombie(); break;
+            default:        z = new NormalZombie(); break;
         }
 
         float laneCenterDesignY = DesignConfig.START_Y
