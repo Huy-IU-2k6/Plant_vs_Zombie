@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
 import java.util.List;
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.DisposableComponent;
 import pvz.com.entities.components.GridCellComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.managers.GridConfig;
@@ -25,8 +24,8 @@ public class PlantGridController extends InputAdapter {
     private boolean enabled = false;
 
     public PlantGridController(List<Entity> entities,
-                               List<Plant> plants,
-                               OrthographicCamera camera) {
+            List<Plant> plants,
+            OrthographicCamera camera) {
         this.entities = entities;
         this.plants = plants;
         this.camera = camera;
@@ -106,13 +105,13 @@ public class PlantGridController extends InputAdapter {
      * Marks a plant for removal and clears it from the grid.
      */
     public void removePlant(int row, int col) {
-        if (!GridConfig.isInsideGrid(row, col)) return;
+        if (!GridConfig.isInsideGrid(row, col))
+            return;
 
         Plant plant = plantGrid[row][col];
         if (plant != null) {
             // FIX: Changed .add() to .addComponent() to match register logic
-            plant.addComponent(new DisposableComponent());
-            
+            plant.markedForRemoval = true;
             // FIX: Use unregister method to ensure grid is cleared cleanly
             unregisterPlantAtCell(row, col);
         }
