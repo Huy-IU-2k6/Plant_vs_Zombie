@@ -28,16 +28,16 @@ public class ZombieAssetLoader {
         HEAD_POP    = load("images/Zombies/NormalZombie/ZombieHead/ZombieHead_", 10, 0.08f, Animation.PlayMode.NORMAL);
         CHARRED     = load("images/Zombies/NormalZombie/BoomDie/BoomDie_", 19, 0.08f, Animation.PlayMode.NORMAL);
         
-        CONE_WALK   = load("images/Zombies/ConeheadZombie/Zombie/Zombie_", 21, 0.055f, Animation.PlayMode.LOOP);
-        CONE_EAT    = load("images/Zombies/ConeheadZombie/ZombieAttack/ZombieAttack_", 10, 0.08f, Animation.PlayMode.LOOP);
+        CONE_WALK   = load("images/Zombies/ConeheadZombie/Zombie/ConeheadZombie_", 21, 0.055f, Animation.PlayMode.LOOP);
+        CONE_EAT    = load("images/Zombies/ConeheadZombie/ZombieAttack/ConeheadZombieAttack_", 11, 0.08f, Animation.PlayMode.LOOP);
         
         // Dùng tạm ảnh Cone cho Bucket để test (tránh tàng hình nếu chưa có file Bucket)
         BUCKET_WALK = loadFallback(CONE_WALK, "images/Zombies/BucketheadZombie/Zombie/Zombie_", 14, 0.055f);
         BUCKET_EAT  = loadFallback(CONE_EAT, "images/Zombies/BucketheadZombie/ZombieAttack/ZombieAttack_", 10, 0.08f);
         
         // Dùng tạm ảnh Normal cho Charge
-        CHARGE_WALK = loadFallback(NORMAL_WALK, "images/Zombies/ChargeZombie/Zombie/Zombie_", 21, 0.055f);
-        CHARGE_EAT  = loadFallback(NORMAL_EAT, "images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_", 10, 0.08f);
+        CHARGE_WALK = loadFallback(NORMAL_WALK, "images/Zombies/ChargeZombie/Zombie/Zombie_", 87, 0.055f);
+        CHARGE_EAT  = loadFallback(NORMAL_EAT, "images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_", 114, 0.08f);
         
         System.out.println(">>> Zombie Assets Loaded!");
     }
