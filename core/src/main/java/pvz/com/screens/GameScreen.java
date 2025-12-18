@@ -38,67 +38,52 @@ import pvz.com.systems.RenderSystem;
 
 public class GameScreen implements Screen {
 
-    // ===== World & layout =====
     private static final float WORLD_WIDTH = DesignConfig.BASE_SCREEN_W;
     private static final float WORLD_HEIGHT = DesignConfig.BASE_SCREEN_H;
 
-    // ===== Game config =====
     private static final float COUNTDOWN_DURATION = 6f;
     private static final int INITIAL_SUN = 150;
     private static final float LEVEL_DURATION = 240f;
 
-    // ===== Zombie lane config =====
     private static final float ZOMBIE_START_OFFSET_X = 200f;
 
-    // ===== AUDIO: crossfade menu -> game =====
     private static final float CROSSFADE_DURATION = 0.8f;
     private static final float GAME_BGM_VOLUME = 1f;
 
     private final Game game;
 
-    // ===== Render =====
     private final SpriteBatch batch;
     private final ShapeRenderer shapeRenderer;
 
-    // ===== Camera/viewport =====
     private final OrthographicCamera camera;
     private final Viewport viewport;
 
-    // ===== ECS Data =====
     private final List<Entity> entities = new ArrayList<>();
     private final List<Plant> plants = new ArrayList<>();
 
-    // ===== Game State =====
     private final GameState gameState;
 
-    // ===== Controllers =====
     private final PlantGridController plantGridController;
     private final ShovelController shovelController;
     private final LawnMowerController lawnMowerController;
     private final ZombieWaveController zombieWaveController;
     private final WorldRenderer worldRenderer;
 
-    // ===== HUD =====
     private final Stage hudStage;
     private final HudController hudController;
 
-    // ===== World wrapper (ECS update + win/lose) =====
     private final GameWorld gameWorld;
 
-    // ===== Placement =====
     private final PlantPlacementController plantPlacementController;
 
-    // ===== Render System (chỉ render entities) =====
     private final RenderSystem renderSystem;
 
-    // ===== Overlay switch guard =====
     private boolean pushedEndScreen = false;
 
-    // ===== Music =====
     private Music inheritedMenuMusic;
     private float inheritedMenuStartVolume = 1f;
 
-    private Music gameMusic; // nếu bạn có game BGM riêng thì set vào đây
+    private Music gameMusic;
     private float crossfadeTimer = 0f;
     private boolean startedFade = false;
 
@@ -106,7 +91,6 @@ public class GameScreen implements Screen {
         this(game, null);
     }
 
-    /** inheritedMenuMusic: truyền từ MainMenuScreen để kế thừa nhạc */
     public GameScreen(Game game, Music inheritedMenuMusic) {
         this.game = game;
         this.inheritedMenuMusic = inheritedMenuMusic;
@@ -114,30 +98,23 @@ public class GameScreen implements Screen {
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
 
-        // HUD stage
         this.hudStage = new Stage(new ScreenViewport());
         this.hudStage.getRoot().setUserObject(this);
 
-        // Camera/viewport
         this.camera = new OrthographicCamera();
         this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
         camera.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0f);
         camera.update();
 
-        // GridConfig init theo world size
         GridConfig.init(viewport.getWorldWidth(), viewport.getWorldHeight());
 
-        // State
         this.gameState = new GameState();
 
-        // Grid controller (ban đầu disable cho đến khi countdown xong)
         this.plantGridController = new PlantGridController(entities, plants, camera);
         this.plantGridController.setEnabled(false);
 
-        // Shovel controller (HUD cần)
         this.shovelController = new ShovelController(plantGridController);
 
-        // HUD (NEW ctor: cần PlantGridController + ShovelController)
         this.hudController = new HudController(
                 hudStage,
                 COUNTDOWN_DURATION,
@@ -145,12 +122,10 @@ public class GameScreen implements Screen {
                 plantGridController,
                 shovelController);
 
-        // Lawn mower
         this.lawnMowerController = new LawnMowerController(
                 WORLD_WIDTH - 50f,
                 DesignConfig.START_X - 80f);
 
-        // Zombie waves
         this.zombieWaveController = new ZombieWaveController(
                 WORLD_WIDTH,
                 WORLD_HEIGHT,
@@ -158,7 +133,6 @@ public class GameScreen implements Screen {
                 90,
                 LEVEL_DURATION);
 
-        // World renderer
         BackgroundManager backgroundManager = new BackgroundManager();
         this.worldRenderer = new WorldRenderer(
                 backgroundManager,
@@ -166,7 +140,6 @@ public class GameScreen implements Screen {
                 lawnMowerController,
                 zombieWaveController);
 
-        // GameWorld (ECS update + check win/lose) — dùng bản mới
         this.gameWorld = new GameWorld(
                 gameState,
                 hudController,
@@ -176,21 +149,15 @@ public class GameScreen implements Screen {
                 zombieWaveController,
                 plantGridController);
 
-        // Placement controller
         this.plantPlacementController = new PlantPlacementController(
                 viewport,
                 hudController,
                 plantGridController,
                 gameWorld);
 
-        // Entity renderer
         this.renderSystem = new RenderSystem(batch);
-
-        // Nếu có gameMusic riêng thì set + crossfade ở đây (tuỳ project bạn)
-        // startCrossfadeToGameMusicIfNeeded();
     }
 
-    // ================== Public getters ==================
     public GameState getGameState() {
         return gameState;
     }
@@ -199,7 +166,6 @@ public class GameScreen implements Screen {
         return hudController;
     }
 
-    // ================== Helpers ==================
     private boolean isPlaying() {
         return gameState.isPlaying();
     }
@@ -234,9 +200,6 @@ public class GameScreen implements Screen {
         batch.end();
     }
 
-    /**
-     * Render snapshot frame (không update logic) - dùng cho ResumeScreen nếu cần
-     */
     public void renderFrozen() {
         clearScreen();
 
@@ -252,7 +215,6 @@ public class GameScreen implements Screen {
         hudStage.draw();
     }
 
-    // ================== Plant card interaction ==================
     public void onPlantCardClicked(PlantCard card) {
         if (card == null || gameState.isGameOver())
             return;
@@ -265,7 +227,6 @@ public class GameScreen implements Screen {
         plantPlacementController.handleCardDragged(card, screenX, screenY, gameState.isPlaying());
     }
 
-    // ================== AUDIO ==================
     private void updateCrossfade(float delta) {
         if (!startedFade || crossfadeTimer <= 0f)
             return;
@@ -307,22 +268,18 @@ public class GameScreen implements Screen {
         }
     }
 
-    // ================== Game flow ==================
     private void updateState(float delta) {
         if (gameState.isGameOver())
             return;
 
-        // Chỉ xử lý chuyển state khi đang COUNTDOWN
         if (!gameState.isCountdown())
             return;
 
         if (hudController.isCountdownFinished()) {
             gameState.setState(GameState.State.PLAYING);
 
-            // HUD mở seedbank + show shovel (logic nằm ở HudController mới)
             hudController.onCountdownFinished();
 
-            // start wave + lawn mowers + enable grid
             zombieWaveController.startWave();
             lawnMowerController.createLawnMowers();
             plantGridController.setEnabled(true);
@@ -355,25 +312,15 @@ public class GameScreen implements Screen {
         }
     }
 
-    // ================== Screen ==================
     @Override
     public void show() {
         InputMultiplexer multiplexer = new InputMultiplexer();
 
-        // UI
         multiplexer.addProcessor(hudStage);
 
-        // Sun pickup (đúng theo GameWorld mới)
         multiplexer.addProcessor(gameWorld.getSunPickupSystem());
 
-        // (tuỳ bạn) nếu PlantGridController extends InputAdapter và bạn cần bắt click
-        // grid trực tiếp:
-        // multiplexer.addProcessor(plantGridController);
-
         Gdx.input.setInputProcessor(multiplexer);
-
-        // Nếu muốn bắt đầu crossfade khi vào màn:
-        // startCrossfadeToGameMusicIfNeeded();
     }
 
     @Override
@@ -386,13 +333,10 @@ public class GameScreen implements Screen {
 
         clearScreen();
 
-        // world base
         renderWorldOnly(gameState.isCountdown(), gameState.isPlaying());
 
-        // debug grid
         drawDebugGrid();
 
-        // ECS update + render entities
         if (isPlaying()) {
             gameWorld.update(delta);
 
@@ -400,11 +344,9 @@ public class GameScreen implements Screen {
             renderSystem.update(entities);
         }
 
-        // HUD
         hudStage.act(delta);
         hudStage.draw();
 
-        // End overlay
         pushEndOverlayIfNeeded();
     }
 
@@ -440,7 +382,6 @@ public class GameScreen implements Screen {
 
         worldRenderer.dispose();
 
-        // nếu project bạn có ZombieSounds static:
         pvz.com.entities.Zombies.ZombieSounds.disposeAll();
     }
 }

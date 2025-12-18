@@ -89,7 +89,6 @@ public class CollisionSystem {
             return;
         }
 
-        // 1. Kiểm tra cây đang ăn dở
         Plant currentTarget = eatingTargets.get(zombie);
         if (currentTarget != null) {
             if (currentTarget.markedForRemoval || !currentTarget.hasComponent(HealthComponent.class)) {
@@ -105,13 +104,8 @@ public class CollisionSystem {
                 return;
             }
 
-            // Kiểm tra lại nếu cây là Potato Mine
             ArmingComponent arming = currentTarget.getComponent(ArmingComponent.class);
-            // [LOGIC GỐC]: Nếu mìn chưa chín -> Vẫn tiếp tục ăn
-            // Nếu mìn ĐÃ CHÍN -> Ngừng ăn để kích hoạt nổ (trường hợp hiếm khi đang ăn thì
-            // chín)
             if (arming != null && arming.isArmed) {
-                // Kích hoạt nổ ngay lập tức
                 handlePotatoMine(zombie, currentTarget);
                 eatingTargets.remove(zombie);
                 zombie.setEating(false);
@@ -123,7 +117,6 @@ public class CollisionSystem {
             return;
         }
 
-        // 2. Tìm cây mới
         Plant[] rowPlants = grid[zombieRow];
         for (Plant plant : rowPlants) {
             if (plant == null || plant.markedForRemoval)
@@ -140,16 +133,12 @@ public class CollisionSystem {
             if (!Intersector.overlaps(zRect, plantHitbox))
                 continue;
 
-            // Xử lý Potato Mine
             if (plant.hasComponent(ArmingComponent.class)) {
                 boolean handled = handlePotatoMine(zombie, plant);
-                // Nếu handled = true (đã kích nổ) -> return
-                // Nếu handled = false (chưa chín) -> chạy tiếp xuống dưới để zombie ăn
                 if (handled)
                     return;
             }
 
-            // Bắt đầu ăn cây (Bao gồm cả Potato Mine chưa chín)
             eatingTargets.put(zombie, plant);
             zombie.setEating(true);
             damagePlantAndMaybeRemove(plant, deltaTime);
@@ -164,7 +153,6 @@ public class CollisionSystem {
         if (health == null)
             return;
 
-        // Có thể thay bằng DesignConfig.DAMAGE_PER_SECOND nếu có
         float damagePerSecond = DesignConfig.DAMAGE_PER_SECOND;
         health.currentHealth -= damagePerSecond * deltaTime;
 
@@ -177,28 +165,20 @@ public class CollisionSystem {
         }
     }
 
-    // [FIXED LOGIC]
     private boolean handlePotatoMine(Zombies zombie, Entity potatoMine) {
         ArmingComponent arming = potatoMine.getComponent(ArmingComponent.class);
 
-        // Trường hợp 1: Mìn CHƯA CHÍN (Unarmed)
         if (arming != null && !arming.isArmed) {
-            // [QUAN TRỌNG] Return FALSE
-            // Nghĩa là: "CollisionSystem chưa xử lý xong, hãy coi như cây bình thường"
-            // -> Zombie sẽ ăn cây này ở đoạn code phía dưới.
             return false;
         }
 
-        // Trường hợp 2: Mìn ĐÃ CHÍN (Armed) -> Kích hoạt nổ
         if (arming != null && arming.isArmed) {
             StateComponent state = potatoMine.getComponent(StateComponent.class);
 
-            // Set state nổ -> ExplosionSystem sẽ xử lý gây damage
             if (state != null) {
                 state.set(EntityState.EXPLODING);
             }
 
-            // Return TRUE: "Đã xử lý xong (nổ rồi), Zombie không cần làm gì nữa"
             return true;
         }
 

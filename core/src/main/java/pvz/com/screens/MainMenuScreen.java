@@ -33,7 +33,6 @@ public class MainMenuScreen implements Screen {
 
     private Texture boardTex;
 
-    // ===== AUDIO: MainMenu tự xử lý =====
     private Music menuMusic;
     private Sound menuClick;
     private float musicVolume = 1f;
@@ -95,10 +94,9 @@ public class MainMenuScreen implements Screen {
             menuClick.play(sfxVolume);
     }
 
-    // QUAN TRỌNG: chuyển quyền sở hữu nhạc menu sang screen khác
     private Music takeMenuMusic() {
         Music m = menuMusic;
-        menuMusic = null; // MainMenu không còn dispose nhạc này nữa
+        menuMusic = null;
         return m;
     }
 
@@ -205,7 +203,6 @@ public class MainMenuScreen implements Screen {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
-        // KHÔNG stop nhạc ở đây (vì muốn nó chạy sang GameScreen)
     }
 
     @Override
@@ -218,7 +215,6 @@ public class MainMenuScreen implements Screen {
             boardTex = null;
         }
 
-        // Nếu nhạc chưa chuyển quyền thì MainMenu dispose
         if (menuMusic != null) {
             menuMusic.dispose();
             menuMusic = null;
