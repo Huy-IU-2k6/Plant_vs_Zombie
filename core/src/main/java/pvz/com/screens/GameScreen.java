@@ -104,6 +104,7 @@ public class GameScreen implements Screen {
 
     public GameScreen(Game game) {
         this(game, null);
+        pvz.com.factories.ZombieAssetLoader.loadAll();
     }
 
     /** inheritedMenuMusic: truyền từ MainMenuScreen để kế thừa nhạc */

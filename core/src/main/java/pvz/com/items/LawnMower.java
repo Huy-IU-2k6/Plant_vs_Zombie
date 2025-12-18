@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.entities.Zombies.Zombies;
+import pvz.com.entities.Zombies.BaseZombie;
 
 public class LawnMower {
 
@@ -46,13 +46,13 @@ public class LawnMower {
         this.bounds = new Rectangle(x + 10, y + 5, HITBOX_W, HITBOX_H);
     }
 
-    public void update(float delta, Array<Zombies> zombies) {
+    public void update(float delta, Array<BaseZombie> zombies) {
         if (used)
             return;
 
         // 1. Logic kích hoạt
         if (!active) {
-            for (Zombies z : zombies) {
+            for (BaseZombie z : zombies) {
                 if (z.isDead())
                     continue;
                 // Chỉ check va chạm nếu hitbox chạm nhau
@@ -70,7 +70,7 @@ public class LawnMower {
             // Cập nhật hitbox theo vị trí mới
             bounds.setPosition(x + 10, y + 5);
 
-            for (Zombies z : zombies) {
+            for (BaseZombie z : zombies) {
                 if (z.isDead())
                     continue;
 

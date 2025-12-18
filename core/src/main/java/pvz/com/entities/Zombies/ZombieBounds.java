@@ -3,38 +3,20 @@ package pvz.com.entities.Zombies;
 import com.badlogic.gdx.math.Rectangle;
 
 public class ZombieBounds {
+    private final Rectangle bounds = new Rectangle();
+    private static final float WIDTH_RATIO = 0.6f;
+    private static final float HEIGHT_RATIO = 0.85f;
 
-    // ===== HITBOX =====
-    private final Rectangle hitBox;
-
-    // tỉ lệ hitbox so với sprite
-    private static final float HITBOX_WIDTH_RATIO = 0.6f; // 60% chiều rộng
-    private static final float HITBOX_HEIGHT_RATIO = 0.85f; // 85% chiều cao
-
-    public ZombieBounds(float spriteWidth, float spriteHeight) {
-        // khởi tạo tạm, x/y sẽ set sau
-        float w = spriteWidth * HITBOX_WIDTH_RATIO;
-        float h = spriteHeight * HITBOX_HEIGHT_RATIO;
-        this.hitBox = new Rectangle(0, 0, w, h);
+    public ZombieBounds(float w, float h) {
+        // Init placeholder
     }
 
-    /**
-     * Gọi mỗi khi zombie đổi vị trí / kích thước
-     */
-    public void update(float spriteX, float spriteY, float spriteWidth, float spriteHeight) {
-        float w = spriteWidth * HITBOX_WIDTH_RATIO;
-        float h = spriteHeight * HITBOX_HEIGHT_RATIO;
-
-        // canh giữa theo chiều ngang
-        float x = spriteX + (spriteWidth - w) / 2f;
-
-        // bám từ chân lên
-        float y = spriteY;
-
-        hitBox.set(x, y, w, h);
+    public void update(float x, float y, float w, float h) {
+        float hitW = w * WIDTH_RATIO;
+        float hitH = h * HEIGHT_RATIO;
+        float hitX = x + (w - hitW) / 2f;
+        bounds.set(hitX, y, hitW, hitH);
     }
 
-    public Rectangle getBounds() {
-        return hitBox;
-    }
+    public Rectangle getBounds() { return bounds; }
 }

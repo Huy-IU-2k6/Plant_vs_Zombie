@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.Zombies.Zombies;
+import pvz.com.entities.Zombies.BaseZombie;
 import pvz.com.entities.components.*;
 import pvz.com.entities.plants.Plant;
 import pvz.com.logic.PlantGridController;
@@ -22,7 +22,7 @@ public class CollisionSystem {
     private final ZombieWaveController zombieWaveController;
     private final PlantGridController plantGridController;
 
-    private final Map<Zombies, Plant> eatingTargets = new HashMap<>();
+    private final Map<BaseZombie, Plant> eatingTargets = new HashMap<>();
 
     public CollisionSystem(List<Entity> entities,
             ZombieWaveController zombieWaveController,
@@ -36,7 +36,7 @@ public class CollisionSystem {
         Plant[][] grid = plantGridController.getPlantGrid();
         float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
 
-        for (Zombies zombie : zombieWaveController.getZombies()) {
+        for (BaseZombie zombie : zombieWaveController.getZombies()) {
             if (zombie == null)
                 continue;
 
@@ -55,7 +55,7 @@ public class CollisionSystem {
         }
     }
 
-    private void handleZombieProjectiles(Zombies zombie, Rectangle zRect) {
+    private void handleZombieProjectiles(BaseZombie zombie, Rectangle zRect) {
         for (Entity projectile : entities) {
             if (projectile == null || projectile.markedForRemoval)
                 continue;
@@ -77,7 +77,7 @@ public class CollisionSystem {
         }
     }
 
-    private void handleZombiePlants(Zombies zombie,
+    private void handleZombiePlants(BaseZombie zombie,
             int zombieRow,
             Plant[][] grid,
             Rectangle zRect,
@@ -178,7 +178,7 @@ public class CollisionSystem {
     }
 
     // [FIXED LOGIC]
-    private boolean handlePotatoMine(Zombies zombie, Entity potatoMine) {
+    private boolean handlePotatoMine(BaseZombie zombie, Entity potatoMine) {
         ArmingComponent arming = potatoMine.getComponent(ArmingComponent.class);
 
         // Trường hợp 1: Mìn CHƯA CHÍN (Unarmed)
