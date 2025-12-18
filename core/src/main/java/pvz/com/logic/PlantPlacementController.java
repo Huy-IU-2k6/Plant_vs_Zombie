@@ -2,7 +2,6 @@ package pvz.com.logic;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.Viewport;
-
 import pvz.com.entities.Entity;
 import pvz.com.entities.components.GridCellComponent;
 import pvz.com.entities.plants.Plant;
@@ -44,7 +43,7 @@ public class PlantPlacementController {
         card.triggerUse();
     }
 
-     */
+    
     public void handleCardDragged(PlantCard card,
             float screenX, float screenY,
             boolean isPlaying) {

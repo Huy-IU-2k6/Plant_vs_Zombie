@@ -14,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-
 import pvz.com.managers.ScaleManager;
 
 public class ResumeScreen implements Screen {
@@ -150,7 +149,7 @@ public class ResumeScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
-        layoutActors(); // resize xong đặt lại size/position theo tỉ lệ
+        layoutActors(); 
     }
 
     @Override

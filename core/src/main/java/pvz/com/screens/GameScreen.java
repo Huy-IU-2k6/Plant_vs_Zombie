@@ -15,10 +15,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
 import pvz.com.items.PlantCard;
@@ -81,11 +79,11 @@ public class GameScreen implements Screen {
     private boolean pushedEndScreen = false;
 
     private Music inheritedMenuMusic;
-    private float inheritedMenuStartVolume = 1f;
+    private final float inheritedMenuStartVolume = 1f;
 
     private Music gameMusic;
     private float crossfadeTimer = 0f;
-    private boolean startedFade = false;
+    private final boolean startedFade = false;
 
     public GameScreen(Game game) {
         this(game, null);
@@ -94,12 +92,15 @@ public class GameScreen implements Screen {
     public GameScreen(Game game, Music inheritedMenuMusic) {
         this.game = game;
         this.inheritedMenuMusic = inheritedMenuMusic;
+        this.gameMusic = Gdx.audio.newMusic(Gdx.files.internal("musics/Grasswalk.mp3"));
+        this.gameMusic.setLooping(true);
+        this.gameMusic.setVolume(GAME_BGM_VOLUME);
+        this.gameMusic.play();
 
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
 
         this.hudStage = new Stage(new ScreenViewport());
-        this.hudStage.getRoot().setUserObject(this);
 
         this.camera = new OrthographicCamera();
         this.viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
@@ -203,14 +204,14 @@ public class GameScreen implements Screen {
     public void renderFrozen() {
         clearScreen();
 
-        // background + lanes + mowers + zombies
+        
         renderWorldOnly(gameState.isCountdown(), true);
 
-        // entities (plants/projectiles/suns...)
+        
         batch.setProjectionMatrix(camera.combined);
         renderSystem.update(entities);
 
-        // HUD
+        
         hudStage.act(0f);
         hudStage.draw();
     }
@@ -317,10 +318,19 @@ public class GameScreen implements Screen {
         InputMultiplexer multiplexer = new InputMultiplexer();
 
         multiplexer.addProcessor(hudStage);
+        this.hudStage.getRoot().setUserObject(this);
 
         multiplexer.addProcessor(gameWorld.getSunPickupSystem());
 
         Gdx.input.setInputProcessor(multiplexer);
+        if (gameMusic == null) {
+    gameMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Grasswalk.mp3")); 
+    gameMusic.setLooping(true);
+    gameMusic.setVolume(GAME_BGM_VOLUME);
+}
+if (!gameMusic.isPlaying()) {
+    gameMusic.play();
+}
     }
 
     @Override
@@ -363,8 +373,10 @@ public class GameScreen implements Screen {
 
     @Override
     public void resume() {
+        if (gameMusic != null && !gameMusic.isPlaying()) {
+        gameMusic.play();
     }
-
+    }
     @Override
     public void hide() {
         pauseMusics();
