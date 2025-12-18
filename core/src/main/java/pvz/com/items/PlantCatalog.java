@@ -1,14 +1,13 @@
 package pvz.com.items;
 
 import java.util.EnumMap;
-
 import pvz.com.entities.plants.PlantType;
 
 public final class PlantCatalog {
     private static final EnumMap<PlantType, PlantDef> DEFS = new EnumMap<>(PlantType.class);
 
     static {
-        // ===== Cards / Shop / Cooldown =====
+        
         DEFS.put(PlantType.CHERRYBOMB, new PlantDef("images/Cards/CherryBomb.png", 150, 15f));
         DEFS.put(PlantType.PEASHOOTER, new PlantDef("images/Cards/PeaShooter.png", 100, 2.5f));
         DEFS.put(PlantType.POTATOMINE, new PlantDef("images/Cards/PotatoMine.png", 25, 10f));
@@ -29,7 +28,7 @@ public final class PlantCatalog {
         return d;
     }
 
-    /** Tiện cho SeedBank: duyệt toàn bộ plant đã đăng ký. */
+    
     public static Iterable<PlantType> types() {
         return DEFS.keySet();
     }

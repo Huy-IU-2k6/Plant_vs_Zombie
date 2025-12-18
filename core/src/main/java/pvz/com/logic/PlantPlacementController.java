@@ -28,10 +28,7 @@ public class PlantPlacementController {
         this.gameWorld = gameWorld;
     }
 
-    /**
-     * Mode click-to-place (giữ hành vi cũ của bạn):
-     * click card -> trừ sun + trigger cooldown ngay.
-     */
+    
     public void handleCardClicked(PlantCard card, boolean isPlaying) {
         if (!isPlaying)
             return;
@@ -47,8 +44,6 @@ public class PlantPlacementController {
         card.triggerUse();
     }
 
-    /**
-     * Kéo-thả card -> đặt plant lên grid (snap nearest cell).
      */
     public void handleCardDragged(PlantCard card,
             float screenX, float screenY,
@@ -56,37 +51,35 @@ public class PlantPlacementController {
         if (!isPlaying)
             return;
 
-        // screen -> world (theo viewport)
         Vector2 world = viewport.unproject(new Vector2(screenX, screenY));
 
-        // snap nearest cell (nhờ PlantGridController để gom logic)
         int[] cell = plantGridController.worldToNearestCell(world.x, world.y);
         int row = cell[0];
         int col = cell[1];
 
-        // ngoài lawn
+        
         if (row < 0 || col < 0 || !GridConfig.isInsideGrid(row, col))
             return;
 
-        // check sun + cooldown
+        
         int currentSun = hudController.getSunPoints();
         if (!card.canUse(currentSun))
             return;
 
         int cost = card.getDef().cost();
 
-        // Trừ sun trước để tránh “free plant”
+        
         if (!hudController.spendSun(cost))
             return;
 
         boolean placed = tryPlacePlantFromCard(card, row, col);
         if (!placed) {
-            // Ô bận / spawn lỗi -> hoàn sun
+            
             hudController.addSun(cost);
             return;
         }
 
-        // OK -> cooldown
+        
         card.triggerUse();
     }
 
@@ -115,7 +108,7 @@ public class PlantPlacementController {
         if (plantGridController.isCellOccupied(row, col))
             return false;
 
-        PlantType type = card.type; // PlantType luôn
+        PlantType type = card.type; 
         Plant plant = PlantFactory.createPlantAtCell(type, col, row);
         if (plant == null)
             return false;
