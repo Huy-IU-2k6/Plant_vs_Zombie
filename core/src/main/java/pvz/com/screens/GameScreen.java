@@ -90,16 +90,26 @@ public class GameScreen implements Screen {
 
     public GameScreen(Game game) {
         this(game, null);
-        
     }
 
     public GameScreen(Game game, Music inheritedMenuMusic) {
         this.game = game;
-        this.inheritedMenuMusic = inheritedMenuMusic;
+
+        // ===============================================================
+        // [FIX QUAN TRỌNG] TẮT NHẠC MENU NGAY LẬP TỨC
+        // ===============================================================
+        if (inheritedMenuMusic != null) {
+            inheritedMenuMusic.stop();      // Dừng phát
+            inheritedMenuMusic.dispose();   // Giải phóng bộ nhớ
+            inheritedMenuMusic = null;      // Ngắt tham chiếu
+        }
+        this.inheritedMenuMusic = null;     // Đảm bảo biến class cũng null
+
+        // --- LOAD ASSETS & PLAY GAME MUSIC ---
         pvz.com.factories.ZombieAssetLoader.loadAll();
         pvz.com.factories.PlantAssetLoader.loadAll();
         pvz.com.managers.SoundManager.loadAll();
-        pvz.com.managers.SoundManager.playMusic();
+        pvz.com.managers.SoundManager.playMusic(); // Phát nhạc nền màn chơi (Grasswalk)
 
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
@@ -255,15 +265,19 @@ public class GameScreen implements Screen {
     }
 
     private void resumeMusics() {
-        // Resume nhạc menu (nếu vẫn còn tồn tại)
+        // Resume nhạc menu (nếu vẫn còn tồn tại - trường hợp crossfade chưa xong)
         if (inheritedMenuMusic != null) {
             inheritedMenuMusic.play();
         }
 
         // Resume nhạc ingame (nếu có)
+        // SoundManager quản lý nhạc nền chính, nhưng nếu bạn có biến gameMusic riêng thì resume nó
         if (gameMusic != null) {
             gameMusic.play();
         }
+        
+        // Đảm bảo nhạc từ SoundManager cũng chạy
+        pvz.com.managers.SoundManager.playMusic();
     }
 
     private void pauseMusics() {
@@ -271,6 +285,11 @@ public class GameScreen implements Screen {
             inheritedMenuMusic.pause();
         if (gameMusic != null)
             gameMusic.pause();
+            
+        // Pause nhạc SoundManager nếu cần (hiện tại SoundManager chưa có hàm pause public nhưng Music tự xử lý)
+        if (pvz.com.managers.SoundManager.musicBg != null && pvz.com.managers.SoundManager.musicBg.isPlaying()) {
+             pvz.com.managers.SoundManager.musicBg.pause();
+        }
     }
 
     private void stopAndDisposeMusics() {
@@ -401,6 +420,11 @@ public class GameScreen implements Screen {
 
         worldRenderer.dispose();
 
-        pvz.com.entities.Zombies.ZombieSounds.disposeAll();
+        // Dispose SoundManager
+        //pvz.com.managers.SoundManager.dispose();
+        
+        // Dispose Zombie & Plant Assets
+        pvz.com.factories.ZombieAssetLoader.dispose(); // Nếu có hàm này
+        pvz.com.factories.PlantAssetLoader.dispose();
     }
 }

@@ -5,11 +5,13 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.MathUtils; // Nhớ import MathUtils
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
 import pvz.com.entities.Zombies.data.ZombieStats;
 import pvz.com.entities.Zombies.strategy.DamageStrategy;
 import pvz.com.managers.DesignConfig;
+import pvz.com.managers.SoundManager;
 
 public abstract class BaseZombie extends Actor {
     
@@ -21,7 +23,11 @@ public abstract class BaseZombie extends Actor {
     protected ZombieStats stats;
     protected DamageStrategy damageStrategy;
     
-    // Hitbox (Tích hợp sẵn thay vì class riêng cho gọn)
+    // Biến đếm thời gian âm thanh
+    private float groanTimer = 0f;
+    private float chompTimer = 0f;
+
+    // Hitbox
     protected Rectangle hitbox = new Rectangle();
 
     // --- ANIMATIONS ---
@@ -40,11 +46,16 @@ public abstract class BaseZombie extends Actor {
         this.stats = stats;
         this.damageStrategy = strategy;
         
-        // Kích thước chuẩn
         setSize(DesignConfig.FIXED_WIDTH, DesignConfig.FIXED_HEIGHT);
         
-        // Gọi hàm để class con nạp ảnh
         loadAnimations();
+        
+        // ===============================================================
+        // [FIX QUAN TRỌNG] RANDOM ĐỂ KHÔNG BỊ "ĐỒNG CA" ZOMBIE
+        // Nếu không có 2 dòng này, zombie sinh ra cùng lúc sẽ kêu cùng lúc
+        // ===============================================================
+        this.groanTimer = MathUtils.random(0f, 3.5f);
+        this.chompTimer = MathUtils.random(0f, 0.5f);
     }
 
     protected abstract void loadAnimations();
@@ -52,7 +63,11 @@ public abstract class BaseZombie extends Actor {
     @Override
     public void act(float delta) {
         super.act(delta);
+        
         if (dead || gameOver) return;
+
+        // Logic Âm thanh
+        updateSounds(delta);
 
         // Logic Chết
         if (isDying) {
@@ -74,15 +89,39 @@ public abstract class BaseZombie extends Actor {
             float moveSpeed = stats.getSpeed();
             moveBy(-moveSpeed * delta, 0);
             
-            // Cập nhật Hitbox
             updateHitbox();
 
-            // Animation speed scaling
             float scale = (stats.getBaseSpeed() > 0) ? (moveSpeed / stats.getBaseSpeed()) : 1f;
             stateTime += delta * Math.max(scale, 0.2f);
 
-            // Game Over
             if (getX() < 0) gameOver = true;
+        }
+    }
+
+    // Hàm xử lý âm thanh
+    private void updateSounds(float delta) {
+        if (isDying || dead) return;
+
+        // 1. Tiếng rên (Groan)
+        groanTimer += delta;
+        if (groanTimer > 4.0f) {
+            // 40% tỉ lệ phát tiếng
+            if (MathUtils.randomBoolean(0.4f)) {
+                SoundManager.playGroan();
+            }
+            // Reset về số âm ngẫu nhiên để lệch nhịp cho lần sau
+            groanTimer = -MathUtils.random(0f, 2.0f); 
+        }
+
+        // 2. Tiếng nhai (Chomp)
+        if (isEating) {
+            chompTimer += delta;
+            if (chompTimer > 0.6f) {
+                SoundManager.playChomp();
+                chompTimer = 0f;
+            }
+        } else {
+            chompTimer = 0f;
         }
     }
 
@@ -101,17 +140,15 @@ public abstract class BaseZombie extends Actor {
         TextureRegion frame = null;
         if (isDying) {
             frame = isCharred ? (charredAnim != null ? charredAnim.getKeyFrame(stateTime) : null) 
-                              : (dieAnim != null ? dieAnim.getKeyFrame(stateTime) : null);
+                             : (dieAnim != null ? dieAnim.getKeyFrame(stateTime) : null);
         } else {
             frame = isEating ? (currentEat != null ? currentEat.getKeyFrame(stateTime) : null) 
                              : (currentWalk != null ? currentWalk.getKeyFrame(stateTime) : null);
         }
 
-        // Fallback nếu null (tránh crash)
         if (frame != null) {
             float ratio = (float) frame.getRegionWidth() / frame.getRegionHeight();
             float drawH = getHeight();
-            // Nếu có giáp thì vẽ to hơn chút
             if (damageStrategy.hasArmor()) drawH /= 0.85f;
             
             float drawW = drawH * ratio;
@@ -119,7 +156,6 @@ public abstract class BaseZombie extends Actor {
             
             batch.draw(frame, drawX, getY(), drawW, drawH);
             
-            // Vẽ đầu rụng
             if (isDying && !isCharred && headAnim != null && !headAnim.isAnimationFinished(stateTime)) {
                 TextureRegion hFrame = headAnim.getKeyFrame(stateTime);
                 float hRatio = (float) hFrame.getRegionWidth() / hFrame.getRegionHeight();
@@ -135,7 +171,7 @@ public abstract class BaseZombie extends Actor {
         if (isDying || dead) return;
 
         boolean statusChanged = damageStrategy.onDamage(stats, amount);
-        if (statusChanged) onArmorBroken(); // Hook
+        if (statusChanged) onArmorBroken(); 
 
         if (stats.isDead()) startDeath(false);
     }
@@ -160,6 +196,5 @@ public abstract class BaseZombie extends Actor {
     public Rectangle getBounds() { return hitbox; }
     public static int getZombieCount() { return zombieCount; }
     
-    // Giữ tương thích với code cũ của bạn
     public boolean isDead() { return dead; }
 }
