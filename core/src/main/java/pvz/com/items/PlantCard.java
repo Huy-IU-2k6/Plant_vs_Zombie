@@ -10,7 +10,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-
 import pvz.com.entities.plants.PlantType;
 import pvz.com.logic.HudController;
 import pvz.com.screens.GameScreen;
@@ -29,7 +28,7 @@ public class PlantCard extends Image {
     private float cooldownRemaining = 0f;
     private boolean lockedByGame = true;
 
-    // Ghost image when dragging
+    
     private Image dragGhost;
 
     public PlantCard(PlantType type) {
@@ -40,7 +39,7 @@ public class PlantCard extends Image {
 
         setSize(WIDTH, HEIGHT);
 
-        // Drag only, no click
+        
         addDragSupport();
 
         updateStateUI();
@@ -55,9 +54,7 @@ public class PlantCard extends Image {
         return def;
     }
 
-    /**
-     * Lấy GameScreen từ stage.root.userObject (bạn set ở GameScreen ctor)
-     */
+    
     private GameScreen getGameScreen() {
         if (getStage() == null)
             return null;
@@ -70,7 +67,7 @@ public class PlantCard extends Image {
         return (screen != null) ? screen.getHudController() : null;
     }
 
-    // ===================== DRAG & DROP =====================
+
 
     private void addDragSupport() {
         addListener(new DragListener() {
@@ -92,12 +89,12 @@ public class PlantCard extends Image {
 
                 int currentSun = hud.getSunPoints();
 
-                // If locked, cooldown active, or not enough sun -> cancel
+                
                 if (lockedByGame || cooldownRemaining > 0f || currentSun < def.cost()) {
                     return;
                 }
 
-                // Create ghost card
+                
                 dragGhost = new Image(getDrawable());
                 dragGhost.setSize(getWidth(), getHeight());
                 dragGhost.setOrigin(Align.center);
@@ -161,7 +158,7 @@ public class PlantCard extends Image {
         });
     }
 
-    // ===================== GAME STATE / COOLDOWN =====================
+    
 
     public void setLockedByGame(boolean locked) {
         this.lockedByGame = locked;

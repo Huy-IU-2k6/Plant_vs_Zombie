@@ -1,15 +1,14 @@
 package pvz.com.items;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
-
 import pvz.com.managers.HudLayoutConfig;
 import pvz.com.managers.ScaleManager;
 
@@ -34,17 +33,17 @@ public class SeedBank extends Group {
 
     private static final float BASE_SUN_FONT_SCALE = HudLayoutConfig.BASE_SUN_FONT_SCALE;
 
-    // tỉ lệ chiều rộng / chiều cao card (dựa theo kích thước gốc)
+    
     private static final float CARD_ASPECT = PlantCard.WIDTH / PlantCard.HEIGHT;
 
-    // ==== SUN HUD ====
+    
     private int sunAmount = 0;
     private final Label sunLabel;
 
     public SeedBank(BitmapFont font) {
         bgTex = new Texture(Gdx.files.internal("images/items/seed_bank.png"));
 
-        // style cho text sun
+        
         Label.LabelStyle style = new Label.LabelStyle();
         style.font = font;
         style.fontColor = Color.YELLOW;
@@ -52,15 +51,15 @@ public class SeedBank extends Group {
         sunLabel = new Label("0", style);
         sunLabel.setAlignment(Align.center);
         
-        // [QUAN TRỌNG] Khởi tạo scale an toàn để tránh crash ngay khi tạo
+        
         sunLabel.setFontScale(1f); 
         
         addActor(sunLabel);
 
-        // set kích thước ban đầu sau khi đã có sunLabel
+        
         setSize(bgTex.getWidth(), bgTex.getHeight());
         
-        // [QUAN TRỌNG] Đảm bảo group không bị scale 0
+        
         this.setScale(1f); 
     }
 
@@ -81,7 +80,7 @@ public class SeedBank extends Group {
 
     @Override
     public void setSize(float width, float height) {
-        // [AN TOÀN] Tránh width/height = 0 gây lỗi chia cho 0
+        
         if (width <= 1f) width = 1f;
         if (height <= 1f) height = 1f;
 
@@ -100,7 +99,7 @@ public class SeedBank extends Group {
         float scaleX = getWidth() / texW;
         float scaleY = getHeight() / texH;
 
-        // chuyển toạ độ pixel gốc sang toạ độ sau khi scale
+        
         float sunCenterX = SUN_LABEL_CENTER_X * scaleX;
         float sunCenterY = SUN_LABEL_CENTER_Y * scaleY;
 
@@ -145,19 +144,19 @@ public class SeedBank extends Group {
     }
 
     public void updateLayout(float worldWidth, float worldHeight) {
-        // [AN TOÀN] Nếu màn hình chưa init xong (size=0), bỏ qua layout
+        
         if (worldWidth <= 0 || worldHeight <= 0) return;
 
-        // ===== KÍCH THƯỚC SEEDBANK =====
+        
         float trayWidth = worldWidth * TRAY_WIDTH_RATIO;
 
-        // Giữ tỉ lệ gốc của texture
+        
         float textureAspect = (float) bgTex.getHeight() / (float) bgTex.getWidth();
         float trayHeight = trayWidth * textureAspect;
 
         setSize(trayWidth, trayHeight);
 
-        // ===== VỊ TRÍ SEEDBANK =====
+        
         float x = ScaleManager.toWorldX(TRAY_MARGIN_LEFT, worldWidth);
         float marginTopWorld = ScaleManager.toWorldY(TRAY_MARGIN_TOP, worldHeight);
 
@@ -165,11 +164,10 @@ public class SeedBank extends Group {
 
         setPosition(x, y);
 
-        // scale theo chiều cao màn hình
+        
         float fontScale = ScaleManager.getHeightScale(worldHeight);
 
-        // [FIX CRASH] Đảm bảo scale không bao giờ bằng 0
-        // LibGDX BitmapFont sẽ crash nếu scaleX hoặc scaleY = 0
+        
         float finalScale = BASE_SUN_FONT_SCALE * fontScale;
         if (finalScale < 0.01f) finalScale = 0.01f; 
 
@@ -178,8 +176,7 @@ public class SeedBank extends Group {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        // [FIX CRASH] Nếu SeedBank đang bị scale về 0 (ví dụ animation ẩn),
-        // đừng vẽ con của nó (Label), vì Label sẽ tính toán font scale = 0 -> Crash.
+        
         if (getScaleX() < 0.01f || getScaleY() < 0.01f) {
             return;
         }
@@ -189,7 +186,7 @@ public class SeedBank extends Group {
 
         batch.draw(bgTex, getX(), getY(), getWidth(), getHeight());
         
-        // Chỉ gọi super.draw (vẽ Label con) khi scale an toàn
+       
         super.draw(batch, parentAlpha);
     }
 

@@ -27,19 +27,19 @@ public class WorldRenderer {
         float h = viewport.getWorldHeight();
 
         if (isCountdown) {
-            // Màn hình đếm ngược
+            
             backgroundManager.renderCount(batch, w, h);
             return;
         }
 
-        // Màn chính
+        
         backgroundManager.renderMain(batch, w, h);
 
-        // Lawn mower + zombie
+        
         lawnMowerController.render(batch);
         zombieWaveController.render(batch);
 
-        // KHÔNG vẽ sun HUD nữa, phần đó do HudController/hudStage xử lý
+        
     }
 
     public void dispose() {

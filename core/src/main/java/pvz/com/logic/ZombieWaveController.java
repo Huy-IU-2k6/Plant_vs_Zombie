@@ -40,7 +40,7 @@ public class ZombieWaveController {
     private float nextSpawnTime = 0f;
     private int zombiesSpawnedInWave = 0;
 
-    // [MỚI]
+    
     private final GameState gameState;
     private boolean waveStarted = false;
     private boolean triggeredWin = false;
@@ -60,7 +60,7 @@ public class ZombieWaveController {
         this(worldWidth, worldHeight, startOffsetXDesign, maxZombiesInWave, levelDuration, null);
     }
 
-    // [MỚI] constructor có GameState
+    
     public ZombieWaveController(float worldWidth,
                                float worldHeight,
                                float startOffsetXDesign,
@@ -144,9 +144,7 @@ public class ZombieWaveController {
             }
         }
 
-        // ==========================
-        // [MỚI] THẮNG: spawn đủ + sạch zombie
-        // ==========================
+        
         if (!triggeredWin && isWaveFinished()) {
             triggeredWin = true;
             if (gameState != null) gameState.setGameOver(true);
