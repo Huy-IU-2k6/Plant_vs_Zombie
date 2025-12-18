@@ -14,8 +14,8 @@ public class ChargeZombie extends Zombies {
     private static final float BASE_SPEED = 32f;
     private static final int BASE_HEALTH = 160;
 
-    private static final float WALK_FRAME_TIME = 0.12f;
-    private static final float EAT_FRAME_TIME = 0.12f;
+    private static final float WALK_FRAME_TIME = 0.02f;
+    private static final float EAT_FRAME_TIME = 0.02f;
 
     private static final float DEAD_REMOVE_DELAY = 1.2f;
 
@@ -39,15 +39,15 @@ public class ChargeZombie extends Zombies {
 
         // WALK
         walkTextures = new Array<>();
-        for (int i = 0; i <= 86; i++) {
+        for (int i = 0; i < 60; i++) {
             walkTextures.add(new Texture("images/Zombies/ChargeZombie/Zombie/Zombie_" + i + ".png"));
         }
         walkAnim = createAnimation(walkTextures, WALK_FRAME_TIME, Animation.PlayMode.LOOP);
 
         // EAT
         eatTextures = new Array<>();
-        for (int i = 0; i <= 24; i++) {
-            eatTextures.add(new Texture("images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_" + i + ".png"));
+        for (int i = 0; i < 60; i++) {
+            eatTextures.add(new Texture("images/Zombies/ChargeZombie/ZombieAttack/Zombie_" + i + ".png"));
         }
         eatAnim = createAnimation(eatTextures, EAT_FRAME_TIME, Animation.PlayMode.LOOP);
 
