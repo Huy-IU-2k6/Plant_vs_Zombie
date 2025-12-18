@@ -1,6 +1,5 @@
 package pvz.com.entities.plants.bombs;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.factories.PlantAssetLoader;
@@ -16,8 +15,8 @@ public class CherryBomb extends Plant {
         var explodeAnim = PlantAssetLoader.CHERRY_EXPLODE;
 
         if (idleAnim == null) {
-             System.err.println("Error: CHERRY_BOMB animations are null.");
-             return;
+            System.err.println("Error: CHERRY_BOMB animations are null.");
+            return;
         }
 
         // 2. Thiết lập Components

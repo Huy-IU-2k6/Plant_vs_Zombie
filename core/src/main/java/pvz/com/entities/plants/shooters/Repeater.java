@@ -1,19 +1,14 @@
 package pvz.com.entities.plants.shooters;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.managers.GridConfig;
-import pvz.com.managers.DesignConfig;
 import pvz.com.factories.PlantAssetLoader;
 
 public class Repeater extends Plant {
     private static final float SCALE_X = 0.7f;
     private static final float SCALE_Y = 0.75f;
-
-    private static final int FRAME_COUNT = 15;
-    private static final float FRAME_DURATION = DesignConfig.FRAME_DURATION;
 
     public Repeater(float x, float y, int col, int row) {
         super(x, y, GridConfig.CELL_WIDTH * SCALE_X, GridConfig.CELL_HEIGHT * SCALE_Y);

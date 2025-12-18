@@ -1,11 +1,9 @@
 package pvz.com.entities.plants.shooters;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.managers.GridConfig;
-import pvz.com.managers.DesignConfig;
 import pvz.com.factories.PlantAssetLoader;
 
 public class Peashooter extends Plant {
@@ -15,7 +13,6 @@ public class Peashooter extends Plant {
 
     // Tốc độ animation (0.1 giây / frame)
     // Số càng nhỏ cây lắc lư càng nhanh
-    private static final float FRAME_DURATION = DesignConfig.FRAME_DURATION;
 
     public Peashooter(float x, float y, int col, int row) {
         super(
@@ -46,12 +43,11 @@ public class Peashooter extends Plant {
         this.addComponent(new GridCellComponent(col, row));
 
         this.addComponent(new PlantAttackComponent(
-                20, 
-                900f, 
-                PeaProjectile.class, 
-                PlantDamageType.NORMAL, 
-                1.5f 
-        ));
+                20,
+                900f,
+                PeaProjectile.class,
+                PlantDamageType.NORMAL,
+                1.5f));
     }
 
     public Peashooter(float x, float y) {

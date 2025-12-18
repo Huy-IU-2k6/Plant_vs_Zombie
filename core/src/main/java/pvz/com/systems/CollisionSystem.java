@@ -34,7 +34,6 @@ public class CollisionSystem {
 
     public void update(float deltaTime) {
         Plant[][] grid = plantGridController.getPlantGrid();
-        float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
 
         for (BaseZombie zombie : zombieWaveController.getZombies()) {
             if (zombie == null)

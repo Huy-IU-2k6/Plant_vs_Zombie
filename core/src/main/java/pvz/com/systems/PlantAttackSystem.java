@@ -26,21 +26,26 @@ public class PlantAttackSystem {
     }
 
     public void update(List<Plant> plants, float deltaTime) {
-        if (plants == null || spawner == null || zombieController == null) return;
+        if (plants == null || spawner == null || zombieController == null)
+            return;
 
         for (Plant plant : plants) {
-            if (plant == null) continue;
+            if (plant == null)
+                continue;
 
             // Check plant chết
             HealthComponent hp = plant.getComponent(HealthComponent.class);
-            if (hp != null && hp.currentHealth <= 0) continue;
+            if (hp != null && hp.currentHealth <= 0)
+                continue;
 
             PlantAttackComponent atk = plant.getComponent(PlantAttackComponent.class);
             PositionComponent pos = plant.getComponent(PositionComponent.class);
-            if (atk == null || pos == null) continue;
+            if (atk == null || pos == null)
+                continue;
 
             // Init safe values
-            if (atk.burstCount <= 0) atk.burstCount = 1;
+            if (atk.burstCount <= 0)
+                atk.burstCount = 1;
 
             atk.timer += deltaTime;
 
@@ -65,12 +70,13 @@ public class PlantAttackSystem {
 
             // Phase A: Cooldown
             float cd = getEffectiveCooldown(atk);
-            if (atk.timer < cd) continue;
+            if (atk.timer < cd)
+                continue;
 
             if (shouldShoot(pos, atk.range)) {
                 fire(pos, atk);
                 atk.shotsFiredInBurst = 1;
-                
+
                 if (atk.burstCount <= 1) {
                     atk.shotsFiredInBurst = 0;
                     atk.timer = 0f;
@@ -98,27 +104,33 @@ public class PlantAttackSystem {
     }
 
     private boolean shouldShoot(PositionComponent plantPos, float range) {
-        if (zombieController == null || zombieController.getZombies() == null) return false;
+        if (zombieController == null || zombieController.getZombies() == null)
+            return false;
 
         float screenRight = DesignConfig.BASE_SCREEN_W;
 
         // [FIX] Duyệt qua BaseZombie
         for (BaseZombie z : zombieController.getZombies()) {
-            if (z == null) continue;
-            
+            if (z == null)
+                continue;
+
             // Dùng logic BaseZombie (đã có stats bên trong)
             // Lưu ý: BaseZombie.isDead() là cờ kiểm tra logic
-            if (z.isDead()) continue;
+            if (z.isDead())
+                continue;
 
             // Zombie chưa vào màn hình
-            if (z.getX() > (screenRight - ZOMBIE_ENTER_SCREEN_MARGIN)) continue;
+            if (z.getX() > (screenRight - ZOMBIE_ENTER_SCREEN_MARGIN))
+                continue;
 
             // Check Lane (Y)
-            if (Math.abs(z.getY() - plantPos.y) > LANE_Y_TOLERANCE) continue;
+            if (Math.abs(z.getY() - plantPos.y) > LANE_Y_TOLERANCE)
+                continue;
 
             // Check Range (X)
             float dx = z.getX() - plantPos.x;
-            if (dx > 0f && dx <= range) return true;
+            if (dx > 0f && dx <= range)
+                return true;
         }
         return false;
     }
