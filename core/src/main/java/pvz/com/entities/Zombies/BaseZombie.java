@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import pvz.com.entities.Zombies.ZombieSounds;
 
 import pvz.com.entities.Zombies.data.ZombieStats;
 import pvz.com.entities.Zombies.strategy.DamageStrategy;
@@ -23,6 +24,7 @@ public abstract class BaseZombie extends Actor {
     
     // Hitbox (Tích hợp sẵn thay vì class riêng cho gọn)
     protected Rectangle hitbox = new Rectangle();
+    protected ZombieSounds sounds;
 
     // --- ANIMATIONS ---
     protected Animation<TextureRegion> currentWalk, currentEat;
@@ -45,6 +47,7 @@ public abstract class BaseZombie extends Actor {
         
         // Gọi hàm để class con nạp ảnh
         loadAnimations();
+        this.sounds = new ZombieSounds(this);
     }
 
     protected abstract void loadAnimations();
@@ -52,6 +55,9 @@ public abstract class BaseZombie extends Actor {
     @Override
     public void act(float delta) {
         super.act(delta);
+        if (sounds != null && !dead && !isDying) {
+            sounds.act(delta, isEating);
+        }
         if (dead || gameOver) return;
 
         // Logic Chết
