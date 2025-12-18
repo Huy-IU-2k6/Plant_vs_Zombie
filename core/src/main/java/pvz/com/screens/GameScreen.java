@@ -113,6 +113,8 @@ public class GameScreen implements Screen {
         this.inheritedMenuMusic = inheritedMenuMusic;
         pvz.com.factories.ZombieAssetLoader.loadAll();
         pvz.com.factories.PlantAssetLoader.loadAll();
+        pvz.com.managers.SoundManager.loadAll();
+        pvz.com.managers.SoundManager.playMusic();
 
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
