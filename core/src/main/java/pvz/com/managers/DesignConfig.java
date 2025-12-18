@@ -44,5 +44,5 @@ public class DesignConfig {
 
     public static final float DAMAGE_PER_SECOND = 10f;
 
-    public static final float FRAME_DURATION = 0.06f;
+    public static final float PLANT_FRAME_DURATION = 0.06f;
 }
