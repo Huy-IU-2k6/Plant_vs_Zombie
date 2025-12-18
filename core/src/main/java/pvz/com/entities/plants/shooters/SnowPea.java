@@ -60,7 +60,7 @@ public class SnowPea extends Plant {
 
         // Cấu hình bắn: Damage 20, Loại ICE, Đạn FrozenPeaProjectile
         this.addComponent(new PlantAttackComponent(
-                20,
+                30,
                 900f,
                 FrozenPeaProjectile.class,
                 PlantDamageType.ICE,
