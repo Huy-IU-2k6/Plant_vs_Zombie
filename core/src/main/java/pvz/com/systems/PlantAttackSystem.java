@@ -19,7 +19,7 @@ public class PlantAttackSystem {
 
     private static final float ZOMBIE_ENTER_SCREEN_MARGIN = 120f;
 
-    private static final float COOLDOWN_MULTIPLIER = 3.2f;
+    private static final float COOLDOWN_MULTIPLIER = 2.0f;
 
     private final IGameSpawner spawner;
     private final ZombieWaveController zombieController;
