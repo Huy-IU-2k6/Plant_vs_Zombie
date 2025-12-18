@@ -1,6 +1,5 @@
 package pvz.com.entities.plants.shooters;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.entities.projectiles.FrozenPeaProjectile;
@@ -16,10 +15,10 @@ public class SnowPea extends Plant {
 
         // 1. Lấy Animation từ Loader
         var idleAnim = PlantAssetLoader.SNOWPEA_IDLE;
-        
+
         if (idleAnim == null) {
-             System.err.println("Error: SNOWPEA_IDLE is null.");
-             return;
+            System.err.println("Error: SNOWPEA_IDLE is null.");
+            return;
         }
 
         // 2. Thiết lập Components
@@ -27,8 +26,12 @@ public class SnowPea extends Plant {
 
         AnimationComponent animComp = new AnimationComponent();
         animComp.addAnimation(EntityState.IDLE, idleAnim);
+        // SnowPea thường dùng chung animation lắc lư cho cả lúc đứng yên và lúc bắn
+        animComp.addAnimation(EntityState.ATTACKING, idleAnim);
+
         // Dùng chung animation cho lúc bắn
-        animComp.addAnimation(EntityState.ATTACKING, idleAnim); 
+        animComp.addAnimation(EntityState.ATTACKING, idleAnim);
+
         this.addComponent(animComp);
 
         this.addComponent(new StateComponent(EntityState.IDLE));

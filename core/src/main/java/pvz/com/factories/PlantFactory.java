@@ -16,10 +16,6 @@ import pvz.com.managers.GridConfig;
 
 public class PlantFactory {
 
-    // =========================================================
-    // SCALE CHO CÁC PLANT (tương đối theo CELL)
-    // =========================================================
-
     private static final float SUNFLOWER_SCALE_X = 0.7f;
     private static final float SUNFLOWER_SCALE_Y = 0.8f;
 
@@ -32,26 +28,17 @@ public class PlantFactory {
     private static final float POTATOMINE_SCALE_X = 0.7f;
     private static final float POTATOMINE_SCALE_Y = 0.6f;
 
-    // CherryBomb dùng size riêng (gif vuông)
     private static final float CHERRY_BOMB_WIDTH = 90f;
     private static final float CHERRY_BOMB_HEIGHT = 90f;
 
     private static final float SNOWPEA_SCALE_X = 0.7f;
     private static final float SNOWPEA_SCALE_Y = 0.8f;
-    // offset để CherryBomb nằm đẹp hơn trong ô
+
     private static final float CHERRY_BOMB_OFFSET_X = 15f;
     private static final float CHERRY_BOMB_OFFSET_Y = 55f;
 
     private static final float REPEATER_SCALE_X = 0.55f;
     private static final float REPEATER_SCALE_Y = 0.55f;
-    // ========================================================= API CHÍNH: TẠO
-    // PLANT THEO Ô GRID (col, row)
-    // =========================================================
-
-    /**
-     * Tạo Plant đặt vào đúng ô grid (col, row).
-     * Tự canh giữa ô dựa theo kích thước mong muốn.
-     */
 
     public static Plant createPlantAtCell(PlantType type, int col, int row) {
         Plant plant = null;
@@ -82,17 +69,12 @@ public class PlantFactory {
                 throw new IllegalArgumentException("Unknown plant type: " + type);
         }
 
-        // ✅ ensure type component for shovel refund
         if (plant != null && !plant.hasComponent(PlantTypeComponent.class)) {
             plant.addComponent(new PlantTypeComponent(type));
         }
 
         return plant;
     }
-
-    // =========================================================
-    // IMPLEMENT CHO TỪNG LOẠI PLANT
-    // =========================================================
 
     public static Plant createSunflowerAtCell(int col, int row) {
         float w = GridConfig.CELL_WIDTH * SUNFLOWER_SCALE_X;
@@ -128,7 +110,6 @@ public class PlantFactory {
         float cx = GridConfig.getCellCenterX(col);
         float cy = GridConfig.getCellCenterY(row);
 
-        // canh giữa rồi trừ offset nhỏ cho giống game gốc
         float x = cx - CHERRY_BOMB_WIDTH / 2f - CHERRY_BOMB_OFFSET_X;
         float y = cy - CHERRY_BOMB_HEIGHT / 2f - CHERRY_BOMB_OFFSET_Y;
 
@@ -161,14 +142,6 @@ public class PlantFactory {
         return new Repeater(x, y, col, row);
     }
 
-    // =========================================================
-    // MASTER FACTORY DÙNG ENUM + TOẠ ĐỘ WORLD (NẾU CẦN)
-    // =========================================================
-
-    /**
-     * Nếu ở chỗ khác cậu đã có sẵn x, y (muốn custom vị trí) thì dùng hàm này.
-     * Nhưng đa số trường hợp nên dùng createPlantAtCell cho đỡ lệch grid.
-     */
     public static Plant createPlant(PlantType type, float x, float y, int col, int row) {
         Plant plant = null;
 

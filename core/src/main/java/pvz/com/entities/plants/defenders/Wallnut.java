@@ -1,6 +1,5 @@
 package pvz.com.entities.plants.defenders;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.managers.GridConfig;
@@ -21,8 +20,8 @@ public class Wallnut extends Plant {
         var animCrack2 = PlantAssetLoader.WALLNUT_CRACKED2;
 
         if (animFull == null) {
-             System.err.println("Error: WALLNUT animations are null.");
-             return;
+            System.err.println("Error: WALLNUT animations are null.");
+            return;
         }
 
         // 2. Thiết lập Components

@@ -5,30 +5,26 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.math.Vector2;
-
 import pvz.com.entities.components.PlantTypeComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.PlantType;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ShovelController;
-import pvz.com.systems.ISunReceiver;
-
-import pvz.com.managers.ScaleManager;
 import pvz.com.managers.DesignConfig;
+import pvz.com.managers.ScaleManager;
+import pvz.com.systems.ISunReceiver;
 
 public class Shovel extends Actor {
 
-    // icon (trong seedbank/HUD)
     private final Texture texture;
 
-    // ghost texture (khi kéo/thả)
     private final Texture ghostTexture;
     private final TextureRegion ghostRegion;
 
@@ -36,17 +32,13 @@ public class Shovel extends Actor {
     private final ShovelController shovelController;
     private final ISunReceiver sunReceiver;
 
-    // ===== RUNTIME (WORLD) CACHE =====
     private float worldIconSize = 64f;
 
-    // state
     private boolean active = false;
     private boolean dragging = false;
 
-    // refund
     private float refundRatio = DesignConfig.SHOVEL_REFUND_RATIO;
 
-    // ghost
     private GhostActor ghost;
 
     public Shovel(PlantGridController grid,
@@ -60,7 +52,6 @@ public class Shovel extends Actor {
         this.ghostTexture = new Texture(Gdx.files.internal(DesignConfig.SHOVEL_GHOST_PATH));
         this.ghostRegion = new TextureRegion(ghostTexture);
 
-        // size tạm theo base; layoutTopLeft() sẽ scale chuẩn theo hudWorldH
         setSize(DesignConfig.SHOVEL_ICON_SIZE, DesignConfig.SHOVEL_ICON_SIZE);
         setTouchable(Touchable.enabled);
 
@@ -100,7 +91,6 @@ public class Shovel extends Actor {
         });
     }
 
-    // gọi trong HudController sau khi biết hudWorldW/H (và mỗi lần resize)
     public void layoutTopLeft(float hudWorldWidth, float hudWorldHeight) {
         worldIconSize = ScaleManager.scaleByHeight(DesignConfig.SHOVEL_ICON_SIZE, hudWorldHeight);
         setSize(worldIconSize, worldIconSize);

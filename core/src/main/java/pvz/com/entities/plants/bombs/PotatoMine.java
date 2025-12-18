@@ -1,6 +1,5 @@
 package pvz.com.entities.plants.bombs;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.managers.GridConfig;

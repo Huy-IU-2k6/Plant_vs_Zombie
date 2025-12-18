@@ -19,7 +19,6 @@ public class RenderSystem {
         batch.begin();
 
         for (Entity entity : entities) {
-            // KHÔNG vẽ entity đã đánh dấu xóa
             if (entity.markedForRemoval)
                 continue;
 

@@ -28,24 +28,21 @@ public class DesignConfig {
     public static final float SUN_WIDTH = FIXED_HEIGHT * SUN_SIZE_RATIO;
     public static final float SUN_HEIGHT = FIXED_HEIGHT * SUN_SIZE_RATIO;
 
-    // =========================================================
-    // SHOVEL (BASE 1920x1080) CONFIG
-    // =========================================================
-    public static final float SHOVEL_PAD_X = 815f; // padding left theo base px
-    public static final float SHOVEL_PAD_Y = 40f; // padding top theo base px
-    public static final float SHOVEL_ICON_SIZE = 64f; // size icon theo base px
+    public static final float SHOVEL_PAD_X = 815f;
+    public static final float SHOVEL_PAD_Y = 40f;
+    public static final float SHOVEL_ICON_SIZE = 72f;
 
-    // refund mặc định (100%)
     public static final float SHOVEL_REFUND_RATIO = 1.0f;
 
-    // assets
     public static final String SHOVEL_ICON_PATH = "images/items/Shovel_Box.png";
     public static final String SHOVEL_GHOST_PATH = "images/items/Shovel.png";
 
     private DesignConfig() {
     }
 
-    public static final float SUN_COOL_DOWN = 15f; // Thời gian tạo ra 1 quả sun
+    public static final float SUN_COOL_DOWN = 10f;
 
     public static final float DAMAGE_PER_SECOND = 10f;
+
+    public static final float PLANT_FRAME_DURATION = 0.06f;
 }

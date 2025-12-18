@@ -11,7 +11,7 @@ public class ShovelController {
     }
 
     public void tryRemovePlant(int row, int col) {
-        // This now works because we added getPlantAt() to the controller
+        
         Plant plant = grid.getPlantAt(row, col);
 
         if (plant != null) {

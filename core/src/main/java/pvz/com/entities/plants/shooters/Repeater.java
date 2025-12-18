@@ -1,6 +1,5 @@
 package pvz.com.entities.plants.shooters;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.entities.projectiles.PeaProjectile;
@@ -16,10 +15,10 @@ public class Repeater extends Plant {
 
         // 1. Lấy Animation từ Loader
         var anim = PlantAssetLoader.REPEATER_IDLE;
-        
+
         if (anim == null) {
-             System.err.println("Error: REPEATER_IDLE is null.");
-             return;
+            System.err.println("Error: REPEATER_IDLE is null.");
+            return;
         }
 
         // 2. Thiết lập Components
@@ -42,7 +41,7 @@ public class Repeater extends Plant {
                 PeaProjectile.class,
                 PlantDamageType.NORMAL,
                 1.5f);
-        attackComp.setBurstFire(2, 0.15f); 
+        attackComp.setBurstFire(2, 0.15f);
         this.addComponent(attackComp);
     }
 }

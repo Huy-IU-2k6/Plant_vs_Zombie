@@ -17,11 +17,9 @@ public class PotatoMineStateSystem {
     public void update(List<Entity> entities) {
         for (Entity entity : entities) {
 
-            // 1) Chỉ xử lý PotatoMine
             if (!(entity instanceof PotatoMine))
                 continue;
 
-            // 2) Lấy component
             HealthComponent health = entity.getComponent(HealthComponent.class);
             StateComponent state = entity.getComponent(StateComponent.class);
             ArmingComponent arming = entity.getComponent(ArmingComponent.class);
@@ -30,14 +28,12 @@ public class PotatoMineStateSystem {
             if (state == null)
                 continue;
 
-            // 3) Nếu chết do bị ăn/đánh
             if (health != null && health.currentHealth <= 0) {
                 if (state.get() != EntityState.DYING)
                     state.set(EntityState.DYING);
                 continue;
             }
 
-            // 4) Nếu đã kích nổ thì chuyển EXPLODING
             if (explosive != null && isExplosiveTriggered(explosive)) {
                 if (state.get() != EntityState.POTATOMINE_EXPLODING) {
                     state.set(EntityState.POTATOMINE_EXPLODING);
@@ -45,7 +41,6 @@ public class PotatoMineStateSystem {
                 continue;
             }
 
-            // 5) Dựa vào arming để set UNARMED / ARMING / ARMED
             EntityState newState = decideByArming(arming);
             if (state.get() != newState) {
                 state.set(newState);
@@ -55,7 +50,6 @@ public class PotatoMineStateSystem {
 
     private EntityState decideByArming(ArmingComponent arming) {
         if (arming == null) {
-            // Không có arming component thì coi như "ready" (tùy game bạn)
             return EntityState.POTATOMINE_ARMED;
         }
 
@@ -63,28 +57,20 @@ public class PotatoMineStateSystem {
         if (armed)
             return EntityState.POTATOMINE_ARMED;
 
-        // phân biệt UNARMED vs ARMING bằng việc timer đã chạy hay chưa
         float elapsed = readFloat(arming, "elapsed", "timer", "timePassed", "armingTimer", "time");
         float remaining = readFloat(arming, "remaining", "remainingTime", "timeLeft");
 
-        boolean started = (elapsed > 0f) || (remaining > 0f); // nếu có timer/remaining thì coi là đã bắt đầu
+        boolean started = (elapsed > 0f) || (remaining > 0f);
         return started ? EntityState.POTATOMINE_ARMING : EntityState.POTATOMINE_UNARMED;
     }
 
-    // =======================
-    // Reflection helpers (để không phụ thuộc chặt vào field/method của component)
-    // =======================
-
     private boolean isExplosiveTriggered(ExplosiveComponent explosive) {
-        // thử các tên phổ biến
         if (readBoolean(explosive, "isTriggered", "triggered", "isExploded", "exploded", "detonated"))
             return true;
-        // nếu không có cờ, mặc định là chưa
         return false;
     }
 
     private boolean readBoolean(Object obj, String... keys) {
-        // 1) Try method: isX(), getX()
         for (String k : keys) {
             Boolean v = tryInvokeBoolean(obj, k);
             if (v != null)
@@ -96,7 +82,6 @@ public class PotatoMineStateSystem {
             if (v != null)
                 return v;
         }
-        // 2) Try field
         for (String k : keys) {
             Boolean v = tryReadBooleanField(obj, k);
             if (v != null)
@@ -106,7 +91,6 @@ public class PotatoMineStateSystem {
     }
 
     private float readFloat(Object obj, String... keys) {
-        // 1) Try method
         for (String k : keys) {
             Float v = tryInvokeFloat(obj, k);
             if (v != null)
@@ -115,7 +99,6 @@ public class PotatoMineStateSystem {
             if (v != null)
                 return v;
         }
-        // 2) Try field
         for (String k : keys) {
             Float v = tryReadFloatField(obj, k);
             if (v != null)

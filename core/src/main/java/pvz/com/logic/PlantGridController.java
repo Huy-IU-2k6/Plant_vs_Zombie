@@ -11,10 +11,8 @@ import pvz.com.managers.GridConfig;
 
 public class PlantGridController extends InputAdapter {
 
-    // Grid plants: [row][col]
     private final Plant[][] plantGrid;
 
-    // Unused lists kept to avoid breaking constructor signature
     @SuppressWarnings("unused")
     private final List<Entity> entities;
     @SuppressWarnings("unused")
@@ -40,10 +38,6 @@ public class PlantGridController extends InputAdapter {
         return plantGrid;
     }
 
-    // =========================================================
-    // CONVERT: screen/world -> cell
-    // =========================================================
-
     public Vector3 screenToWorld(float screenX, float screenY) {
         Vector3 world = new Vector3(screenX, screenY, 0f);
         camera.unproject(world);
@@ -59,14 +53,6 @@ public class PlantGridController extends InputAdapter {
         return worldToNearestCell(world.x, world.y);
     }
 
-    // =========================================================
-    // GRID STATE: occupied/register/unregister
-    // =========================================================
-
-    /**
-     * Retrieves the plant at a specific cell.
-     * Required by ShovelController.
-     */
     public Plant getPlantAt(int row, int col) {
         if (!GridConfig.isInsideGrid(row, col)) {
             return null;
@@ -98,32 +84,28 @@ public class PlantGridController extends InputAdapter {
     public void unregisterPlantAtCell(int row, int col) {
         if (!GridConfig.isInsideGrid(row, col))
             return;
+        Plant p = plantGrid[row][col];
         plantGrid[row][col] = null;
+        if (p != null)
+            p.removeComponent(GridCellComponent.class);
     }
 
-    /**
-     * Marks a plant for removal and clears it from the grid.
-     */
     public void removePlant(int row, int col) {
         if (!GridConfig.isInsideGrid(row, col))
             return;
 
         Plant plant = plantGrid[row][col];
         if (plant != null) {
-            // FIX: Changed .add() to .addComponent() to match register logic
+
             plant.markedForRemoval = true;
-            // FIX: Use unregister method to ensure grid is cleared cleanly
+
             unregisterPlantAtCell(row, col);
         }
     }
 
-    // =========================================================
-    // Input hook
-    // =========================================================
-
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        // Return false to let event propagate
+
         return false;
     }
 }

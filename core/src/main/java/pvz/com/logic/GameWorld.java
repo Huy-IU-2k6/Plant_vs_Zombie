@@ -1,9 +1,7 @@
 package pvz.com.logic;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
-
 import java.util.List;
-
 import pvz.com.entities.Entity;
 import pvz.com.entities.Zombies.BaseZombie;
 import pvz.com.entities.components.PlantDamageType;
@@ -12,7 +10,6 @@ import pvz.com.entities.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.entities.suns.Sun;
 import pvz.com.managers.GridConfig;
-
 import pvz.com.systems.AnimationSystem;
 import pvz.com.systems.ArmingSystem;
 import pvz.com.systems.CleanupSystem;
@@ -34,10 +31,10 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
     private final ZombieWaveController zombieWaveController;
 
-    // HUD holds SUN
+    
     private final HudController hudController;
 
-    // Systems
+    
     private final SunProductionSystem sunSystem;
     private final WallnutStateSystem wallnutStateSystem;
     private final ExplosionSystem explosionSystem;
@@ -64,7 +61,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
         this.zombieWaveController = zombieWaveController;
 
-        // Systems init
+        
         this.sunSystem = new SunProductionSystem(this, entities);
         this.wallnutStateSystem = new WallnutStateSystem();
         this.explosionSystem = new ExplosionSystem(zombieWaveController, plantGridController);
@@ -74,7 +71,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         this.movementSystem = new MovementSystem();
         this.collisionSystem = new CollisionSystem(entities, zombieWaveController, plantGridController);
         this.sunPickupSystem = new SunPickupSystem(entities, camera, this);
-        this.cleanupSystem = new CleanupSystem(entities);
+        this.cleanupSystem = new CleanupSystem(entities, plants, plantGridController);
     }
 
     public void update(float delta) {
@@ -83,7 +80,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         if (!gameState.isPlaying())
             return;
 
-        // ===== ECS update order =====
+        
         sunSystem.update(delta);
         wallnutStateSystem.update(entities);
         explosionSystem.update(entities, delta);
@@ -93,7 +90,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         movementSystem.update(entities, delta);
         collisionSystem.update(delta);
 
-        // ===== End conditions =====
+        
         checkLoseCondition();
         if (!gameState.isGameOver()) {
             checkWinCondition();
@@ -106,7 +103,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         cleanupSystem.update();
     }
 
-    // LOSE: zombie vượt "lose line"
+    
     private void checkLoseCondition() {
         if (zombieWaveController == null)
             return;
@@ -123,26 +120,25 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         }
     }
 
-    // WIN: wave kết thúc + không còn zombie sống
+    
     private void checkWinCondition() {
         if (zombieWaveController == null)
             return;
 
-        // BẮT BUỘC: ZombieWaveController phải có một flag/hàm báo wave đã spawn xong.
-        // Nếu bạn chưa có hàm này, thêm vào controller: public boolean isFinished()
+        
         if (!zombieWaveController.isWaveFinished())
             return;
 
         for (BaseZombie z : zombieWaveController.getZombies()) {
             if (z != null && !z.isDead()) {
-                return; // còn zombie sống => chưa win
+                return; 
             }
         }
 
-        gameState.setGameOver(true); // playerWon = true
+        gameState.setGameOver(true); 
     }
 
-    // ===== IGameSpawner =====
+    
     @Override
     public void spawnSun(float x, float y, int amount) {
         entities.add(new Sun(x, y, amount));
@@ -160,13 +156,13 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         }
     }
 
-    // ===== ISunReceiver =====
+    
     @Override
     public void addSun(int amount) {
         hudController.addSun(amount);
     }
 
-    // ===== Helpers =====
+    
     public SunPickupSystem getSunPickupSystem() {
         return sunPickupSystem;
     }
