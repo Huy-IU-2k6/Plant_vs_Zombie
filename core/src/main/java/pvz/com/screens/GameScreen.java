@@ -249,6 +249,18 @@ public class GameScreen implements Screen {
         }
     }
 
+    private void resumeMusics() {
+        // Resume nhạc menu (nếu vẫn còn tồn tại)
+        if (inheritedMenuMusic != null) {
+            inheritedMenuMusic.play();
+        }
+
+        // Resume nhạc ingame (nếu có)
+        if (gameMusic != null) {
+            gameMusic.play();
+        }
+    }
+
     private void pauseMusics() {
         if (inheritedMenuMusic != null)
             inheritedMenuMusic.pause();
@@ -322,6 +334,7 @@ public class GameScreen implements Screen {
         multiplexer.addProcessor(gameWorld.getSunPickupSystem());
 
         Gdx.input.setInputProcessor(multiplexer);
+        resumeMusics();
     }
 
     @Override
