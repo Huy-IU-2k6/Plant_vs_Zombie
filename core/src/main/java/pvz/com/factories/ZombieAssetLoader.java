@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
 public class ZombieAssetLoader {
-    
+
     public static Animation<TextureRegion> NORMAL_WALK, NORMAL_EAT, NORMAL_DIE, HEAD_POP, CHARRED;
     public static Animation<TextureRegion> CONE_WALK, CONE_EAT;
     public static Animation<TextureRegion> BUCKET_WALK, BUCKET_EAT;
@@ -23,22 +23,24 @@ public class ZombieAssetLoader {
 
         // Load ảnh thật (Nếu sai đường dẫn sẽ dùng ảnh trắng)
         NORMAL_WALK = load("images/Zombies/NormalZombie/Zombie/Zombie_", 21, 0.055f, Animation.PlayMode.LOOP);
-        NORMAL_EAT  = load("images/Zombies/NormalZombie/ZombieAttack/ZombieAttack_", 10, 0.08f, Animation.PlayMode.LOOP);
-        NORMAL_DIE  = load("images/Zombies/NormalZombie/ZombieDie/ZombieDie_", 9, 0.08f, Animation.PlayMode.NORMAL);
-        HEAD_POP    = load("images/Zombies/NormalZombie/ZombieHead/ZombieHead_", 10, 0.08f, Animation.PlayMode.NORMAL);
-        CHARRED     = load("images/Zombies/NormalZombie/BoomDie/BoomDie_", 19, 0.08f, Animation.PlayMode.NORMAL);
-        
-        CONE_WALK   = load("images/Zombies/ConeheadZombie/Zombie/ConeheadZombie_", 21, 0.055f, Animation.PlayMode.LOOP);
-        CONE_EAT    = load("images/Zombies/ConeheadZombie/ZombieAttack/ConeheadZombieAttack_", 11, 0.08f, Animation.PlayMode.LOOP);
-        
-        // Dùng tạm ảnh Cone cho Bucket để test (tránh tàng hình nếu chưa có file Bucket)
+        NORMAL_EAT = load("images/Zombies/NormalZombie/ZombieAttack/ZombieAttack_", 10, 0.08f, Animation.PlayMode.LOOP);
+        NORMAL_DIE = load("images/Zombies/NormalZombie/ZombieDie/ZombieDie_", 9, 0.08f, Animation.PlayMode.NORMAL);
+        HEAD_POP = load("images/Zombies/NormalZombie/ZombieHead/ZombieHead_", 10, 0.08f, Animation.PlayMode.NORMAL);
+        CHARRED = load("images/Zombies/NormalZombie/BoomDie/BoomDie_", 19, 0.08f, Animation.PlayMode.NORMAL);
+
+        CONE_WALK = load("images/Zombies/ConeheadZombie/Zombie/ConeheadZombie_", 21, 0.055f, Animation.PlayMode.LOOP);
+        CONE_EAT = load("images/Zombies/ConeheadZombie/ZombieAttack/ConeheadZombieAttack_", 11, 0.08f,
+                Animation.PlayMode.LOOP);
+
+        // Dùng tạm ảnh Cone cho Bucket để test (tránh tàng hình nếu chưa có file
+        // Bucket)
         BUCKET_WALK = loadFallback(CONE_WALK, "images/Zombies/BucketheadZombie/Zombie/Zombie_", 14, 0.055f);
-        BUCKET_EAT  = loadFallback(CONE_EAT, "images/Zombies/BucketheadZombie/ZombieAttack/ZombieAttack_", 10, 0.08f);
-        
+        BUCKET_EAT = loadFallback(CONE_EAT, "images/Zombies/BucketheadZombie/ZombieAttack/ZombieAttack_", 10, 0.08f);
+
         // Dùng tạm ảnh Normal cho Charge
-        CHARGE_WALK = loadFallback(NORMAL_WALK, "images/Zombies/ChargeZombie/Zombie/Zombie_", 87, 0.055f);
-        CHARGE_EAT  = loadFallback(NORMAL_EAT, "images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_", 114, 0.08f);
-        
+        CHARGE_WALK = loadFallback(NORMAL_WALK, "images/Zombies/ChargeZombie/Zombie/Zombie_", 59, 0.02f);
+        CHARGE_EAT = loadFallback(NORMAL_EAT, "images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_", 59, 0.02f);
+
         System.out.println(">>> Zombie Assets Loaded!");
     }
 
@@ -51,11 +53,11 @@ public class ZombieAssetLoader {
                 Texture t = new Texture(path);
                 t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
                 frames.add(new TextureRegion(t));
-            } catch (Exception e) { 
+            } catch (Exception e) {
                 // Không tìm thấy file này, bỏ qua
             }
         }
-        
+
         // [QUAN TRỌNG] Nếu không tìm thấy bất kỳ ảnh nào -> Dùng Hộp Trắng
         if (frames.size == 0) {
             System.err.println("!!! MISSING TEXTURE: " + prefix + " -> Using Debug Box");
@@ -67,7 +69,8 @@ public class ZombieAssetLoader {
         return anim;
     }
 
-    private static Animation<TextureRegion> loadFallback(Animation<TextureRegion> fallback, String prefix, int count, float speed) {
+    private static Animation<TextureRegion> loadFallback(Animation<TextureRegion> fallback, String prefix, int count,
+            float speed) {
         Animation<TextureRegion> anim = load(prefix, count, speed, Animation.PlayMode.LOOP);
         // Nếu load ra hộp trắng (size=1 và là debugTexture) thì dùng fallback
         if (anim.getKeyFrame(0).getTexture() == debugTexture) {
@@ -75,7 +78,7 @@ public class ZombieAssetLoader {
         }
         return anim;
     }
-    
+
     private static void createDebugTexture() {
         if (debugTexture == null) {
             Pixmap pixmap = new Pixmap(64, 64, Pixmap.Format.RGBA8888);
@@ -90,7 +93,8 @@ public class ZombieAssetLoader {
     }
 
     public static void dispose() {
-        if (debugTexture != null) debugTexture.dispose();
+        if (debugTexture != null)
+            debugTexture.dispose();
         // Dispose các texture đã load khác nếu cần
     }
 }
