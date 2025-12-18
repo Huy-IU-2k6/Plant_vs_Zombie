@@ -4,12 +4,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.utils.Array;
-
 import pvz.com.entities.plants.PlantType;
+import pvz.com.items.CountdownActor;
 import pvz.com.items.PlantCard;
 import pvz.com.items.PlantCatalog;
 import pvz.com.items.SeedBank;
-import pvz.com.items.CountdownActor;
 import pvz.com.items.Shovel;
 import pvz.com.managers.FontManager;
 import pvz.com.managers.HudLayoutConfig;
@@ -20,7 +19,7 @@ public class HudController implements ISunReceiver {
     private static final float COUNTDOWN_POS_X_RATIO = HudLayoutConfig.getCountdownPosXRatio();
     private static final float COUNTDOWN_POS_Y_RATIO = HudLayoutConfig.getCountdownPosYRatio();
 
-    // ===== FIELDS =====
+    
     private final Stage hudStage;
 
     private final SeedBank seedBank;
@@ -28,10 +27,10 @@ public class HudController implements ISunReceiver {
     private CountdownActor countdown;
     private final BitmapFont hudFont;
 
-    // shovel
+    
     private final Shovel shovel;
 
-    // SUN owner duy nhất nằm ở đây
+    
     private int sunPoints;
 
     public HudController(Stage hudStage,
@@ -45,26 +44,26 @@ public class HudController implements ISunReceiver {
 
         hudFont = FontManager.getPvzFont();
 
-        // SeedBank
+        
         seedBank = new SeedBank(hudFont);
         seedBank.setVisible(false);
         seedBank.setSunAmount(initialSun);
         hudStage.addActor(seedBank);
 
-        // Countdown
+        
         countdown = new CountdownActor(countdownDuration);
         hudStage.addActor(countdown);
 
-        // Plant cards
+        
         createPlantCards();
 
-        // Shovel: ✅ ẨN cho tới khi countdown xong
+        
         shovel = new Shovel(plantGridController, shovelController, this);
         shovel.setVisible(false);
         shovel.setTouchable(Touchable.disabled);
         hudStage.addActor(shovel);
 
-        // Layout ban đầu
+        
         updateHudLayout();
     }
 
@@ -88,34 +87,34 @@ public class HudController implements ISunReceiver {
             countdown.setPosition(countdownX, countdownY);
         }
 
-        // đặt shovel góc trái trên (dù đang ẩn vẫn set pos ok)
+        
         shovel.layoutTopLeft(worldWidth, worldHeight);
     }
 
-    /** GameScreen gọi khi resize */
+    
     public void resize(int width, int height) {
         hudStage.getViewport().update(width, height, true);
         updateHudLayout();
     }
 
-    // ===== Countdown =====
+    
 
     public boolean isCountdownFinished() {
         return countdown != null && countdown.isFinished();
     }
 
     public void onCountdownFinished() {
-        // remove countdown
+        
         if (countdown != null) {
             countdown.remove();
             countdown = null;
         }
 
-        // mở seedbank + unlock cards
+        
         unlockPlantCards();
         seedBank.setVisible(true);
 
-        // ✅ hiện shovel sau countdown
+        
         shovel.setVisible(true);
         shovel.setTouchable(Touchable.enabled);
     }
@@ -126,7 +125,7 @@ public class HudController implements ISunReceiver {
         }
     }
 
-    // ===== Sun HUD (owner duy nhất) =====
+    
 
     @Override
     public void addSun(int amount) {
@@ -147,7 +146,7 @@ public class HudController implements ISunReceiver {
         return sunPoints;
     }
 
-    // ===== Getters =====
+    
 
     public Stage getHudStage() {
         return hudStage;
