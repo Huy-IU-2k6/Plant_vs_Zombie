@@ -6,13 +6,12 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 
 public class BackgroundManager {
 
-    private Texture countBg; // nền main menu
-    private Texture menuBg; // nền main menu
-    private Texture mainBg; // nền sân chính (ban ngày)
-    private Texture subBg; // nền sân phụ (ban đêm, world 2,...)
+    private Texture countBg;
+    private Texture menuBg;
+    private Texture mainBg;
+    private Texture subBg;
 
     public BackgroundManager() {
-        // CHÚ Ý: sửa path đúng với project của bạn
         countBg = loadTexture("images/backgrounds/count_bg.jpeg");
         menuBg = loadTexture("images/backgrounds/menu_bg.png");
         mainBg = loadTexture("images/backgrounds/main_bg.png");
@@ -35,36 +34,29 @@ public class BackgroundManager {
         }
     }
 
-    // ====== RENDER ======
-
     public void renderCount(Batch batch, float width, float height) {
         if (mainBg != null) {
             batch.draw(countBg, 0, 0, width, height);
         }
     }
 
-    // Vẽ background cho MainMenu
     public void renderMenu(Batch batch, float width, float height) {
         if (menuBg != null) {
             batch.draw(menuBg, 0, 0, width, height);
         }
     }
 
-    // Vẽ background cho GameScreen (main level ban ngày)
     public void renderMain(Batch batch, float width, float height) {
         if (mainBg != null) {
             batch.draw(mainBg, 0, 0, width, height);
         }
     }
 
-    // Vẽ background cho màn phụ (night, world 2,...)
     public void renderSub(Batch batch, float width, float height) {
         if (subBg != null) {
             batch.draw(subBg, 0, 0, width, height);
         }
     }
-
-    // ====== DISPOSE ======
 
     public void dispose() {
         disposeTexture(menuBg);

@@ -9,7 +9,6 @@ public class MovementSystem {
 
     public void update(List<Entity> entities, float deltaTime) {
         for (Entity e : entities) {
-            // bỏ qua entity đã bị đánh dấu xóa
             if (e.markedForRemoval)
                 continue;
 

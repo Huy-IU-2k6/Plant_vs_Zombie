@@ -19,14 +19,14 @@ import java.nio.ByteBuffer;
 public class GameWinScreen extends ScreenAdapter {
 
     private final Game game;
-    private final GameScreen gameScreen; // screen cũ để renderFrozen snapshot
+    private final GameScreen gameScreen;
 
     private SpriteBatch batch;
     private BitmapFont font;
     private GlyphLayout layout;
 
-    private Texture pixel; // 1x1 white pixel
-    private Texture snapshotTex; // snapshot đúng chiều
+    private Texture pixel;
+    private Texture snapshotTex;
 
     private static final float OVERLAY_ALPHA = 0.55f;
     private boolean restarting = false;
@@ -42,7 +42,6 @@ public class GameWinScreen extends ScreenAdapter {
         font = new BitmapFont();
         layout = new GlyphLayout();
 
-        // 1x1 pixel để vẽ overlay
         Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pm.setColor(Color.WHITE);
         pm.fill();
@@ -52,7 +51,6 @@ public class GameWinScreen extends ScreenAdapter {
         captureSnapshot();
     }
 
-    // ================= Restart =================
     private void restartToNewGame() {
         if (restarting)
             return;
@@ -61,16 +59,13 @@ public class GameWinScreen extends ScreenAdapter {
         GameScreen newScreen = new GameScreen(game);
         game.setScreen(newScreen);
 
-        // dispose màn hiện tại
         dispose();
 
-        // QUAN TRỌNG: dispose GameScreen cũ
         if (gameScreen != null) {
             gameScreen.dispose();
         }
     }
 
-    // ================= Snapshot =================
     private void captureSnapshot() {
         if (gameScreen == null)
             return;
@@ -85,16 +80,13 @@ public class GameWinScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // vẽ lại frame cuối, không update logic
         gameScreen.renderFrozen();
 
-        // đọc pixels -> flip Y
         Pixmap shot = readPixelsToPixmapFlippedY(0, 0, w, h);
 
         fbo.end();
         fbo.dispose();
 
-        // trả viewport về màn hình
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
 
         if (snapshotTex != null)
@@ -128,7 +120,6 @@ public class GameWinScreen extends ScreenAdapter {
         return pm;
     }
 
-    // ================= Render =================
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
@@ -145,17 +136,14 @@ public class GameWinScreen extends ScreenAdapter {
 
         batch.begin();
 
-        // 1) background snapshot
         batch.setColor(Color.WHITE);
         if (snapshotTex != null)
             batch.draw(snapshotTex, 0, 0, w, h);
 
-        // 2) overlay
         batch.setColor(0f, 0f, 0f, OVERLAY_ALPHA);
         batch.draw(pixel, 0, 0, w, h);
         batch.setColor(Color.WHITE);
 
-        // 3) text
         String title = "YOU WIN!";
         font.getData().setScale(3.0f);
         layout.setText(font, title);
