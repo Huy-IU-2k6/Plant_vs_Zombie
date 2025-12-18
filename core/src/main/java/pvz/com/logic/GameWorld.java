@@ -74,7 +74,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         this.movementSystem = new MovementSystem();
         this.collisionSystem = new CollisionSystem(entities, zombieWaveController, plantGridController);
         this.sunPickupSystem = new SunPickupSystem(entities, camera, this);
-        this.cleanupSystem = new CleanupSystem(entities);
+        this.cleanupSystem = new CleanupSystem(entities, plants, plantGridController);
     }
 
     public void update(float delta) {
