@@ -3,6 +3,8 @@ package pvz.com.logic;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import pvz.com.entities.Entity;
+import pvz.com.entities.components.GridCellComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.PlantType;
 import pvz.com.factories.PlantFactory;
@@ -81,7 +83,27 @@ public class PlantPlacementController {
         card.triggerUse();
     }
 
-    
+    /**
+     * Gọi khi entity (plant) bị remove/die/shovel để gỡ khỏi grid đúng ô.
+     * Ưu tiên GridCellComponent; nếu không có thì fallback theo world pos.
+     */
+    public void unregisterPlantForEntity(Entity entity, Vector2 pos) {
+        GridCellComponent cell = entity.getComponent(GridCellComponent.class);
+        if (cell != null) {
+            plantGridController.unregisterPlantAtCell(cell.row, cell.col);
+        } else {
+            int[] c = GridConfig.worldToNearestCell(pos.x, pos.y);
+            plantGridController.unregisterPlantAtCell(c[0], c[1]);
+        }
+    }
+
+    /**
+     * 1 nơi duy nhất làm “đặt cây”:
+     * - check occupied
+     * - factory create
+     * - add vào gameWorld
+     * - register vào grid
+     */
     private boolean tryPlacePlantFromCard(PlantCard card, int row, int col) {
         if (plantGridController.isCellOccupied(row, col))
             return false;

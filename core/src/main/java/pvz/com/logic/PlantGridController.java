@@ -89,7 +89,10 @@ public class PlantGridController extends InputAdapter {
     public void unregisterPlantAtCell(int row, int col) {
         if (!GridConfig.isInsideGrid(row, col))
             return;
+        Plant p = plantGrid[row][col];
         plantGrid[row][col] = null;
+        if (p != null)
+            p.removeComponent(GridCellComponent.class);
     }
 
     
