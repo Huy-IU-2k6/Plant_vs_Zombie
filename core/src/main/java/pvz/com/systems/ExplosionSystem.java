@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.Zombies.Zombies;
+import pvz.com.entities.Zombies.BaseZombie;
 import pvz.com.entities.components.*;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
@@ -97,7 +97,7 @@ public class ExplosionSystem {
         float centerX = bombPos.x + (currentSize / 2f);
         float centerY = bombPos.y + (currentSize / 2f);
 
-        for (Zombies z : zombieController.getZombies()) {
+        for (BaseZombie z : zombieController.getZombies()) {
             if (z.isDead())
                 continue;
 

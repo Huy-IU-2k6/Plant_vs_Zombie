@@ -1,8 +1,7 @@
 package pvz.com.systems;
 
 import java.util.List;
-
-import pvz.com.entities.Zombies.Zombies;
+import pvz.com.entities.Zombies.BaseZombie; // [QUAN TRỌNG]
 import pvz.com.entities.components.HealthComponent;
 import pvz.com.entities.components.PlantAttackComponent;
 import pvz.com.entities.components.PositionComponent;
@@ -13,13 +12,10 @@ import pvz.com.managers.DesignConfig;
 public class PlantAttackSystem {
 
     private static final float LANE_Y_TOLERANCE = 50f;
-
     private static final float PROJECTILE_SPAWN_OFFSET_X = 20f;
     private static final float PROJECTILE_SPAWN_OFFSET_Y = 50f;
-
     private static final float ZOMBIE_ENTER_SCREEN_MARGIN = 120f;
-
-    private static final float COOLDOWN_MULTIPLIER = 2.0f;
+    private static final float COOLDOWN_MULTIPLIER = 3.2f;
 
     private final IGameSpawner spawner;
     private final ZombieWaveController zombieController;
@@ -30,33 +26,25 @@ public class PlantAttackSystem {
     }
 
     public void update(List<Plant> plants, float deltaTime) {
-        if (plants == null || spawner == null || zombieController == null)
-            return;
+        if (plants == null || spawner == null || zombieController == null) return;
 
         for (Plant plant : plants) {
-            if (plant == null)
-                continue;
+            if (plant == null) continue;
 
+            // Check plant chết
             HealthComponent hp = plant.getComponent(HealthComponent.class);
-            if (hp != null && hp.currentHealth <= 0)
-                continue;
+            if (hp != null && hp.currentHealth <= 0) continue;
 
             PlantAttackComponent atk = plant.getComponent(PlantAttackComponent.class);
             PositionComponent pos = plant.getComponent(PositionComponent.class);
-            if (atk == null || pos == null)
-                continue;
+            if (atk == null || pos == null) continue;
 
-            if (atk.burstCount <= 0)
-                atk.burstCount = 1;
-            if (atk.burstDelay < 0f)
-                atk.burstDelay = 0f;
-            if (atk.attackSpeed < 0f)
-                atk.attackSpeed = 0f;
-            if (atk.shotsFiredInBurst < 0)
-                atk.shotsFiredInBurst = 0;
+            // Init safe values
+            if (atk.burstCount <= 0) atk.burstCount = 1;
 
             atk.timer += deltaTime;
 
+            // Phase B: Burst Fire
             if (atk.shotsFiredInBurst > 0 && atk.shotsFiredInBurst < atk.burstCount) {
                 if (!shouldShoot(pos, atk.range)) {
                     atk.shotsFiredInBurst = 0;
@@ -68,32 +56,29 @@ public class PlantAttackSystem {
                     fire(pos, atk);
                     atk.shotsFiredInBurst++;
                     atk.timer = 0f;
-
                     if (atk.shotsFiredInBurst >= atk.burstCount) {
                         atk.shotsFiredInBurst = 0;
-                        atk.timer = 0f;
                     }
                 }
                 continue;
             }
 
-            float effectiveCooldown = getEffectiveCooldown(atk);
-
-            if (atk.timer < effectiveCooldown)
-                continue;
+            // Phase A: Cooldown
+            float cd = getEffectiveCooldown(atk);
+            if (atk.timer < cd) continue;
 
             if (shouldShoot(pos, atk.range)) {
                 fire(pos, atk);
                 atk.shotsFiredInBurst = 1;
-
+                
                 if (atk.burstCount <= 1) {
                     atk.shotsFiredInBurst = 0;
                     atk.timer = 0f;
                 } else {
-                    atk.timer = 0f;
+                    atk.timer = 0f; // Reset cho burst delay
                 }
             } else {
-                atk.timer = effectiveCooldown;
+                atk.timer = cd; // Giữ ở trạng thái sẵn sàng
                 atk.shotsFiredInBurst = 0;
             }
         }
@@ -113,28 +98,28 @@ public class PlantAttackSystem {
     }
 
     private boolean shouldShoot(PositionComponent plantPos, float range) {
-        if (zombieController == null || zombieController.getZombies() == null)
-            return false;
+        if (zombieController == null || zombieController.getZombies() == null) return false;
 
-        float screenRightEdge = DesignConfig.BASE_SCREEN_W;
+        float screenRight = DesignConfig.BASE_SCREEN_W;
 
-        for (Zombies z : zombieController.getZombies()) {
-            if (z == null)
-                continue;
-            if (z.isDead() || z.getHealth() <= 0)
-                continue;
+        // [FIX] Duyệt qua BaseZombie
+        for (BaseZombie z : zombieController.getZombies()) {
+            if (z == null) continue;
+            
+            // Dùng logic BaseZombie (đã có stats bên trong)
+            // Lưu ý: BaseZombie.isDead() là cờ kiểm tra logic
+            if (z.isDead()) continue;
 
-            if (z.getX() > (screenRightEdge - ZOMBIE_ENTER_SCREEN_MARGIN))
-                continue;
+            // Zombie chưa vào màn hình
+            if (z.getX() > (screenRight - ZOMBIE_ENTER_SCREEN_MARGIN)) continue;
 
-            if (Math.abs(z.getY() - plantPos.y) > LANE_Y_TOLERANCE)
-                continue;
+            // Check Lane (Y)
+            if (Math.abs(z.getY() - plantPos.y) > LANE_Y_TOLERANCE) continue;
 
+            // Check Range (X)
             float dx = z.getX() - plantPos.x;
-            if (dx > 0f && dx <= range)
-                return true;
+            if (dx > 0f && dx <= range) return true;
         }
-
         return false;
     }
 }
