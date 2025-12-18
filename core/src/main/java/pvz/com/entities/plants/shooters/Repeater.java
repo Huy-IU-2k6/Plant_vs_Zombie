@@ -9,6 +9,7 @@ import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.managers.GridConfig;
+import pvz.com.managers.DesignConfig;
 
 public class Repeater extends Plant {
     // [FIX 1] Thêm tỷ lệ Scale (0.7f nghĩa là to bằng 70% ô đất)
@@ -17,7 +18,7 @@ public class Repeater extends Plant {
     private static final float SCALE_Y = 0.75f;
 
     private static final int FRAME_COUNT = 15;
-    private static final float FRAME_DURATION = 0.12f;
+    private static final float FRAME_DURATION = DesignConfig.FRAME_DURATION;
 
     public Repeater(float x, float y, int col, int row) {
         // [FIX 2] Nhân kích thước ô với tỷ lệ Scale để cây nhỏ lại

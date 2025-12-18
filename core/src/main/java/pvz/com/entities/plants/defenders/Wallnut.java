@@ -6,13 +6,14 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
+import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
 
 public class Wallnut extends Plant {
 
     private static final float SCALE_X = 0.7f;
     private static final float SCALE_Y = 0.8f;
-    private static final float FRAME_DURATION = 0.12f; // Tốc độ animation
+    private static final float FRAME_DURATION = DesignConfig.FRAME_DURATION; // Tốc độ animation
     private static final int TOTAL_HEALTH = 400;
 
     public Wallnut(float x, float y, int gridCol, int gridRow) {

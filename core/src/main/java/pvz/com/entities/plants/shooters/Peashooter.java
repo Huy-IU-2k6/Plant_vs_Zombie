@@ -9,6 +9,7 @@ import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.entities.projectiles.PeaProjectile;
 import pvz.com.managers.GridConfig;
+import pvz.com.managers.DesignConfig;
 
 public class Peashooter extends Plant {
 
@@ -17,7 +18,7 @@ public class Peashooter extends Plant {
 
     // Tốc độ animation (0.1 giây / frame)
     // Số càng nhỏ cây lắc lư càng nhanh
-    private static final float FRAME_DURATION = 0.12f;
+    private static final float FRAME_DURATION = DesignConfig.FRAME_DURATION;
 
     public Peashooter(float x, float y, int col, int row) {
         super(
