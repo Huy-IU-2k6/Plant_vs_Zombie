@@ -11,10 +11,8 @@ import pvz.com.managers.GridConfig;
 
 public class PlantGridController extends InputAdapter {
 
-    
     private final Plant[][] plantGrid;
 
-    
     @SuppressWarnings("unused")
     private final List<Entity> entities;
     @SuppressWarnings("unused")
@@ -40,8 +38,6 @@ public class PlantGridController extends InputAdapter {
         return plantGrid;
     }
 
-    
-
     public Vector3 screenToWorld(float screenX, float screenY) {
         Vector3 world = new Vector3(screenX, screenY, 0f);
         camera.unproject(world);
@@ -57,7 +53,6 @@ public class PlantGridController extends InputAdapter {
         return worldToNearestCell(world.x, world.y);
     }
 
-    
     public Plant getPlantAt(int row, int col) {
         if (!GridConfig.isInsideGrid(row, col)) {
             return null;
@@ -95,25 +90,22 @@ public class PlantGridController extends InputAdapter {
             p.removeComponent(GridCellComponent.class);
     }
 
-    
     public void removePlant(int row, int col) {
         if (!GridConfig.isInsideGrid(row, col))
             return;
 
         Plant plant = plantGrid[row][col];
         if (plant != null) {
-            
+
             plant.markedForRemoval = true;
-            
+
             unregisterPlantAtCell(row, col);
         }
     }
 
-   
-
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        
+
         return false;
     }
 }

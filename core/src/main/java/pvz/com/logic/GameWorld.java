@@ -3,7 +3,7 @@ package pvz.com.logic;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 import pvz.com.entities.Entity;
-import pvz.com.entities.Zombies.Zombies;
+import pvz.com.entities.Zombies.BaseZombie;
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.projectiles.FrozenPeaProjectile;
@@ -110,7 +110,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
         float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
 
-        for (Zombies z : zombieWaveController.getZombies()) {
+        for (BaseZombie z : zombieWaveController.getZombies()) {
             if (z == null || z.isDead())
                 continue;
             if (z.getX() <= loseX) {
@@ -129,7 +129,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         if (!zombieWaveController.isWaveFinished())
             return;
 
-        for (Zombies z : zombieWaveController.getZombies()) {
+        for (BaseZombie z : zombieWaveController.getZombies()) {
             if (z != null && !z.isDead()) {
                 return; 
             }

@@ -24,7 +24,7 @@ public class ZombieWaveController {
 
     private static final float LEFT_CULL_MARGIN_DESIGN = 150f;
 
-    private final Array<Zombies> zombies = new Array<>();
+    private final Array<BaseZombie> zombies = new Array<>();
 
     private final float worldWidth;
     private final float worldHeight;
@@ -73,9 +73,7 @@ public class ZombieWaveController {
         this.gameState = gameState;
     }
 
-    public Array<Zombies> getZombies() {
-        return zombies;
-    }
+    public Array<BaseZombie> getZombies() { return zombies; }
 
     public void setMaxZombiesInWave(int maxZombiesInWave) {
         this.maxZombiesInWave = maxZombiesInWave;
@@ -134,11 +132,8 @@ public class ZombieWaveController {
         float leftCullMarginWorld = ScaleManager.toWorldX(LEFT_CULL_MARGIN_DESIGN, worldWidth);
 
         for (int i = zombies.size - 1; i >= 0; i--) {
-            Zombies z = zombies.get(i);
-            if (z == null) {
-                zombies.removeIndex(i);
-                continue;
-            }
+            BaseZombie z = zombies.get(i);
+            if (z == null) { zombies.removeIndex(i); continue; }
 
             z.act(delta);
 
@@ -160,9 +155,8 @@ public class ZombieWaveController {
     }
 
     public void render(SpriteBatch batch) {
-        for (Zombies z : zombies) {
-            if (z != null)
-                z.draw(batch, 1f);
+        for (BaseZombie z : zombies) {
+            if (z != null) z.draw(batch, 1f);
         }
     }
 
@@ -224,7 +218,7 @@ public class ZombieWaveController {
 
         float startXWorld = worldWidth + startOffsetWorld + randomOffsetWorld;
 
-        Zombies z;
+        BaseZombie z;
         switch (type) {
             case NORMAL:
                 z = new NormalZombie();

@@ -4,17 +4,16 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
-import pvz.com.entities.Zombies.Zombies;
+
+import pvz.com.entities.Zombies.BaseZombie;
 
 public class LawnMower {
 
     private static final float DEFAULT_SPEED = 500f;
 
-    
     private static final float WIDTH = 110f;
     private static final float HEIGHT = 90f;
 
-    
     private static final float HITBOX_W = 90f;
     private static final float HITBOX_H = 70f;
 
@@ -30,7 +29,6 @@ public class LawnMower {
     private boolean used = false;
     private final float worldWidth;
 
-    
     public LawnMower(float startX, float startY, float worldWidth, Texture idle, Texture active) {
         this.worldWidth = worldWidth;
         this.x = startX;
@@ -41,20 +39,18 @@ public class LawnMower {
         this.activeTexture = active;
         this.currentTexture = idleTexture;
 
-        
         this.bounds = new Rectangle(x + 10, y + 5, HITBOX_W, HITBOX_H);
     }
 
-    public void update(float delta, Array<Zombies> zombies) {
+    public void update(float delta, Array<BaseZombie> zombies) {
         if (used)
             return;
 
-        
         if (!active) {
-            for (Zombies z : zombies) {
+            for (BaseZombie z : zombies) {
                 if (z.isDead())
                     continue;
-                
+
                 if (bounds.overlaps(z.getBounds())) {
                     trigger();
                     break;
@@ -62,25 +58,21 @@ public class LawnMower {
             }
         }
 
-        
         if (active) {
             x += speed * delta;
 
-            
             bounds.setPosition(x + 10, y + 5);
 
-            for (Zombies z : zombies) {
+            for (BaseZombie z : zombies) {
                 if (z.isDead())
                     continue;
 
-                
                 if (bounds.overlaps(z.getBounds())) {
-                    
+
                     z.killByMower();
                 }
             }
 
-            
             if (x > worldWidth + 100) {
                 active = false;
                 used = true;
@@ -91,7 +83,7 @@ public class LawnMower {
     public void render(SpriteBatch batch) {
         if (used)
             return;
-        
+
         batch.draw(currentTexture, x, y, WIDTH, HEIGHT);
     }
 
@@ -99,7 +91,7 @@ public class LawnMower {
         if (!used && !active) {
             active = true;
             currentTexture = activeTexture;
-            
+
         }
     }
 
@@ -107,5 +99,4 @@ public class LawnMower {
         return used;
     }
 
-    
 }

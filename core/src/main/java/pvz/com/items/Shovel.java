@@ -23,10 +23,8 @@ import pvz.com.systems.ISunReceiver;
 
 public class Shovel extends Actor {
 
-    
     private final Texture texture;
 
-    
     private final Texture ghostTexture;
     private final TextureRegion ghostRegion;
 
@@ -34,17 +32,13 @@ public class Shovel extends Actor {
     private final ShovelController shovelController;
     private final ISunReceiver sunReceiver;
 
-    
     private float worldIconSize = 64f;
 
-    
     private boolean active = false;
     private boolean dragging = false;
 
-    
     private float refundRatio = DesignConfig.SHOVEL_REFUND_RATIO;
 
-    
     private GhostActor ghost;
 
     public Shovel(PlantGridController grid,
@@ -58,7 +52,6 @@ public class Shovel extends Actor {
         this.ghostTexture = new Texture(Gdx.files.internal(DesignConfig.SHOVEL_GHOST_PATH));
         this.ghostRegion = new TextureRegion(ghostTexture);
 
-        
         setSize(DesignConfig.SHOVEL_ICON_SIZE, DesignConfig.SHOVEL_ICON_SIZE);
         setTouchable(Touchable.enabled);
 
@@ -98,7 +91,6 @@ public class Shovel extends Actor {
         });
     }
 
-    
     public void layoutTopLeft(float hudWorldWidth, float hudWorldHeight) {
         worldIconSize = ScaleManager.scaleByHeight(DesignConfig.SHOVEL_ICON_SIZE, hudWorldHeight);
         setSize(worldIconSize, worldIconSize);
