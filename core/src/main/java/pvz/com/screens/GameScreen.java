@@ -43,7 +43,8 @@ public class GameScreen implements Screen {
 
     private static final float COUNTDOWN_DURATION = 6f;
     private static final int INITIAL_SUN = 150;
-    private static final float LEVEL_DURATION = 240f;
+    private static final float LEVEL_DURATION = 480f;
+    private static final int MAX_ZOMBIES_IN_WAVE = 200;
 
     private static final float ZOMBIE_START_OFFSET_X = 200f;
 
@@ -130,7 +131,7 @@ public class GameScreen implements Screen {
                 WORLD_WIDTH,
                 WORLD_HEIGHT,
                 ZOMBIE_START_OFFSET_X,
-                90,
+                MAX_ZOMBIES_IN_WAVE,
                 LEVEL_DURATION);
 
         BackgroundManager backgroundManager = new BackgroundManager();
