@@ -9,14 +9,15 @@ import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.entities.projectiles.FrozenPeaProjectile;
 import pvz.com.managers.GridConfig;
+import pvz.com.managers.DesignConfig;
 
 public class SnowPea extends Plant {
     private static final float SCALE_X = 0.7f;
     private static final float SCALE_Y = 0.8f;
-    
+
     // Số lượng frame ảnh bạn có (Ví dụ bạn có 13 ảnh từ 0 đến 12)
-    private static final int FRAME_COUNT = 15; 
-    private static final float FRAME_DURATION = 0.12f; // Tốc độ chạy ảnh
+    private static final int FRAME_COUNT = 15;
+    private static final float FRAME_DURATION = DesignConfig.FRAME_DURATION; // Tốc độ chạy ảnh
 
     public SnowPea(float x, float y, int col, int row) {
         // Kích thước hitbox (giữ nguyên logic scale cũ của bạn)
@@ -47,7 +48,7 @@ public class SnowPea extends Plant {
         AnimationComponent animComp = new AnimationComponent();
         animComp.addAnimation(EntityState.IDLE, idleAnim);
         // SnowPea thường dùng chung animation lắc lư cho cả lúc đứng yên và lúc bắn
-        animComp.addAnimation(EntityState.ATTACKING, idleAnim); 
+        animComp.addAnimation(EntityState.ATTACKING, idleAnim);
         this.addComponent(animComp);
 
         // StateComponent: Bắt đầu ở trạng thái IDLE

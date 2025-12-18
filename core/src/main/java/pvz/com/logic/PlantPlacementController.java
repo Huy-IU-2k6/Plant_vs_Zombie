@@ -28,7 +28,7 @@ public class PlantPlacementController {
         this.gameWorld = gameWorld;
     }
 
-    
+
     public void handleCardClicked(PlantCard card, boolean isPlaying) {
         if (!isPlaying)
             return;
@@ -44,7 +44,6 @@ public class PlantPlacementController {
         card.triggerUse();
     }
 
-     */
     public void handleCardDragged(PlantCard card,
             float screenX, float screenY,
             boolean isPlaying) {
@@ -57,29 +56,29 @@ public class PlantPlacementController {
         int row = cell[0];
         int col = cell[1];
 
-        
+
         if (row < 0 || col < 0 || !GridConfig.isInsideGrid(row, col))
             return;
 
-        
+
         int currentSun = hudController.getSunPoints();
         if (!card.canUse(currentSun))
             return;
 
         int cost = card.getDef().cost();
 
-        
+
         if (!hudController.spendSun(cost))
             return;
 
         boolean placed = tryPlacePlantFromCard(card, row, col);
         if (!placed) {
-            
+
             hudController.addSun(cost);
             return;
         }
 
-        
+
         card.triggerUse();
     }
 
@@ -108,7 +107,7 @@ public class PlantPlacementController {
         if (plantGridController.isCellOccupied(row, col))
             return false;
 
-        PlantType type = card.type; 
+        PlantType type = card.type;
         Plant plant = PlantFactory.createPlantAtCell(type, col, row);
         if (plant == null)
             return false;

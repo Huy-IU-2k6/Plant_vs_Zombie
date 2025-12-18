@@ -28,22 +28,21 @@ public class DesignConfig {
     public static final float SUN_WIDTH = FIXED_HEIGHT * SUN_SIZE_RATIO;
     public static final float SUN_HEIGHT = FIXED_HEIGHT * SUN_SIZE_RATIO;
 
-   
-    public static final float SHOVEL_PAD_X = 815f; 
-    public static final float SHOVEL_PAD_Y = 40f; 
+    public static final float SHOVEL_PAD_X = 815f;
+    public static final float SHOVEL_PAD_Y = 40f;
     public static final float SHOVEL_ICON_SIZE = 72f;
 
-    
     public static final float SHOVEL_REFUND_RATIO = 1.0f;
 
-    
     public static final String SHOVEL_ICON_PATH = "images/items/Shovel_Box.png";
     public static final String SHOVEL_GHOST_PATH = "images/items/Shovel.png";
 
     private DesignConfig() {
     }
 
-    public static final float SUN_COOL_DOWN = 10f; 
+    public static final float SUN_COOL_DOWN = 10f;
 
     public static final float DAMAGE_PER_SECOND = 10f;
+
+    public static final float FRAME_DURATION = 0.06f;
 }
