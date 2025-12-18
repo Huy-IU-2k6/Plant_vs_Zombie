@@ -39,7 +39,7 @@ public class ZombieAssetLoader {
 
         // Dùng tạm ảnh Normal cho Charge
         CHARGE_WALK = loadFallback(NORMAL_WALK, "images/Zombies/ChargeZombie/Zombie/Zombie_", 59, 0.02f);
-        CHARGE_EAT = loadFallback(NORMAL_EAT, "images/Zombies/ChargeZombie/ZombieAttack/ZombieAttack_", 59, 0.02f);
+        CHARGE_EAT = loadFallback(NORMAL_EAT, "images/Zombies/ChargeZombie/ZombieAttack/Zombie_", 60, 0.02f);
 
         System.out.println(">>> Zombie Assets Loaded!");
     }
