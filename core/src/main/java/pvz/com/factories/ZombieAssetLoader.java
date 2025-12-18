@@ -70,7 +70,7 @@ public class ZombieAssetLoader {
     private static Animation<TextureRegion> loadFallback(Animation<TextureRegion> fallback, String prefix, int count, float speed) {
         Animation<TextureRegion> anim = load(prefix, count, speed, Animation.PlayMode.LOOP);
         // Nếu load ra hộp trắng (size=1 và là debugTexture) thì dùng fallback
-        if (anim.getKeyFrames()[0].getTexture() == debugTexture) {
+        if (anim.getKeyFrame(0).getTexture() == debugTexture) {
             return fallback;
         }
         return anim;
