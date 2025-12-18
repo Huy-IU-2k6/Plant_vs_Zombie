@@ -40,7 +40,7 @@ public class SnowPea extends Plant {
         this.addComponent(new GridCellComponent(col, row));
 
         this.addComponent(new PlantAttackComponent(
-                20,
+                30,
                 900f,
                 FrozenPeaProjectile.class,
                 PlantDamageType.ICE,
