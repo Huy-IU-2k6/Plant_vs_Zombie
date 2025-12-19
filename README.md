@@ -6,11 +6,11 @@ A simplified **Plants vs Zombies–style** game clone built for an **Object-Orie
 
 ## Demo (Click to watch)
 
-[![PVZ Demo](docs/screenshots/image2.png)](docs/video/demo.mp4)
+[![PVZ Demo](doc/screenshots/image2.png)](https://www.veed.io/view/7398bc50-0a78-4df9-8a98-2249592c53cf?source=editor&panel=share)
 
-- Gameplay screenshots: **/docs/screenshots/**
-- Demo video: **/docs/video/demo.mp4**
-- UML diagrams: **/docs/uml/** *(export from Lucidchart/PlantUML)*
+- Gameplay screenshots: **/doc/screenshots/**
+- Demo video: **/doc/video/demo.mp4**
+- UML diagrams: **/doc/uml/** *(export from Lucidchart/PlantUML)*
 
 ---
 
@@ -91,9 +91,9 @@ Common tuning values are typically in:
 
 * Report / presentation assets live in:
 
-  * `docs/uml/` (class/package diagrams)
-  * `docs/screenshots/` (game screenshots)
-  * `docs/slides/` (presentation slides export)
+  * `doc/uml/` (class/package diagrams)
+  * `doc/screenshots/` (game screenshots)
+  * `doc/slides/` (presentation slides export)
 
 Recommended diagrams:
 
