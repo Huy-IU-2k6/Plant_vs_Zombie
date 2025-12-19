@@ -5,11 +5,12 @@ A simplified **Plants vs Zombies–style** game clone built for an **Object-Orie
 
 > Disclaimer: This is a fan-made educational project. Plants vs. Zombies is owned by PopCap / EA.
 
----
+## Demo (Click to watch)
 
-## Demo
+[![PVZ Demo](docs/screenshots/image2.png)](docs/video/demo.mp4)
 
-- Gameplay screenshots: **/docs/screenshots/** *(add yours here)*
+- Gameplay screenshots: **/docs/screenshots/**
+- Demo video: **/docs/video/demo.mp4**
 - UML diagrams: **/docs/uml/** *(export from Lucidchart/PlantUML)*
 
 ---
