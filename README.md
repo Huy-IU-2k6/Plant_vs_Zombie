@@ -1,4 +1,3 @@
-```md
 # Plants vs Zombies (PVZ) Clone — Java + LibGDX
 
 A simplified **Plants vs Zombies–style** game clone built for an **Object-Oriented Programming** course project using **Java** and **LibGDX**.
@@ -36,6 +35,7 @@ A simplified **Plants vs Zombies–style** game clone built for an **Object-Orie
 
 ## Project Structure (high level)
 
+```
 pvz.com/
 ├─ screens/ # GameScreen, GameOverScreen, screen flow
 ├─ logic/ # GameWorld, GameState, controllers (HUD, placement, waves...)
