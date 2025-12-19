@@ -1,0 +1,101 @@
+name: Build & Release Plants_Vs_Zombie (FINAL)
+
+on:
+  push:
+    tags:
+      - 'v*'          # Ví dụ: v1.0.0
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    name: Build installer for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            installer_type: exe
+            icon_path: assets/icon/icon.ico
+
+          - os: macos-latest
+            installer_type: dmg
+            icon_path: assets/icon/icon.icns
+
+          - os: ubuntu-latest
+            installer_type: deb
+            icon_path: assets/icon/icon.png
+
+    steps:
+      # 1. Checkout source
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Setup Java 17 (jpackage yêu cầu)
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # 3. Cấp quyền chạy gradlew (Linux / macOS)
+      - name: Grant execute permission for gradlew
+        if: runner.os != 'Windows'
+        run: chmod +x gradlew
+
+      # 4. Clean + build Fat JAR (LibGDX chuẩn, KHÔNG crash)
+      - name: Clean and Build Fat JAR
+        run: ./gradlew clean desktop:dist
+
+      # 5. Tự động tìm file JAR (KHÔNG hardcode path)
+      - name: Detect JAR and set variables
+        shell: bash
+        run: |
+          JAR_PATH=$(find desktop -type f -name "*.jar" | head -n 1)
+
+          if [ -z "$JAR_PATH" ]; then
+            echo "❌ ERROR: Không tìm thấy file JAR sau khi chạy desktop:dist"
+            exit 1
+          fi
+
+          echo "✅ Found JAR: $JAR_PATH"
+
+          echo "JAR_NAME=$(basename "$JAR_PATH")" >> $GITHUB_ENV
+          echo "INPUT_DIR=$(dirname "$JAR_PATH")" >> $GITHUB_ENV
+          echo "APP_NAME=Plants_Vs_Zombie" >> $GITHUB_ENV
+          echo "APP_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      # 6. Tạo installer bằng jpackage
+      - name: Create Installer
+        shell: bash
+        run: |
+          MAIN_CLASS="pvz.com.lwjgl3.Lwjgl3Launcher"  # kiểm tra đúng package
+
+          ICON_PARAM=""
+          if [ -f "${{ matrix.icon_path }}" ]; then
+            ICON_PARAM="--icon ${{ matrix.icon_path }}"
+          else
+            echo "⚠️ Icon not found, using default icon"
+          fi
+
+          jpackage \
+            --input "$INPUT_DIR" \
+            --name "$APP_NAME" \
+            --main-jar "$JAR_NAME" \
+            --main-class "$MAIN_CLASS" \
+            --type "${{ matrix.installer_type }}" \
+            --app-version "$APP_VERSION" \
+            --vendor "PvZ Team" \
+            --java-options "-Xms512m -Xmx2048m" \
+            $ICON_PARAM \
+            --dest output
+
+      # 7. Upload installer lên GitHub Release
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: output/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
