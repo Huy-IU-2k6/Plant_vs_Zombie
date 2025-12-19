@@ -80,10 +80,58 @@ jobs:
           fi
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Create Installer
+      # ✅ Windows: chạy riêng theo chuẩn PowerShell
+      - name: Create Installer (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:JAVA_HOME = "${env:JAVA_HOME}"
+          $env:Path = "$env:JAVA_HOME\bin;$env:Path"
+
+          $APP      = "$env:APP_NAME"
+          $VER      = "$env:APP_VERSION"
+          $MAINCLASS= "pvz.com.lwjgl3.Lwjgl3Launcher"
+
+          $LIBDIR   = "lwjgl3\build\libs"
+          $DESTDIR  = "output"   # để khớp bước Upload Release: output/*
+
+          New-Item -ItemType Directory -Force -Path $DESTDIR | Out-Null
+
+          $MAINJAR = Get-ChildItem $LIBDIR -Filter "*.jar" |
+            Where-Object { $_.Name -notmatch '(sources|javadoc)\.jar$' } |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1 -ExpandProperty Name
+
+          if (-not $MAINJAR) {
+            Write-Host "❌ ERROR: No main jar found in $LIBDIR"
+            Get-ChildItem $LIBDIR
+            exit 1
+          }
+
+          $ICON_PARAM = @()
+          if (Test-Path "${{ matrix.icon_path }}") { $ICON_PARAM = @("--icon", "${{ matrix.icon_path }}") }
+
+          jpackage `
+            --type exe `
+            --dest $DESTDIR `
+            --name $APP `
+            --app-version $VER `
+            --input $LIBDIR `
+            --main-jar $MAINJAR `
+            --main-class $MAINCLASS `
+            @ICON_PARAM `
+            --win-shortcut `
+            --win-menu `
+            --win-menu-group $APP `
+            --vendor "PvZ Team" `
+            --java-options "-Xms512m -Xmx2048m"
+
+      # ✅ macOS/Linux: giữ bash như cũ
+      - name: Create Installer (macOS/Linux)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          MAIN_CLASS="pvz.com.lwjgl3.Lwjgl3Launcher" 
+          MAIN_CLASS="pvz.com.lwjgl3.Lwjgl3Launcher"
 
           ICON_PARAM=""
           if [ -f "${{ matrix.icon_path }}" ]; then
