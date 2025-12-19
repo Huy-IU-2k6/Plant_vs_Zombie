@@ -6,6 +6,10 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# 🔥 THÊM ĐOẠN NAY ĐỂ CẤP QUYỀN GHI (SỬA LỖI 403)
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     name: Build for ${{ matrix.os }}
@@ -50,20 +54,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y fakeroot dpkg-dev
 
-      # --- FIX IS HERE: CHANGED desktop:dist TO lwjgl3:dist ---
       - name: Clean & Build Fat JAR
         run: ./gradlew clean lwjgl3:dist
 
-      # --- FIX IS HERE: CHANGED SEARCH PATH TO lwjgl3 ---
       - name: Detect JAR and Set Variables
         shell: bash
         run: |
-          # Search in lwjgl3/build/libs instead of desktop
           JAR_PATH=$(find lwjgl3/build/libs -name "*.jar" | head -n 1)
-
+          
           if [ -z "$JAR_PATH" ]; then
             echo "❌ ERROR: JAR file not found in lwjgl3/build/libs!"
-            # Debugging: List files to see what happened
             ls -R lwjgl3/build/libs
             exit 1
           fi
@@ -72,7 +72,7 @@ jobs:
           echo "JAR_NAME=$(basename "$JAR_PATH")" >> $GITHUB_ENV
           echo "INPUT_DIR=$(dirname "$JAR_PATH")" >> $GITHUB_ENV
           echo "APP_NAME=Plants_Vs_Zombie" >> $GITHUB_ENV
-
+          
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
           else
@@ -83,8 +83,7 @@ jobs:
       - name: Create Installer
         shell: bash
         run: |
-          # Ensure this matches your actual Launcher class package
-          MAIN_CLASS="pvz.com.lwjgl3.Lwjgl3Launcher"
+          MAIN_CLASS="pvz.com.lwjgl3.Lwjgl3Launcher" 
 
           ICON_PARAM=""
           if [ -f "${{ matrix.icon_path }}" ]; then
