@@ -34,7 +34,7 @@ import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.BackgroundManager;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
-import pvz.com.systems.RenderSystem;
+import pvz.com.entities.systems.RenderSystem;
 
 public class GameScreen implements Screen {
 
@@ -96,8 +96,8 @@ public class GameScreen implements Screen {
     public GameScreen(Game game, Music inheritedMenuMusic) {
         this.game = game;
         this.inheritedMenuMusic = inheritedMenuMusic;
-        pvz.com.factories.ZombieAssetLoader.loadAll();
-        pvz.com.factories.PlantAssetLoader.loadAll();
+        pvz.com.entities.factories.ZombieAssetLoader.loadAll();
+        pvz.com.entities.factories.PlantAssetLoader.loadAll();
         
 
         this.batch = new SpriteBatch();
@@ -307,7 +307,7 @@ public class GameScreen implements Screen {
         if (!gameState.isPlaying())
             return;
         zombieWaveController.update(delta);
-        lawnMowerController.update(delta, zombieWaveController.getZombies());
+        lawnMowerController.update(delta, zombieWaveController.getzombies());
     }
 
     private void handleEscape() {
@@ -400,6 +400,6 @@ public class GameScreen implements Screen {
 
         worldRenderer.dispose();
 
-        pvz.com.entities.Zombies.ZombieSounds.disposeAll();
+        pvz.com.entities.zombies.ZombieSounds.disposeAll();
     }
 }

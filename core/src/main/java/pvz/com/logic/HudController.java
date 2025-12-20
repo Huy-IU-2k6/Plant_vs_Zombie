@@ -12,7 +12,7 @@ import pvz.com.items.SeedBank;
 import pvz.com.items.Shovel;
 import pvz.com.managers.FontManager;
 import pvz.com.managers.HudLayoutConfig;
-import pvz.com.systems.ISunReceiver;
+import pvz.com.entities.systems.ISunReceiver;
 
 public class HudController implements ISunReceiver {
 

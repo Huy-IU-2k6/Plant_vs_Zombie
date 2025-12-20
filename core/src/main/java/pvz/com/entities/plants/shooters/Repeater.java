@@ -2,9 +2,9 @@ package pvz.com.entities.plants.shooters;
 
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
-import pvz.com.entities.projectiles.PeaProjectile;
+import pvz.com.entities.plants.projectiles.PeaProjectile;
 import pvz.com.managers.GridConfig;
-import pvz.com.factories.PlantAssetLoader;
+import pvz.com.entities.factories.PlantAssetLoader;
 
 public class Repeater extends Plant {
     private static final float SCALE_X = 0.7f;
