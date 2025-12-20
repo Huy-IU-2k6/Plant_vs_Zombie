@@ -1,4 +1,4 @@
-package pvz.com.entities.systems;
+package pvz.com.entities.systems.combat;
 
 import com.badlogic.gdx.math.Vector2;
 import java.util.ArrayList;

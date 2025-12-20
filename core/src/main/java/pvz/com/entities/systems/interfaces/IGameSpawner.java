@@ -1,4 +1,4 @@
-package pvz.com.entities.systems;
+package pvz.com.entities.systems.interfaces;
 
 import pvz.com.entities.components.types.PlantDamageType;
 
