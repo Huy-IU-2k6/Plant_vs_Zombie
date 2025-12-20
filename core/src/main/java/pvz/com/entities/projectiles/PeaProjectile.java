@@ -23,7 +23,7 @@ public class PeaProjectile extends Entity {
         this.addComponent(new MovementComponent(PEA_SPEED, 0f));
 
 
-        SpriteComponent sprite = new SpriteComponent("images/Plants/peabullet.png");
+        SpriteComponent sprite = new SpriteComponent("images/plants/peabullet.png");
         sprite.sprite.setSize(PEA_WIDTH, PEA_HEIGHT);
         this.addComponent(sprite);
 

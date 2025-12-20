@@ -8,13 +8,13 @@ public final class PlantCatalog {
 
     static {
         
-        DEFS.put(PlantType.CHERRYBOMB, new PlantDef("images/Cards/CherryBomb.png", 150, 15f));
-        DEFS.put(PlantType.PEASHOOTER, new PlantDef("images/Cards/PeaShooter.png", 100, 2.5f));
-        DEFS.put(PlantType.POTATOMINE, new PlantDef("images/Cards/PotatoMine.png", 25, 10f));
-        DEFS.put(PlantType.REPEATER, new PlantDef("images/Cards/Repeater.png", 200, 2.5f));
-        DEFS.put(PlantType.SNOWPEA, new PlantDef("images/Cards/SnowPea.png", 175, 2.5f));
-        DEFS.put(PlantType.SUNFLOWER, new PlantDef("images/Cards/SunFlower.png", 50, 2.5f));
-        DEFS.put(PlantType.WALLNUT, new PlantDef("images/Cards/WallNut.png", 50, 10f));
+        DEFS.put(PlantType.CHERRYBOMB, new PlantDef("images/cards/CherryBomb.png", 150, 15f));
+        DEFS.put(PlantType.PEASHOOTER, new PlantDef("images/cards/PeaShooter.png", 100, 2.5f));
+        DEFS.put(PlantType.POTATOMINE, new PlantDef("images/cards/PotatoMine.png", 25, 10f));
+        DEFS.put(PlantType.REPEATER, new PlantDef("images/cards/Repeater.png", 200, 2.5f));
+        DEFS.put(PlantType.SNOWPEA, new PlantDef("images/cards/SnowPea.png", 175, 2.5f));
+        DEFS.put(PlantType.SUNFLOWER, new PlantDef("images/cards/SunFlower.png", 50, 2.5f));
+        DEFS.put(PlantType.WALLNUT, new PlantDef("images/cards/WallNut.png", 50, 10f));
     }
 
     private PlantCatalog() {

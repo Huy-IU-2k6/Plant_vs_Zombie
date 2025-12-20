@@ -22,24 +22,24 @@ public class ZombieAssetLoader {
         createDebugTexture();
 
 
-        NORMAL_WALK = load("images/Zombies/NormalZombie/Zombie/Zombie_", 21, 0.055f, Animation.PlayMode.LOOP);
-        NORMAL_EAT = load("images/Zombies/NormalZombie/ZombieAttack/ZombieAttack_", 10, 0.08f, Animation.PlayMode.LOOP);
-        NORMAL_DIE = load("images/Zombies/NormalZombie/ZombieDie/ZombieDie_", 9, 0.08f, Animation.PlayMode.NORMAL);
-        HEAD_POP = load("images/Zombies/NormalZombie/ZombieHead/ZombieHead_", 10, 0.08f, Animation.PlayMode.NORMAL);
-        CHARRED = load("images/Zombies/NormalZombie/BoomDie/BoomDie_", 19, 0.08f, Animation.PlayMode.NORMAL);
+        NORMAL_WALK = load("images/zombies/NormalZombie/Zombie/Zombie_", 21, 0.055f, Animation.PlayMode.LOOP);
+        NORMAL_EAT = load("images/zombies/NormalZombie/ZombieAttack/ZombieAttack_", 10, 0.08f, Animation.PlayMode.LOOP);
+        NORMAL_DIE = load("images/zombies/NormalZombie/ZombieDie/ZombieDie_", 9, 0.08f, Animation.PlayMode.NORMAL);
+        HEAD_POP = load("images/zombies/NormalZombie/ZombieHead/ZombieHead_", 10, 0.08f, Animation.PlayMode.NORMAL);
+        CHARRED = load("images/zombies/NormalZombie/BoomDie/BoomDie_", 19, 0.08f, Animation.PlayMode.NORMAL);
 
-        CONE_WALK = load("images/Zombies/ConeheadZombie/Zombie/ConeheadZombie_", 21, 0.055f, Animation.PlayMode.LOOP);
-        CONE_EAT = load("images/Zombies/ConeheadZombie/ZombieAttack/ConeheadZombieAttack_", 11, 0.08f,
+        CONE_WALK = load("images/zombies/ConeheadZombie/Zombie/ConeheadZombie_", 21, 0.055f, Animation.PlayMode.LOOP);
+        CONE_EAT = load("images/zombies/ConeheadZombie/ZombieAttack/ConeheadZombieAttack_", 11, 0.08f,
                 Animation.PlayMode.LOOP);
 
 
 
-        BUCKET_WALK = loadFallback(CONE_WALK, "images/Zombies/BucketheadZombie/Zombie/Zombie_", 14, 0.055f);
-        BUCKET_EAT = loadFallback(CONE_EAT, "images/Zombies/BucketheadZombie/ZombieAttack/ZombieAttack_", 10, 0.08f);
+        BUCKET_WALK = loadFallback(CONE_WALK, "images/zombies/BucketheadZombie/Zombie/Zombie_", 14, 0.055f);
+        BUCKET_EAT = loadFallback(CONE_EAT, "images/zombies/BucketheadZombie/ZombieAttack/ZombieAttack_", 10, 0.08f);
 
 
-        CHARGE_WALK = loadFallback(NORMAL_WALK, "images/Zombies/ChargeZombie/Zombie/Zombie_", 59, 0.02f);
-        CHARGE_EAT = loadFallback(NORMAL_EAT, "images/Zombies/ChargeZombie/ZombieAttack/Zombie_", 60, 0.02f);
+        CHARGE_WALK = loadFallback(NORMAL_WALK, "images/zombies/ChargeZombie/Zombie/Zombie_", 59, 0.02f);
+        CHARGE_EAT = loadFallback(NORMAL_EAT, "images/zombies/ChargeZombie/ZombieAttack/Zombie_", 60, 0.02f);
 
         System.out.println(">>> Zombie Assets Loaded!");
     }

@@ -41,30 +41,30 @@ public class PlantAssetLoader {
 
     public static void loadAll() {
 
-        SUNFLOWER_IDLE = load("images/Plants/SunFlower/SunFlower_", 18, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
+        SUNFLOWER_IDLE = load("images/plants/SunFlower/SunFlower_", 18, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
 
 
-        PEASHOOTER_IDLE = load("images/Plants/Peashooter/Peashooter_", 13, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
-        SNOWPEA_IDLE = load("images/Plants/SnowPea/SnowPea_", 15, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
-        REPEATER_IDLE = load("images/Plants/repeater/repeater_", 42, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
+        PEASHOOTER_IDLE = load("images/plants/Peashooter/Peashooter_", 13, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
+        SNOWPEA_IDLE = load("images/plants/SnowPea/SnowPea_", 15, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
+        REPEATER_IDLE = load("images/plants/repeater/repeater_", 42, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
 
 
-        WALLNUT_FULL = load("images/Plants/WallNut/WallNut/WallNut_", 10, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
-        WALLNUT_CRACKED1 = load("images/Plants/WallNut/WallNut_cracked1/WallNut_cracked1_", 10, PLANT_FRAME_DURATION,
+        WALLNUT_FULL = load("images/plants/WallNut/WallNut/WallNut_", 10, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
+        WALLNUT_CRACKED1 = load("images/plants/WallNut/WallNut_cracked1/WallNut_cracked1_", 10, PLANT_FRAME_DURATION,
                 Animation.PlayMode.LOOP);
-        WALLNUT_CRACKED2 = load("images/Plants/WallNut/WallNut_cracked2/WallNut_cracked2_", 10, PLANT_FRAME_DURATION,
+        WALLNUT_CRACKED2 = load("images/plants/WallNut/WallNut_cracked2/WallNut_cracked2_", 10, PLANT_FRAME_DURATION,
                 Animation.PlayMode.LOOP);
 
 
-        POTATO_GROWING = load("images/Plants/PotatoMine/planted/planted_", 29, 0.06f, Animation.PlayMode.NORMAL);
-        POTATO_UNARMED = load("images/Plants/PotatoMine/init/init_", 1, 0.06f, Animation.PlayMode.LOOP);
-        POTATO_RISING = load("images/Plants/PotatoMine/grow/grow_", 25, 0.06f, Animation.PlayMode.NORMAL);
-        POTATO_IDLE = load("images/Plants/PotatoMine/Idle/idle_", 30, 0.06f, Animation.PlayMode.LOOP);
-        POTATO_EXPLODE = load("images/Plants/PotatoMine/explode/explode_", 26, 0.06f, Animation.PlayMode.NORMAL);
+        POTATO_GROWING = load("images/plants/PotatoMine/planted/planted_", 29, 0.06f, Animation.PlayMode.NORMAL);
+        POTATO_UNARMED = load("images/plants/PotatoMine/init/init_", 1, 0.06f, Animation.PlayMode.LOOP);
+        POTATO_RISING = load("images/plants/PotatoMine/grow/grow_", 25, 0.06f, Animation.PlayMode.NORMAL);
+        POTATO_IDLE = load("images/plants/PotatoMine/Idle/idle_", 30, 0.06f, Animation.PlayMode.LOOP);
+        POTATO_EXPLODE = load("images/plants/PotatoMine/explode/explode_", 26, 0.06f, Animation.PlayMode.NORMAL);
 
 
-        CHERRY_IDLE = load("images/Plants/CherryBomb/CherryBomb/CherryBomb_", 6, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
-        CHERRY_EXPLODE = load("images/Plants/CherryBomb/powie/powie_", 28, 18, 0.1f, Animation.PlayMode.NORMAL);
+        CHERRY_IDLE = load("images/plants/CherryBomb/CherryBomb/CherryBomb_", 6, PLANT_FRAME_DURATION, Animation.PlayMode.LOOP);
+        CHERRY_EXPLODE = load("images/plants/CherryBomb/powie/powie_", 28, 18, 0.1f, Animation.PlayMode.NORMAL);
         System.out.println(">>> Plant Assets Loaded Successfully!");
     }
 
