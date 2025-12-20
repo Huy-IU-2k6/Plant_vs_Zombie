@@ -32,12 +32,11 @@ public class ZombieAssetLoader {
         CONE_EAT = load("images/Zombies/ConeheadZombie/ZombieAttack/ConeheadZombieAttack_", 11, 0.08f,
                 Animation.PlayMode.LOOP);
 
-        // Dùng tạm ảnh Cone cho Bucket để test (tránh tàng hình nếu chưa có file
-        // Bucket)
+        
         BUCKET_WALK = loadFallback(CONE_WALK, "images/Zombies/BucketheadZombie/Zombie/Zombie_", 14, 0.055f);
         BUCKET_EAT = loadFallback(CONE_EAT, "images/Zombies/BucketheadZombie/ZombieAttack/ZombieAttack_", 10, 0.08f);
 
-        // Dùng tạm ảnh Normal cho Charge
+        
         CHARGE_WALK = loadFallback(NORMAL_WALK, "images/Zombies/ChargeZombie/Zombie/Zombie_", 59, 0.02f);
         CHARGE_EAT = loadFallback(NORMAL_EAT, "images/Zombies/ChargeZombie/ZombieAttack/Zombie_", 60, 0.02f);
 
@@ -48,17 +47,17 @@ public class ZombieAssetLoader {
         Array<TextureRegion> frames = new Array<>();
         for (int i = 0; i <= count; i++) {
             try {
-                // Kiểm tra đường dẫn
+                
                 String path = prefix + i + ".png";
                 Texture t = new Texture(path);
                 t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
                 frames.add(new TextureRegion(t));
             } catch (Exception e) {
-                // Không tìm thấy file này, bỏ qua
+                
             }
         }
 
-        // [QUAN TRỌNG] Nếu không tìm thấy bất kỳ ảnh nào -> Dùng Hộp Trắng
+        // Nếu không tìm thấy bất kỳ ảnh nào -> Dùng Hộp Trắng
         if (frames.size == 0) {
             System.err.println("!!! MISSING TEXTURE: " + prefix + " -> Using Debug Box");
             frames.add(new TextureRegion(debugTexture));

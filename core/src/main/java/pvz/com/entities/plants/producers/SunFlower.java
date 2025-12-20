@@ -28,10 +28,7 @@ public class SunFlower extends Plant {
             return;
         }
 
-        // [QUAN TRỌNG - FIX LỖI CASTING]
-        // Dùng getKeyFrame(0) để lấy 1 ảnh duy nhất.
-        // TUYỆT ĐỐI KHÔNG DÙNG getKeyFrames() (số nhiều) ở đây vì sẽ gây lỗi
-        // ClassCastException.
+        
         TextureRegion firstFrame = idleAnim.getKeyFrame(0);
 
         // 2. Thiết lập Components

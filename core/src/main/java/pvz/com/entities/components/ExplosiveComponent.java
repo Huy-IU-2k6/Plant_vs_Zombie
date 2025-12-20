@@ -5,7 +5,7 @@ public class ExplosiveComponent {
     public int damage;          // Sát thương (1800 cho CherryBomb)
     public float range;         // Bán kính nổ (150f ~ 3x3 ô)
     
-    // Tổng thời gian chờ nổ (ví dụ 1.2 giây)
+    // Tổng thời gian chờ nổ 
     public float fuseTime;      
     
     // ===== TRẠNG THÁI (STATE) =====

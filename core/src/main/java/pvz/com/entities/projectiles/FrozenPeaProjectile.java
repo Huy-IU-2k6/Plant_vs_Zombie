@@ -15,8 +15,6 @@ public class FrozenPeaProjectile extends Entity {
         this.addComponent(new DamageComponent(damage));
         this.addComponent(new ProjectileTagComponent());
 
-        // Quan trọng: Gắn tag hoặc component để biết đây là đạn băng
-        // Tạm thời mình dùng class check, hoặc bạn có thể tạo IceEffectComponent cho
-        // đạn
+       
     }
 }

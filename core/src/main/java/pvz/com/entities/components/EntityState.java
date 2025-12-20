@@ -17,9 +17,9 @@ public enum EntityState {
     RISING,
 
 
-    // --- POTATO MINE (chuẩn PvZ) ---
-    POTATOMINE_UNARMED, // chôn dưới đất / chưa kích hoạt
-    POTATOMINE_ARMING, // đang “lên” / đang sạc thời gian
-    POTATOMINE_ARMED, // đã sẵn sàng nổ
-    POTATOMINE_EXPLODING // đang nổ (animation nổ)
+    
+    POTATOMINE_UNARMED, 
+    POTATOMINE_ARMING, 
+    POTATOMINE_ARMED, 
+    POTATOMINE_EXPLODING 
 }

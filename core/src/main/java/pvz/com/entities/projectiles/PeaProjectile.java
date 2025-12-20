@@ -7,7 +7,7 @@ import pvz.com.managers.DesignConfig;
 
 public class PeaProjectile extends Entity {
 
-    // ===== CONFIG =====
+    
     private static final float PEA_SPEED = 800f;
 
     private static final float PEA_WIDTH = DesignConfig.PEA_WIDTH;

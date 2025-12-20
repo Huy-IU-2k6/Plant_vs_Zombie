@@ -32,7 +32,7 @@ public class ZombieSounds {
                 loaded = true;
                 System.out.println(">>> ZombieSounds: LOADED OK!"); 
             } catch (Exception e) {
-                // [SỬA LỖI] Phải in lỗi ra mới biết file nào thiếu
+                // Phải in lỗi ra mới biết file nào thiếu
                 System.err.println("!!! LỖI LOAD SOUND ZOMBIE: " + e.getMessage());
                 e.printStackTrace(); 
             }
@@ -45,7 +45,7 @@ public class ZombieSounds {
         timer += delta;
         // 4 giây random rên 1 lần
         if (timer > 4f) {
-            // [FIX] Kiểm tra null trước khi play để không crash game
+            // Kiểm tra null trước khi play để không crash game
             if (GROAN != null && MathUtils.randomBoolean(0.4f)) { // 40% tỉ lệ kêu
                 long id = GROAN.play(0.5f);
                 // Chỉnh méo tiếng tí xíu cho tự nhiên
