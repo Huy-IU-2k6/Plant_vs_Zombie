@@ -14,32 +14,45 @@ public class ZombieAssetLoader {
     public static Animation<TextureRegion> BUCKET_WALK, BUCKET_EAT;
     public static Animation<TextureRegion> CHARGE_WALK, CHARGE_EAT;
 
-
     private static Texture debugTexture;
 
     public static void loadAll() {
 
         createDebugTexture();
 
+        // TODO: add zombie lost head state
+        // TODO: add zombie lost head attack state
 
-        NORMAL_WALK = load("images/zombies/NormalZombie/Zombie/Zombie_", 21, 0.055f, Animation.PlayMode.LOOP);
-        NORMAL_EAT = load("images/zombies/NormalZombie/ZombieAttack/ZombieAttack_", 10, 0.08f, Animation.PlayMode.LOOP);
-        NORMAL_DIE = load("images/zombies/NormalZombie/ZombieDie/ZombieDie_", 9, 0.08f, Animation.PlayMode.NORMAL);
-        HEAD_POP = load("images/zombies/NormalZombie/ZombieHead/ZombieHead_", 10, 0.08f, Animation.PlayMode.NORMAL);
-        CHARRED = load("images/zombies/NormalZombie/BoomDie/BoomDie_", 19, 0.08f, Animation.PlayMode.NORMAL);
+        NORMAL_DIE = load("images/characters/zombies/zombie/normal_die_state/normal_die_state_", 9, 0.08f,
+                Animation.PlayMode.NORMAL);
+        HEAD_POP = load("images/characters/zombies/zombie/head_falling_state/head_falling_state_", 10, 0.08f,
+                Animation.PlayMode.NORMAL);
 
-        CONE_WALK = load("images/zombies/ConeheadZombie/Zombie/ConeheadZombie_", 21, 0.055f, Animation.PlayMode.LOOP);
-        CONE_EAT = load("images/zombies/ConeheadZombie/ZombieAttack/ConeheadZombieAttack_", 11, 0.08f,
+        CHARRED = load("images/characters/zombies/zombie/boom_die_state/boom_die_state_", 19, 0.08f,
+                Animation.PlayMode.NORMAL);
+
+        NORMAL_WALK = load("images/characters/zombies/normal_zombie/normal_state/normal_state_", 21, 0.055f,
+                Animation.PlayMode.LOOP);
+        NORMAL_EAT = load("images/characters/zombies/normal_zombie/attack_state/attack_state_", 10, 0.08f,
                 Animation.PlayMode.LOOP);
 
+        CONE_WALK = load("images/characters/zombies/conehead_zombie/normal_state/normal_state_", 21, 0.055f,
+                Animation.PlayMode.LOOP);
+        CONE_EAT = load("images/characters/zombies/conehead_zombie/attack_state/attack_state_", 11, 0.08f,
+                Animation.PlayMode.LOOP);
 
+        BUCKET_WALK = loadFallback(CONE_WALK, "images/characters/zombies/buckethead_zombie/normal_state/normal_state_",
+                14,
+                0.055f);
+        BUCKET_EAT = loadFallback(CONE_EAT, "images/characters/zombies/buckethead_zombie/attack_state/attack_state_",
+                10,
+                0.08f);
 
-        BUCKET_WALK = loadFallback(CONE_WALK, "images/zombies/BucketheadZombie/Zombie/Zombie_", 14, 0.055f);
-        BUCKET_EAT = loadFallback(CONE_EAT, "images/zombies/BucketheadZombie/ZombieAttack/ZombieAttack_", 10, 0.08f);
-
-
-        CHARGE_WALK = loadFallback(NORMAL_WALK, "images/zombies/ChargeZombie/Zombie/Zombie_", 59, 0.02f);
-        CHARGE_EAT = loadFallback(NORMAL_EAT, "images/zombies/ChargeZombie/ZombieAttack/Zombie_", 60, 0.02f);
+        CHARGE_WALK = loadFallback(NORMAL_WALK, "images/characters/zombies/charge_zombie/normal_state/normal_state_",
+                59,
+                0.02f);
+        CHARGE_EAT = loadFallback(NORMAL_EAT, "images/characters/zombies/charge_zombie/attack_state/attack_state_", 60,
+                0.02f);
 
         System.out.println(">>> Zombie Assets Loaded!");
     }
@@ -57,7 +70,6 @@ public class ZombieAssetLoader {
 
             }
         }
-
 
         if (frames.size == 0) {
             System.err.println("!!! MISSING TEXTURE: " + prefix + " -> Using Debug Box");
