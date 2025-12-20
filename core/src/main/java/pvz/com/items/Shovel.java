@@ -12,7 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.utils.Align;
-import pvz.com.entities.components.PlantTypeComponent;
+import pvz.com.entities.components.types.PlantTypeComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.PlantType;
 import pvz.com.logic.PlantGridController;

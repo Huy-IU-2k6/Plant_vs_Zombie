@@ -2,11 +2,10 @@ package pvz.com.entities.systems;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.PositionComponent;
-import pvz.com.entities.components.SpriteComponent;
 import java.util.List;
-
-import pvz.com.entities.components.SizeComponent;
+import pvz.com.entities.components.render.SpriteComponent;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.physics.SizeComponent;
 
 public class RenderSystem {
     private SpriteBatch batch;

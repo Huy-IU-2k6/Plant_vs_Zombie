@@ -1,8 +1,12 @@
 package pvz.com.entities.suns;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.*;
 import pvz.com.managers.DesignConfig;
+import pvz.com.entities.components.render.SpriteComponent;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.physics.BoundsComponent;
+import pvz.com.entities.components.physics.SizeComponent;
+import pvz.com.entities.components.economy.SunPickupComponent;
 
 public class Sun extends Entity {
 

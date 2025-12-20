@@ -6,10 +6,17 @@ import java.util.List;
 
 import pvz.com.entities.Entity;
 import pvz.com.entities.zombies.BaseZombie;
-import pvz.com.entities.components.*;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
-
+import pvz.com.entities.components.animation.AnimationComponent;
+import pvz.com.entities.components.state.EntityState;
+import pvz.com.entities.components.state.StateComponent;
+import pvz.com.entities.components.grid.GridCellComponent;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.physics.BoundsComponent;
+import pvz.com.entities.components.physics.SizeComponent;
+import pvz.com.entities.components.combat.HealthComponent;
+import pvz.com.entities.components.combat.ExplosiveComponent;
 
 public class ExplosionSystem {
     private final ZombieWaveController zombieController;
@@ -33,7 +40,6 @@ public class ExplosionSystem {
             if (explosive == null || state == null || pos == null)
                 continue;
 
-
             if (!explosive.hasExploded) {
 
                 if (explosive.fuseTime >= 0) {
@@ -47,31 +53,24 @@ public class ExplosionSystem {
                     explosive.hasExploded = true;
                     explosive.timer = 0f;
 
-
                     entity.removeComponent(HealthComponent.class);
                     entity.removeComponent(BoundsComponent.class);
-
-
-
 
                     if (plantGridController != null) {
 
                         GridCellComponent gridCell = entity.getComponent(GridCellComponent.class);
-                        
+
                         if (gridCell != null) {
 
                             plantGridController.unregisterPlantAtCell(gridCell.row, gridCell.col);
                         } else {
 
-
                         }
                     }
 
-
-
                     if (size != null) {
                         float oldSize = size.width;
-                        float newSize = 250f; 
+                        float newSize = 250f;
                         float offset = (newSize - oldSize) / 2f;
 
                         pos.x -= offset;
@@ -80,7 +79,6 @@ public class ExplosionSystem {
                         size.width = newSize;
                         size.height = newSize;
                     }
-
 
                     dealAreaDamage(pos, size, explosive);
                 }
@@ -109,7 +107,8 @@ public class ExplosionSystem {
         float centerY = bombPos.y + (currentSize / 2f);
 
         for (BaseZombie z : zombieController.getzombies()) {
-            if (z.isDead()) continue;
+            if (z.isDead())
+                continue;
 
             float zCenterX = z.getX() + z.getWidth() / 2f;
             float zCenterY = z.getY() + z.getHeight() / 2f;

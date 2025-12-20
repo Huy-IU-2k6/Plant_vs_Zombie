@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.zombies.BaseZombie;
-import pvz.com.entities.components.PlantDamageType;
+import pvz.com.entities.components.types.PlantDamageType;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.plants.projectiles.PeaProjectile;
@@ -31,10 +31,8 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
     private final ZombieWaveController zombieWaveController;
 
-    
     private final HudController hudController;
 
-    
     private final SunProductionSystem sunSystem;
     private final WallnutStateSystem wallnutStateSystem;
     private final ExplosionSystem explosionSystem;
@@ -61,7 +59,6 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
         this.zombieWaveController = zombieWaveController;
 
-        
         this.sunSystem = new SunProductionSystem(this, entities);
         this.wallnutStateSystem = new WallnutStateSystem();
         this.explosionSystem = new ExplosionSystem(zombieWaveController, plantGridController);
@@ -80,7 +77,6 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         if (!gameState.isPlaying())
             return;
 
-        
         sunSystem.update(delta);
         wallnutStateSystem.update(entities);
         explosionSystem.update(entities, delta);
@@ -90,7 +86,6 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         movementSystem.update(entities, delta);
         collisionSystem.update(delta);
 
-        
         checkLoseCondition();
         if (!gameState.isGameOver()) {
             checkWinCondition();
@@ -103,7 +98,6 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         cleanupSystem.update();
     }
 
-    
     private void checkLoseCondition() {
         if (zombieWaveController == null)
             return;
@@ -120,25 +114,22 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         }
     }
 
-    
     private void checkWinCondition() {
         if (zombieWaveController == null)
             return;
 
-        
         if (!zombieWaveController.isWaveFinished())
             return;
 
         for (BaseZombie z : zombieWaveController.getzombies()) {
             if (z != null && !z.isDead()) {
-                return; 
+                return;
             }
         }
 
-        gameState.setGameOver(true); 
+        gameState.setGameOver(true);
     }
 
-    
     @Override
     public void spawnSun(float x, float y, int amount) {
         entities.add(new Sun(x, y, amount));
@@ -156,13 +147,11 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         }
     }
 
-    
     @Override
     public void addSun(int amount) {
         hudController.addSun(amount);
     }
 
-    
     public SunPickupSystem getSunPickupSystem() {
         return sunPickupSystem;
     }

@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.combat;
 
 public class DamageComponent {
     public int amount;

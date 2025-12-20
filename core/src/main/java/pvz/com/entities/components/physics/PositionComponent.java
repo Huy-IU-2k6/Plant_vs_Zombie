@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.physics;
 
 public class PositionComponent {
     public float x;

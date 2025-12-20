@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.GridCellComponent;
+import pvz.com.entities.components.grid.GridCellComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.PlantType;
 import pvz.com.entities.factories.PlantFactory;
@@ -27,7 +27,6 @@ public class PlantPlacementController {
         this.plantGridController = plantGridController;
         this.gameWorld = gameWorld;
     }
-
 
     public void handleCardClicked(PlantCard card, boolean isPlaying) {
         if (!isPlaying)
@@ -56,17 +55,14 @@ public class PlantPlacementController {
         int row = cell[0];
         int col = cell[1];
 
-
         if (row < 0 || col < 0 || !GridConfig.isInsideGrid(row, col))
             return;
-
 
         int currentSun = hudController.getSunPoints();
         if (!card.canUse(currentSun))
             return;
 
         int cost = card.getDef().cost();
-
 
         if (!hudController.spendSun(cost))
             return;
@@ -77,7 +73,6 @@ public class PlantPlacementController {
             hudController.addSun(cost);
             return;
         }
-
 
         card.triggerUse();
     }

@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.types;
 
 import pvz.com.entities.plants.PlantType;
 
