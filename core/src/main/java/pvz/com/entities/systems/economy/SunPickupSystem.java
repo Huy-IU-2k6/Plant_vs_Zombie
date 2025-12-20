@@ -1,4 +1,4 @@
-package pvz.com.entities.systems;
+package pvz.com.entities.systems.economy;
 
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -10,6 +10,7 @@ import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.components.physics.BoundsComponent;
 import pvz.com.entities.components.economy.SunPickupComponent;
+import pvz.com.entities.systems.interfaces.ISunReceiver;
 
 public class SunPickupSystem extends InputAdapter {
 

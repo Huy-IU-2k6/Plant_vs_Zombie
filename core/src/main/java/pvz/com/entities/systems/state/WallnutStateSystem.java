@@ -1,4 +1,4 @@
-package pvz.com.entities.systems;
+package pvz.com.entities.systems.state;
 
 import pvz.com.entities.Entity;
 import pvz.com.entities.components.state.EntityState;

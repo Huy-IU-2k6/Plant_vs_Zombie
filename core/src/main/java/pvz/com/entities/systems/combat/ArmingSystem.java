@@ -1,4 +1,4 @@
-package pvz.com.entities.systems;
+package pvz.com.entities.systems.combat;
 
 import java.util.List;
 import pvz.com.entities.Entity;
