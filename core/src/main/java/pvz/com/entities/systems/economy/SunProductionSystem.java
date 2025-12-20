@@ -1,8 +1,9 @@
-package pvz.com.entities.systems;
+package pvz.com.entities.systems.economy;
 
 import pvz.com.entities.Entity;
 import pvz.com.entities.components.physics.PositionComponent;
 import pvz.com.entities.components.economy.SunProducerComponent;
+import pvz.com.entities.systems.interfaces.IGameSpawner;
 
 import java.util.ArrayList;
 import java.util.List;

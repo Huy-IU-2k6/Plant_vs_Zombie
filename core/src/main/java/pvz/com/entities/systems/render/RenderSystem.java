@@ -1,4 +1,4 @@
-package pvz.com.entities.systems;
+package pvz.com.entities.systems.render;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import pvz.com.entities.Entity;

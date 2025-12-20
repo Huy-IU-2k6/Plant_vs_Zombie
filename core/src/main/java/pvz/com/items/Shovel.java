@@ -19,7 +19,7 @@ import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ShovelController;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.ScaleManager;
-import pvz.com.entities.systems.ISunReceiver;
+import pvz.com.entities.systems.interfaces.ISunReceiver;
 
 public class Shovel extends Actor {
 

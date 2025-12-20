@@ -34,7 +34,7 @@ import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.BackgroundManager;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
-import pvz.com.entities.systems.RenderSystem;
+import pvz.com.entities.systems.render.RenderSystem;
 
 public class GameScreen implements Screen {
 
@@ -90,7 +90,7 @@ public class GameScreen implements Screen {
 
     public GameScreen(Game game) {
         this(game, null);
-        
+
     }
 
     public GameScreen(Game game, Music inheritedMenuMusic) {
@@ -98,7 +98,6 @@ public class GameScreen implements Screen {
         this.inheritedMenuMusic = inheritedMenuMusic;
         pvz.com.entities.factories.ZombieAssetLoader.loadAll();
         pvz.com.entities.factories.PlantAssetLoader.loadAll();
-        
 
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
@@ -208,13 +207,10 @@ public class GameScreen implements Screen {
     public void renderFrozen() {
         clearScreen();
 
-
         renderWorldOnly(gameState.isCountdown(), true);
-
 
         batch.setProjectionMatrix(camera.combined);
         renderSystem.update(entities);
-
 
         hudStage.act(0f);
         hudStage.draw();
@@ -258,7 +254,6 @@ public class GameScreen implements Screen {
         if (inheritedMenuMusic != null) {
             inheritedMenuMusic.play();
         }
-
 
         if (gameMusic != null) {
             gameMusic.play();

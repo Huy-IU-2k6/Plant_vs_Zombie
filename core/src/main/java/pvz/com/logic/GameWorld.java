@@ -10,18 +10,18 @@ import pvz.com.entities.plants.projectiles.FrozenPeaProjectile;
 import pvz.com.entities.plants.projectiles.PeaProjectile;
 import pvz.com.entities.suns.Sun;
 import pvz.com.managers.GridConfig;
-import pvz.com.entities.systems.AnimationSystem;
-import pvz.com.entities.systems.ArmingSystem;
-import pvz.com.entities.systems.CleanupSystem;
-import pvz.com.entities.systems.CollisionSystem;
-import pvz.com.entities.systems.ExplosionSystem;
-import pvz.com.entities.systems.IGameSpawner;
-import pvz.com.entities.systems.ISunReceiver;
-import pvz.com.entities.systems.MovementSystem;
-import pvz.com.entities.systems.PlantAttackSystem;
-import pvz.com.entities.systems.SunPickupSystem;
-import pvz.com.entities.systems.SunProductionSystem;
-import pvz.com.entities.systems.WallnutStateSystem;
+import pvz.com.entities.systems.combat.ArmingSystem;
+import pvz.com.entities.systems.lifecycle.CleanupSystem;
+import pvz.com.entities.systems.physics.CollisionSystem;
+import pvz.com.entities.systems.combat.ExplosionSystem;
+import pvz.com.entities.systems.interfaces.IGameSpawner;
+import pvz.com.entities.systems.interfaces.ISunReceiver;
+import pvz.com.entities.systems.physics.MovementSystem;
+import pvz.com.entities.systems.combat.PlantAttackSystem;
+import pvz.com.entities.systems.economy.SunPickupSystem;
+import pvz.com.entities.systems.economy.SunProductionSystem;
+import pvz.com.entities.systems.state.WallnutStateSystem;
+import pvz.com.entities.systems.animation.AnimationSystem;
 
 public class GameWorld implements IGameSpawner, ISunReceiver {
 
