@@ -9,18 +9,15 @@ public class BackgroundManager {
     private Texture countBg;
     private Texture menuBg;
     private Texture mainBg;
-    private Texture subBg;
 
     public BackgroundManager() {
         countBg = loadTexture("images/backgrounds/count_bg.jpeg");
         menuBg = loadTexture("images/backgrounds/menu_bg.png");
         mainBg = loadTexture("images/backgrounds/main_bg.png");
-        subBg = loadTexture("images/backgrounds/sub_bg.png");
 
         countBg.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         menuBg.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         mainBg.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        subBg.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
     }
 
     private Texture loadTexture(String path) {
@@ -52,20 +49,12 @@ public class BackgroundManager {
         }
     }
 
-    public void renderSub(Batch batch, float width, float height) {
-        if (subBg != null) {
-            batch.draw(subBg, 0, 0, width, height);
-        }
-    }
-
     public void dispose() {
         disposeTexture(menuBg);
         disposeTexture(mainBg);
-        disposeTexture(subBg);
 
         menuBg = null;
         mainBg = null;
-        subBg = null;
     }
 
     private void disposeTexture(Texture tex) {
