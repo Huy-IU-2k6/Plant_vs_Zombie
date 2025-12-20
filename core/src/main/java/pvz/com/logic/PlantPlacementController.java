@@ -7,7 +7,7 @@ import pvz.com.entities.Entity;
 import pvz.com.entities.components.GridCellComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.PlantType;
-import pvz.com.factories.PlantFactory;
+import pvz.com.entities.factories.PlantFactory;
 import pvz.com.items.PlantCard;
 import pvz.com.managers.GridConfig;
 

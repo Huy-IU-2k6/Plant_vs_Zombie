@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.entities.Zombies.*;
+import pvz.com.entities.zombies.*;
 import pvz.com.managers.ScaleManager;
 import pvz.com.managers.DesignConfig;
 
@@ -32,7 +32,7 @@ public class ZombieWaveController {
     private final int laneCount = DesignConfig.ROWS;
 
     private final float startOffsetXDesign;
-    private int maxZombiesInWave;
+    private int maxzombiesInWave;
     private final float levelDuration;
 
     private float elapsedTime = 0f;
@@ -47,40 +47,40 @@ public class ZombieWaveController {
     public ZombieWaveController(float worldWidth,
             float worldHeight,
             float startOffsetXDesign,
-            int maxZombiesInWave) {
-        this(worldWidth, worldHeight, startOffsetXDesign, maxZombiesInWave, DEFAULT_LEVEL_DURATION, null);
+            int maxzombiesInWave) {
+        this(worldWidth, worldHeight, startOffsetXDesign, maxzombiesInWave, DEFAULT_LEVEL_DURATION, null);
     }
 
     public ZombieWaveController(float worldWidth,
             float worldHeight,
             float startOffsetXDesign,
-            int maxZombiesInWave,
+            int maxzombiesInWave,
             float levelDuration) {
-        this(worldWidth, worldHeight, startOffsetXDesign, maxZombiesInWave, levelDuration, null);
+        this(worldWidth, worldHeight, startOffsetXDesign, maxzombiesInWave, levelDuration, null);
     }
 
     public ZombieWaveController(float worldWidth,
             float worldHeight,
             float startOffsetXDesign,
-            int maxZombiesInWave,
+            int maxzombiesInWave,
             float levelDuration,
             GameState gameState) {
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
         this.startOffsetXDesign = startOffsetXDesign;
-        this.maxZombiesInWave = maxZombiesInWave;
+        this.maxzombiesInWave = maxzombiesInWave;
         this.levelDuration = levelDuration;
         this.gameState = gameState;
     }
 
-    public Array<BaseZombie> getZombies() { return zombies; }
+    public Array<BaseZombie> getzombies() { return zombies; }
 
-    public void setMaxZombiesInWave(int maxZombiesInWave) {
-        this.maxZombiesInWave = maxZombiesInWave;
+    public void setMaxzombiesInWave(int maxzombiesInWave) {
+        this.maxzombiesInWave = maxzombiesInWave;
     }
 
     public boolean isWaveFinished() {
-        return zombiesSpawnedInWave >= maxZombiesInWave && zombies.size == 0;
+        return zombiesSpawnedInWave >= maxzombiesInWave && zombies.size == 0;
     }
 
     public void startWave() {
@@ -117,7 +117,7 @@ public class ZombieWaveController {
         elapsedTime += delta;
         float levelProgress = MathUtils.clamp(elapsedTime / levelDuration, 0f, 1f);
 
-        if (zombiesSpawnedInWave < maxZombiesInWave && laneCount > 0) {
+        if (zombiesSpawnedInWave < maxzombiesInWave && laneCount > 0) {
             spawnTimer += delta;
 
             int targetSpawnCount = getTargetSpawnCount(levelProgress);
@@ -179,7 +179,7 @@ public class ZombieWaveController {
     private int getTargetSpawnCount(float levelProgress) {
         float p = MathUtils.clamp(levelProgress, 0f, 1f);
         float curve = (float) Math.pow(p, SPAWN_CURVE_POWER);
-        return (int) (maxZombiesInWave * curve);
+        return (int) (maxzombiesInWave * curve);
     }
 
     private ZombieType pickZombieType(float levelProgress) {

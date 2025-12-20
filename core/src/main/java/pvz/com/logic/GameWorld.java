@@ -3,25 +3,25 @@ package pvz.com.logic;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 import pvz.com.entities.Entity;
-import pvz.com.entities.Zombies.BaseZombie;
+import pvz.com.entities.zombies.BaseZombie;
 import pvz.com.entities.components.PlantDamageType;
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.projectiles.FrozenPeaProjectile;
-import pvz.com.entities.projectiles.PeaProjectile;
+import pvz.com.entities.plants.projectiles.FrozenPeaProjectile;
+import pvz.com.entities.plants.projectiles.PeaProjectile;
 import pvz.com.entities.suns.Sun;
 import pvz.com.managers.GridConfig;
-import pvz.com.systems.AnimationSystem;
-import pvz.com.systems.ArmingSystem;
-import pvz.com.systems.CleanupSystem;
-import pvz.com.systems.CollisionSystem;
-import pvz.com.systems.ExplosionSystem;
-import pvz.com.systems.IGameSpawner;
-import pvz.com.systems.ISunReceiver;
-import pvz.com.systems.MovementSystem;
-import pvz.com.systems.PlantAttackSystem;
-import pvz.com.systems.SunPickupSystem;
-import pvz.com.systems.SunProductionSystem;
-import pvz.com.systems.WallnutStateSystem;
+import pvz.com.entities.systems.AnimationSystem;
+import pvz.com.entities.systems.ArmingSystem;
+import pvz.com.entities.systems.CleanupSystem;
+import pvz.com.entities.systems.CollisionSystem;
+import pvz.com.entities.systems.ExplosionSystem;
+import pvz.com.entities.systems.IGameSpawner;
+import pvz.com.entities.systems.ISunReceiver;
+import pvz.com.entities.systems.MovementSystem;
+import pvz.com.entities.systems.PlantAttackSystem;
+import pvz.com.entities.systems.SunPickupSystem;
+import pvz.com.entities.systems.SunProductionSystem;
+import pvz.com.entities.systems.WallnutStateSystem;
 
 public class GameWorld implements IGameSpawner, ISunReceiver {
 
@@ -110,7 +110,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
         float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
 
-        for (BaseZombie z : zombieWaveController.getZombies()) {
+        for (BaseZombie z : zombieWaveController.getzombies()) {
             if (z == null || z.isDead())
                 continue;
             if (z.getX() <= loseX) {
@@ -129,7 +129,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         if (!zombieWaveController.isWaveFinished())
             return;
 
-        for (BaseZombie z : zombieWaveController.getZombies()) {
+        for (BaseZombie z : zombieWaveController.getzombies()) {
             if (z != null && !z.isDead()) {
                 return; 
             }

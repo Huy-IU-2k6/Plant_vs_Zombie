@@ -5,7 +5,7 @@ import pvz.com.entities.plants.Plant;
 import pvz.com.entities.components.*;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
-import pvz.com.factories.PlantAssetLoader;
+import pvz.com.entities.factories.PlantAssetLoader;
 
 public class SunFlower extends Plant {
 

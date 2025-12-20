@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.entities.Zombies.BaseZombie;
+import pvz.com.entities.zombies.BaseZombie;
 import pvz.com.items.LawnMower;
 import pvz.com.managers.GridConfig;
 import pvz.com.managers.DesignConfig;
