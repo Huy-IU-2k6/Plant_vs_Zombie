@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AnimationComponent {
-    // Map lưu trữ animation tương ứng với từng trạng thái (ví dụ: IDLE -> animation lắc lư)
+
     public Map<EntityState, Animation<TextureRegion>> animations;
 
     public AnimationComponent() {

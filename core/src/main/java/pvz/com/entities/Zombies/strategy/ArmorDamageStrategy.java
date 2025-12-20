@@ -14,11 +14,11 @@ public class ArmorDamageStrategy implements DamageStrategy {
         if (armorHealth > 0) {
             armorHealth -= amount;
             if (armorHealth <= 0) {
-                // Giáp vỡ -> trừ phần dư vào máu thật
+
                 int overflow = -armorHealth;
                 stats.takeDamage(overflow);
                 armorHealth = 0;
-                return true; // Báo hiệu vỡ giáp
+                return true;
             }
         } else {
             stats.takeDamage(amount);

@@ -27,7 +27,7 @@ public class LawnMowerController {
 
         
         this.idleTexture = new Texture(Gdx.files.internal("images/items/lawnMower_Idle.png"));
-        this.activeTexture = new Texture(Gdx.files.internal("images/items/lawnMower_Idle.png")); // Đổi đuôi sang png
+        this.activeTexture = new Texture(Gdx.files.internal("images/items/lawnMower_Idle.png"));
         
         
         this.idleTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);

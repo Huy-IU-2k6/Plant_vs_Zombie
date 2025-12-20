@@ -14,7 +14,7 @@ public class Wallnut extends Plant {
     public Wallnut(float x, float y, int gridCol, int gridRow) {
         super(x, y, GridConfig.CELL_WIDTH * SCALE_X, GridConfig.CELL_HEIGHT * SCALE_Y);
 
-        // 1. Lấy Animations từ Loader
+
         var animFull = PlantAssetLoader.WALLNUT_FULL;
         var animCrack1 = PlantAssetLoader.WALLNUT_CRACKED1;
         var animCrack2 = PlantAssetLoader.WALLNUT_CRACKED2;
@@ -24,8 +24,8 @@ public class Wallnut extends Plant {
             return;
         }
 
-        // 2. Thiết lập Components
-        // Frame đầu tiên (trạng thái Full)
+
+
         this.addComponent(new SpriteComponent(animFull.getKeyFrame(0)));
 
         AnimationComponent animComp = new AnimationComponent();

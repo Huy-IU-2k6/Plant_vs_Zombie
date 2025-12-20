@@ -13,7 +13,7 @@ public class SnowPea extends Plant {
     public SnowPea(float x, float y, int col, int row) {
         super(x, y, GridConfig.CELL_WIDTH * SCALE_X, GridConfig.CELL_HEIGHT * SCALE_Y);
 
-        // 1. Lấy Animation từ Loader
+
         var idleAnim = PlantAssetLoader.SNOWPEA_IDLE;
 
         if (idleAnim == null) {
@@ -21,15 +21,15 @@ public class SnowPea extends Plant {
             return;
         }
 
-        // 2. Thiết lập Components
+
         this.addComponent(new SpriteComponent(idleAnim.getKeyFrame(0)));
 
         AnimationComponent animComp = new AnimationComponent();
         animComp.addAnimation(EntityState.IDLE, idleAnim);
-        // SnowPea thường dùng chung animation lắc lư cho cả lúc đứng yên và lúc bắn
+
         animComp.addAnimation(EntityState.ATTACKING, idleAnim);
 
-        // Dùng chung animation cho lúc bắn
+
         animComp.addAnimation(EntityState.ATTACKING, idleAnim);
 
         this.addComponent(animComp);

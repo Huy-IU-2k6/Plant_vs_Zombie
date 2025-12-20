@@ -1,7 +1,7 @@
 package pvz.com.entities.components;
 
 public class SunProducerComponent {
-    public CooldownComponent cooldown; // reuse
+    public CooldownComponent cooldown;
     public int sunAmount;
 
     public SunProducerComponent(float sunCooldown, int sunAmount) {

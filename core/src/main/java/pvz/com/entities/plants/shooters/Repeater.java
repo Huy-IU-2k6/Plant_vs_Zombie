@@ -13,7 +13,7 @@ public class Repeater extends Plant {
     public Repeater(float x, float y, int col, int row) {
         super(x, y, GridConfig.CELL_WIDTH * SCALE_X, GridConfig.CELL_HEIGHT * SCALE_Y);
 
-        // 1. Lấy Animation từ Loader
+
         var anim = PlantAssetLoader.REPEATER_IDLE;
 
         if (anim == null) {
@@ -21,7 +21,7 @@ public class Repeater extends Plant {
             return;
         }
 
-        // 2. Thiết lập Components
+
         this.addComponent(new SpriteComponent(anim.getKeyFrame(0)));
 
         AnimationComponent animComp = new AnimationComponent();
@@ -34,7 +34,7 @@ public class Repeater extends Plant {
         this.addComponent(new TeamComponent(Team.PLANT));
         this.addComponent(new GridCellComponent(col, row));
 
-        // Cấu hình bắn 2 viên
+
         PlantAttackComponent attackComp = new PlantAttackComponent(
                 20,
                 900f,

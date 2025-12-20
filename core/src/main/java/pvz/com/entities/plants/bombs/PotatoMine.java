@@ -14,10 +14,10 @@ public class PotatoMine extends Plant {
     public static final float SMALL_HEIGHT = GridConfig.CELL_HEIGHT * 0.4f;
 
     public PotatoMine(float x, float y, int col, int row) {
-        // Khởi tạo với kích thước NHỎ
+
         super(x, y, SMALL_WIDTH, SMALL_HEIGHT);
 
-        // Căn giữa ô
+
         float centerX = GridConfig.getCellCenterX(col);
         float centerY = GridConfig.getCellCenterY(row);
         PositionComponent pos = this.getComponent(PositionComponent.class);
@@ -26,7 +26,7 @@ public class PotatoMine extends Plant {
             pos.y = centerY - (SMALL_HEIGHT / 2f);
         }
 
-        // 1. Lấy Animations từ Loader
+
         var growAnim = PlantAssetLoader.POTATO_GROWING;
         var unarmedAnim = PlantAssetLoader.POTATO_UNARMED;
         var riseAnim = PlantAssetLoader.POTATO_RISING;
@@ -38,7 +38,7 @@ public class PotatoMine extends Plant {
              return;
         }
 
-        // 2. Thiết lập Components
+
         AnimationComponent animComp = new AnimationComponent();
         animComp.addAnimation(EntityState.GROWING, growAnim);
         animComp.addAnimation(EntityState.UNARMED, unarmedAnim);
@@ -47,7 +47,7 @@ public class PotatoMine extends Plant {
         animComp.addAnimation(EntityState.EXPLODING, explodeAnim);
         this.addComponent(animComp);
 
-        // Frame đầu tiên (trạng thái Growing)
+
         this.addComponent(new SpriteComponent(growAnim.getKeyFrame(0)));
         this.addComponent(new StateComponent(EntityState.GROWING));
 

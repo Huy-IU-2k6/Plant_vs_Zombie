@@ -1,7 +1,7 @@
 package pvz.com.systems;
 
 import java.util.List;
-import pvz.com.entities.Zombies.BaseZombie; // [QUAN TRỌNG]
+import pvz.com.entities.Zombies.BaseZombie;
 import pvz.com.entities.components.HealthComponent;
 import pvz.com.entities.components.PlantAttackComponent;
 import pvz.com.entities.components.PositionComponent;
@@ -33,7 +33,7 @@ public class PlantAttackSystem {
             if (plant == null)
                 continue;
 
-            // Check plant chết
+
             HealthComponent hp = plant.getComponent(HealthComponent.class);
             if (hp != null && hp.currentHealth <= 0)
                 continue;
@@ -43,13 +43,13 @@ public class PlantAttackSystem {
             if (atk == null || pos == null)
                 continue;
 
-            // Init safe values
+
             if (atk.burstCount <= 0)
                 atk.burstCount = 1;
 
             atk.timer += deltaTime;
 
-            // Phase B: Burst Fire
+
             if (atk.shotsFiredInBurst > 0 && atk.shotsFiredInBurst < atk.burstCount) {
                 if (!shouldShoot(pos, atk.range)) {
                     atk.shotsFiredInBurst = 0;
@@ -68,7 +68,7 @@ public class PlantAttackSystem {
                 continue;
             }
 
-            // Phase A: Cooldown
+
             float cd = getEffectiveCooldown(atk);
             if (atk.timer < cd)
                 continue;
@@ -81,10 +81,10 @@ public class PlantAttackSystem {
                     atk.shotsFiredInBurst = 0;
                     atk.timer = 0f;
                 } else {
-                    atk.timer = 0f; // Reset cho burst delay
+                    atk.timer = 0f;
                 }
             } else {
-                atk.timer = cd; // Giữ ở trạng thái sẵn sàng
+                atk.timer = cd;
                 atk.shotsFiredInBurst = 0;
             }
         }
@@ -109,25 +109,25 @@ public class PlantAttackSystem {
 
         float screenRight = DesignConfig.BASE_SCREEN_W;
 
-        // [FIX] Duyệt qua BaseZombie
+
         for (BaseZombie z : zombieController.getZombies()) {
             if (z == null)
                 continue;
 
-            // Dùng logic BaseZombie (đã có stats bên trong)
-            // Lưu ý: BaseZombie.isDead() là cờ kiểm tra logic
+
+
             if (z.isDead())
                 continue;
 
-            // Zombie chưa vào màn hình
+
             if (z.getX() > (screenRight - ZOMBIE_ENTER_SCREEN_MARGIN))
                 continue;
 
-            // Check Lane (Y)
+
             if (Math.abs(z.getY() - plantPos.y) > LANE_Y_TOLERANCE)
                 continue;
 
-            // Check Range (X)
+
             float dx = z.getX() - plantPos.x;
             if (dx > 0f && dx <= range)
                 return true;

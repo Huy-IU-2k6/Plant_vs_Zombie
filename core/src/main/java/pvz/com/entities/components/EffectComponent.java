@@ -2,9 +2,9 @@ package pvz.com.entities.components;
 
 public class EffectComponent {
     public boolean isSlowed;
-    public float slowFactor; // Ví dụ 0.5f là giảm 50% tốc độ
-    public float effectDuration; // Thời gian hiệu ứng còn lại
-    public float originalSpeed; // Lưu tốc độ gốc để phục hồi sau khi hết hiệu ứng
+    public float slowFactor;
+    public float effectDuration;
+    public float originalSpeed;
 
     public EffectComponent() {
         this.isSlowed = false;

@@ -7,13 +7,13 @@ import pvz.com.factories.ZombieAssetLoader;
 public class BucketheadZombie extends BaseZombie {
 
     public BucketheadZombie() {
-        // Máu 200, Giáp xô 1100
+
         super(new ZombieStats(200, 15f), new ArmorDamageStrategy(1100));
     }
 
     @Override
     protected void loadAnimations() {
-        // Nếu bạn chưa có ảnh Bucket thì dùng tạm CONE để test
+
         this.currentWalk = ZombieAssetLoader.BUCKET_WALK != null ? ZombieAssetLoader.BUCKET_WALK : ZombieAssetLoader.CONE_WALK;
         this.currentEat  = ZombieAssetLoader.BUCKET_EAT != null ? ZombieAssetLoader.BUCKET_EAT : ZombieAssetLoader.CONE_EAT;
         

@@ -1,7 +1,7 @@
 package pvz.com.systems;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.PositionComponent; // Import thêm cái này
+import pvz.com.entities.components.PositionComponent;
 import pvz.com.entities.components.SunProducerComponent;
 
 import java.util.ArrayList;

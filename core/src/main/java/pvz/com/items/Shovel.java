@@ -154,7 +154,7 @@ public class Shovel extends Actor {
         if (plant == null)
             return;
 
-        // refund
+
         PlantType type = getPlantType(plant);
         if (type != null) {
             PlantDef def = PlantCatalog.def(type);

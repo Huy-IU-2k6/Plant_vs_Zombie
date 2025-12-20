@@ -208,14 +208,14 @@ public class GameScreen implements Screen {
     public void renderFrozen() {
         clearScreen();
 
-        // background + lanes + mowers + zombies
+
         renderWorldOnly(gameState.isCountdown(), true);
 
-        // entities (plants/projectiles/suns...)
+
         batch.setProjectionMatrix(camera.combined);
         renderSystem.update(entities);
 
-        // HUD
+
         hudStage.act(0f);
         hudStage.draw();
     }
@@ -254,12 +254,12 @@ public class GameScreen implements Screen {
     }
 
     private void resumeMusics() {
-        // Resume nhạc menu (nếu vẫn còn tồn tại)
+
         if (inheritedMenuMusic != null) {
             inheritedMenuMusic.play();
         }
 
-        // Resume nhạc ingame (nếu có)
+
         if (gameMusic != null) {
             gameMusic.play();
         }

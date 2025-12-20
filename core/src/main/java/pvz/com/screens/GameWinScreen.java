@@ -111,7 +111,7 @@ public class GameWinScreen extends ScreenAdapter {
             pixels.position(srcPos);
             pixels.get(row);
 
-            int dstRow = h - 1 - srcRow; // flip Y
+            int dstRow = h - 1 - srcRow;
             pm.getPixels().position(dstRow * rowBytes);
             pm.getPixels().put(row);
         }

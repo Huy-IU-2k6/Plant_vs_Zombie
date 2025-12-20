@@ -8,7 +8,7 @@ public class ZombieBounds {
     private static final float HEIGHT_RATIO = 0.85f;
 
     public ZombieBounds(float w, float h) {
-        // Init placeholder
+
     }
 
     public void update(float x, float y, float w, float h) {

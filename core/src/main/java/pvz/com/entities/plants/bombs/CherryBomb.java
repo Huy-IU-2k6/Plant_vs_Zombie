@@ -7,10 +7,10 @@ import pvz.com.factories.PlantAssetLoader;
 public class CherryBomb extends Plant {
 
     public CherryBomb(float x, float y, int col, int row) {
-        // Kích thước cố định 90x90
+
         super(x, y, 90, 90);
 
-        // 1. Lấy Animations từ Loader
+
         var idleAnim = PlantAssetLoader.CHERRY_IDLE;
         var explodeAnim = PlantAssetLoader.CHERRY_EXPLODE;
 
@@ -19,7 +19,7 @@ public class CherryBomb extends Plant {
             return;
         }
 
-        // 2. Thiết lập Components
+
         this.addComponent(new SpriteComponent(idleAnim.getKeyFrame(0)));
 
         AnimationComponent animComp = new AnimationComponent();

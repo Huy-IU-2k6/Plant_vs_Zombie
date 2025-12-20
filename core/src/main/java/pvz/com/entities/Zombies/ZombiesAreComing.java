@@ -7,16 +7,16 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 
 public class ZombiesAreComing extends Actor {
 
-    private static final float DISPLAY_TIME = 1.5f; // thời gian hiển thị (giây)
+    private static final float DISPLAY_TIME = 1.5f;
 
     private final Sound sound;
     private float elapsedTime = 0f;
 
     public ZombiesAreComing() {
-        // load asset
+
         sound = Gdx.audio.newSound(Gdx.files.internal("sounds/zombies_are_coming.wav"));
 
-        // play sound một lần
+
         sound.play();
     }
 
@@ -26,9 +26,9 @@ public class ZombiesAreComing extends Actor {
 
         elapsedTime += delta;
 
-        // Remove sau 1.5s
+
         if (elapsedTime >= DISPLAY_TIME) {
-            remove(); // sẽ gọi override remove() phía dưới
+            remove();
         }
     }
 
@@ -38,7 +38,7 @@ public class ZombiesAreComing extends Actor {
 
     @Override
     public boolean remove() {
-        // Khi actor bị remove khỏi Stage thì dọn luôn asset
+
         dispose();
         return super.remove();
     }

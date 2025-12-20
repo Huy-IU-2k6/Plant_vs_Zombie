@@ -164,7 +164,7 @@ public class CollisionSystem {
         }
     }
 
-    // [FIXED LOGIC]
+
     private boolean handlePotatoMine(BaseZombie zombie, Entity potatoMine) {
         ArmingComponent arming = potatoMine.getComponent(ArmingComponent.class);
 

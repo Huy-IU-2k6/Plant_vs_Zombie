@@ -150,7 +150,7 @@ public class ResumeScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
-        layoutActors(); // resize xong đặt lại size/position theo tỉ lệ
+        layoutActors();
     }
 
     @Override

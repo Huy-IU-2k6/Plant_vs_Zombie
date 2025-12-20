@@ -126,8 +126,8 @@ public class MainMenuScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 playClickSfx();
 
-                // KHÔNG stop nhạc ở đây
-                // Chuyển nhạc menu sang GameScreen để GameScreen fade/stop/dispose
+
+
                 Music inheritedMenuMusic = takeMenuMusic();
                 game.setScreen(new GameScreen(game, inheritedMenuMusic));
             }

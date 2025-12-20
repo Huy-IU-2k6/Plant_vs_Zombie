@@ -11,7 +11,7 @@ public class ZombieStats {
         this.speed = speed;
     }
 
-    public ZombieStats(ZombieStats other) { // Copy constructor
+    public ZombieStats(ZombieStats other) {
         this(other.health, other.speed);
     }
 

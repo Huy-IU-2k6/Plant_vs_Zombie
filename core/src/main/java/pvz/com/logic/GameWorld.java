@@ -114,7 +114,7 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
             if (z == null || z.isDead())
                 continue;
             if (z.getX() <= loseX) {
-                gameState.setGameOver(false); // playerWon = false
+                gameState.setGameOver(false);
                 return;
             }
         }

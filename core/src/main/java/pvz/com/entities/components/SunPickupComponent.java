@@ -1,9 +1,9 @@
 package pvz.com.entities.components;
 
 public class SunPickupComponent {
-    public int amount; // +bao nhiêu sun khi nhặt
-    public float lifeTime; // tồn tại bao lâu (giây)
-    public float aliveTime; // đã sống được bao lâu
+    public int amount;
+    public float lifeTime;
+    public float aliveTime;
 
     public SunPickupComponent(int amount, float lifeTime) {
         this.amount = amount;

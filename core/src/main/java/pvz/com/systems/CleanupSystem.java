@@ -18,7 +18,7 @@ public class CleanupSystem {
     }
 
     public void update() {
-        // Clear grid for plants that will be removed
+
         for (Plant p : plants) {
             if (p != null && p.markedForRemoval) {
                 GridCellComponent cell = p.getComponent(GridCellComponent.class);

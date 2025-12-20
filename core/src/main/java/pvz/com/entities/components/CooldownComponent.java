@@ -1,8 +1,8 @@
 package pvz.com.entities.components;
 
 public class CooldownComponent {
-    public float cooldownTime; // thời gian chờ (giây)
-    public float timer;        // thời gian đã trôi qua
+    public float cooldownTime;
+    public float timer;
 
     public CooldownComponent() {
         this.cooldownTime = 0f;

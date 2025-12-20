@@ -11,8 +11,8 @@ public class Peashooter extends Plant {
     private static final float SCALE_X = 0.7f;
     private static final float SCALE_Y = 0.8f;
 
-    // Tốc độ animation (0.1 giây / frame)
-    // Số càng nhỏ cây lắc lư càng nhanh
+
+
 
     public Peashooter(float x, float y, int col, int row) {
         super(
@@ -21,7 +21,7 @@ public class Peashooter extends Plant {
                 GridConfig.CELL_WIDTH * SCALE_X,
                 GridConfig.CELL_HEIGHT * SCALE_Y);
 
-        // 1. Lấy Animation từ Loader
+
         var idleAnim = PlantAssetLoader.PEASHOOTER_IDLE;
 
         if (idleAnim == null) {
@@ -29,8 +29,8 @@ public class Peashooter extends Plant {
             return;
         }
 
-        // 2. Thiết lập Components
-        // Dùng getKeyFrame(0) để lấy frame đầu tiên (tránh lỗi ClassCastException)
+
+
         this.addComponent(new SpriteComponent(idleAnim.getKeyFrame(0)));
 
         AnimationComponent animComp = new AnimationComponent();

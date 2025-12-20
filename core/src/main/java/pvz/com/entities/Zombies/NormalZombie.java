@@ -12,7 +12,7 @@ public class NormalZombie extends BaseZombie {
 
     @Override
     protected void loadAnimations() {
-        // Lấy từ Loader, không tự new Texture nữa
+
         this.currentWalk = ZombieAssetLoader.NORMAL_WALK;
         this.currentEat  = ZombieAssetLoader.NORMAL_EAT;
         this.dieAnim     = ZombieAssetLoader.NORMAL_DIE;
