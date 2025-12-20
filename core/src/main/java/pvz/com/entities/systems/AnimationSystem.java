@@ -3,9 +3,15 @@ package pvz.com.entities.systems;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.*;
+import pvz.com.entities.components.state.EntityState;
+import pvz.com.entities.components.state.StateComponent;
+import pvz.com.entities.components.animation.AnimationComponent;
 import pvz.com.entities.plants.bombs.PotatoMine;
 import pvz.com.managers.GridConfig;
+import pvz.com.entities.components.grid.GridCellComponent;
+import pvz.com.entities.components.render.SpriteComponent;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.physics.SizeComponent;
 
 import java.util.List;
 

@@ -1,7 +1,8 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.animation;
 
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import pvz.com.entities.components.state.EntityState;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +16,8 @@ public class AnimationComponent {
 
     /**
      * Thêm một animation cho một trạng thái cụ thể.
-     * @param state Trạng thái (ví dụ: EntityState.IDLE)
+     *
+     * @param state     Trạng thái (ví dụ: EntityState.IDLE)
      * @param animation Animation của LibGDX (chứa danh sách frames)
      */
     public void addAnimation(EntityState state, Animation<TextureRegion> animation) {

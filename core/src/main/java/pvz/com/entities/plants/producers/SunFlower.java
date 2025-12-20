@@ -2,10 +2,18 @@ package pvz.com.entities.plants.producers;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.components.*;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
 import pvz.com.entities.factories.PlantAssetLoader;
+import pvz.com.entities.components.state.EntityState;
+import pvz.com.entities.components.state.StateComponent;
+import pvz.com.entities.components.animation.AnimationComponent;
+import pvz.com.entities.components.team.Team;
+import pvz.com.entities.components.team.TeamComponent;
+import pvz.com.entities.components.grid.GridCellComponent;
+import pvz.com.entities.components.render.SpriteComponent;
+import pvz.com.entities.components.economy.SunProducerComponent;
+import pvz.com.entities.components.combat.HealthComponent;
 
 public class SunFlower extends Plant {
 
@@ -19,21 +27,14 @@ public class SunFlower extends Plant {
                 GridConfig.CELL_WIDTH * SCALE_X,
                 GridConfig.CELL_HEIGHT * SCALE_Y);
 
-
         var idleAnim = PlantAssetLoader.SUNFLOWER_IDLE;
-
 
         if (idleAnim == null) {
             System.err.println("CRITICAL ERROR: PlantAssetLoader.SUNFLOWER_IDLE is NULL. Did you call loadAll()?");
             return;
         }
 
-
-
-
-
         TextureRegion firstFrame = idleAnim.getKeyFrame(0);
-
 
         this.addComponent(new SpriteComponent(firstFrame));
 

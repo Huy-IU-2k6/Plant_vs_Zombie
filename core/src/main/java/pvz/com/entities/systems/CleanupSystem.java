@@ -4,7 +4,7 @@ import java.util.List;
 import pvz.com.entities.Entity;
 import pvz.com.entities.plants.Plant;
 import pvz.com.logic.PlantGridController;
-import pvz.com.entities.components.GridCellComponent;
+import pvz.com.entities.components.grid.GridCellComponent;
 
 public class CleanupSystem {
     private final List<Entity> entities;

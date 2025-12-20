@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.state;
 
 public enum EntityState {
     IDLE,
@@ -7,7 +7,6 @@ public enum EntityState {
     EATING,
     DYING,
 
-
     WALLNUT_FULL,
     WALLNUT_CRACKED_1,
     WALLNUT_CRACKED_2,
@@ -15,8 +14,6 @@ public enum EntityState {
     UNARMED,
     GROWING,
     RISING,
-
-
 
     POTATOMINE_UNARMED,
     POTATOMINE_ARMING,

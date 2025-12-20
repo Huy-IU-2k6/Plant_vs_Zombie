@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.combat;
 
 public class ArmingComponent {
     public float armingTimer;

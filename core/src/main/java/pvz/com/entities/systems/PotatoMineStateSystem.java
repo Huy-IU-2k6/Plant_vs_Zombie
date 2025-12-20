@@ -1,11 +1,11 @@
 package pvz.com.entities.systems;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.ArmingComponent;
-import pvz.com.entities.components.EntityState;
-import pvz.com.entities.components.ExplosiveComponent;
-import pvz.com.entities.components.HealthComponent;
-import pvz.com.entities.components.StateComponent;
+import pvz.com.entities.components.combat.ArmingComponent;
+import pvz.com.entities.components.state.EntityState;
+import pvz.com.entities.components.combat.ExplosiveComponent;
+import pvz.com.entities.components.combat.HealthComponent;
+import pvz.com.entities.components.state.StateComponent;
 import pvz.com.entities.plants.bombs.PotatoMine;
 
 import java.lang.reflect.Field;

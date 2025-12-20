@@ -1,7 +1,13 @@
 package pvz.com.entities.plants.projectiles;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.*;
+import pvz.com.entities.components.tags.ProjectileTagComponent;
+import pvz.com.entities.components.render.SpriteComponent;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.physics.MovementComponent;
+import pvz.com.entities.components.physics.BoundsComponent;
+import pvz.com.entities.components.physics.SizeComponent;
+import pvz.com.entities.components.combat.DamageComponent;
 
 public class FrozenPeaProjectile extends Entity {
     public FrozenPeaProjectile(float x, float y, int damage) {

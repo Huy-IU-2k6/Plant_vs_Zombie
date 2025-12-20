@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.economy;
 
 public class SunProducerComponent {
     public CooldownComponent cooldown;

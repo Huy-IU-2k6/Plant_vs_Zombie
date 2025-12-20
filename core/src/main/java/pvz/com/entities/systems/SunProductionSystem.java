@@ -1,8 +1,8 @@
 package pvz.com.entities.systems;
 
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.PositionComponent;
-import pvz.com.entities.components.SunProducerComponent;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.economy.SunProducerComponent;
 
 import java.util.ArrayList;
 import java.util.List;

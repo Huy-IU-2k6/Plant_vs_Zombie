@@ -2,12 +2,12 @@ package pvz.com.entities.systems;
 
 import java.util.List;
 import pvz.com.entities.zombies.BaseZombie;
-import pvz.com.entities.components.HealthComponent;
-import pvz.com.entities.components.PlantAttackComponent;
-import pvz.com.entities.components.PositionComponent;
+import pvz.com.entities.components.combat.PlantAttackComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.DesignConfig;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.combat.HealthComponent;
 
 public class PlantAttackSystem {
 
@@ -33,7 +33,6 @@ public class PlantAttackSystem {
             if (plant == null)
                 continue;
 
-
             HealthComponent hp = plant.getComponent(HealthComponent.class);
             if (hp != null && hp.currentHealth <= 0)
                 continue;
@@ -43,12 +42,10 @@ public class PlantAttackSystem {
             if (atk == null || pos == null)
                 continue;
 
-
             if (atk.burstCount <= 0)
                 atk.burstCount = 1;
 
             atk.timer += deltaTime;
-
 
             if (atk.shotsFiredInBurst > 0 && atk.shotsFiredInBurst < atk.burstCount) {
                 if (!shouldShoot(pos, atk.range)) {
@@ -67,7 +64,6 @@ public class PlantAttackSystem {
                 }
                 continue;
             }
-
 
             float cd = getEffectiveCooldown(atk);
             if (atk.timer < cd)
@@ -109,24 +105,18 @@ public class PlantAttackSystem {
 
         float screenRight = DesignConfig.BASE_SCREEN_W;
 
-
         for (BaseZombie z : zombieController.getzombies()) {
             if (z == null)
                 continue;
 
-
-
             if (z.isDead())
                 continue;
-
 
             if (z.getX() > (screenRight - ZOMBIE_ENTER_SCREEN_MARGIN))
                 continue;
 
-
             if (Math.abs(z.getY() - plantPos.y) > LANE_Y_TOLERANCE)
                 continue;
-
 
             float dx = z.getX() - plantPos.x;
             if (dx > 0f && dx <= range)

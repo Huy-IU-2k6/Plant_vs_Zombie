@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.grid;
 
 public class GridCellComponent {
     public int row;

@@ -1,10 +1,19 @@
 package pvz.com.entities.plants.shooters;
 
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.components.*;
 import pvz.com.entities.plants.projectiles.FrozenPeaProjectile;
 import pvz.com.managers.GridConfig;
 import pvz.com.entities.factories.PlantAssetLoader;
+import pvz.com.entities.components.state.EntityState;
+import pvz.com.entities.components.state.StateComponent;
+import pvz.com.entities.components.animation.AnimationComponent;
+import pvz.com.entities.components.team.Team;
+import pvz.com.entities.components.team.TeamComponent;
+import pvz.com.entities.components.types.PlantDamageType;
+import pvz.com.entities.components.grid.GridCellComponent;
+import pvz.com.entities.components.render.SpriteComponent;
+import pvz.com.entities.components.combat.HealthComponent;
+import pvz.com.entities.components.combat.PlantAttackComponent;
 
 public class SnowPea extends Plant {
     private static final float SCALE_X = 0.7f;
@@ -13,7 +22,6 @@ public class SnowPea extends Plant {
     public SnowPea(float x, float y, int col, int row) {
         super(x, y, GridConfig.CELL_WIDTH * SCALE_X, GridConfig.CELL_HEIGHT * SCALE_Y);
 
-
         var idleAnim = PlantAssetLoader.SNOWPEA_IDLE;
 
         if (idleAnim == null) {
@@ -21,14 +29,12 @@ public class SnowPea extends Plant {
             return;
         }
 
-
         this.addComponent(new SpriteComponent(idleAnim.getKeyFrame(0)));
 
         AnimationComponent animComp = new AnimationComponent();
         animComp.addAnimation(EntityState.IDLE, idleAnim);
 
         animComp.addAnimation(EntityState.ATTACKING, idleAnim);
-
 
         animComp.addAnimation(EntityState.ATTACKING, idleAnim);
 
