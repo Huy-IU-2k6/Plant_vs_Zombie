@@ -58,8 +58,8 @@ public class ResumeScreen implements Screen {
 
         bgTex = new Texture("images/backgrounds/resume_bg.png");
         signTex = new Texture("images/items/Plants_vs_Zombies_logo.png");
-        backTex = new Texture("images/buttons/back.png");
-        exitTex = new Texture("images/buttons/exit.png");
+        backTex = new Texture("images/buttons/back_button.png");
+        exitTex = new Texture("images/buttons/exit_button.png");
 
         backgroundImage = new Image(bgTex);
         backgroundImage.setFillParent(true);
