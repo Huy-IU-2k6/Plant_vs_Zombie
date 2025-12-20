@@ -2,8 +2,8 @@ package pvz.com.entities.systems;
 
 import java.util.List;
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.PositionComponent;
-import pvz.com.entities.components.MovementComponent;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.physics.MovementComponent;
 
 public class MovementSystem {
 

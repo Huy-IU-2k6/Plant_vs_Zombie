@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.state;
 
 public class StateComponent {
     private EntityState currentState;

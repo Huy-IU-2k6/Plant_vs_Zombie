@@ -9,12 +9,25 @@ import java.util.HashMap;
 
 import pvz.com.entities.Entity;
 import pvz.com.entities.zombies.BaseZombie;
-import pvz.com.entities.components.*;
 import pvz.com.entities.plants.Plant;
+
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ZombieWaveController;
+
 import pvz.com.managers.GridConfig;
 import pvz.com.managers.DesignConfig;
+
+import pvz.com.entities.components.state.EntityState;
+import pvz.com.entities.components.state.StateComponent;
+import pvz.com.entities.components.team.Team;
+import pvz.com.entities.components.team.TeamComponent;
+import pvz.com.entities.components.tags.ProjectileTagComponent;
+import pvz.com.entities.components.grid.GridCellComponent;
+import pvz.com.entities.components.physics.PositionComponent;
+import pvz.com.entities.components.physics.BoundsComponent;
+import pvz.com.entities.components.combat.DamageComponent;
+import pvz.com.entities.components.combat.HealthComponent;
+import pvz.com.entities.components.combat.ArmingComponent;
 
 public class CollisionSystem {
 
@@ -163,7 +176,6 @@ public class CollisionSystem {
             }
         }
     }
-
 
     private boolean handlePotatoMine(BaseZombie zombie, Entity potatoMine) {
         ArmingComponent arming = potatoMine.getComponent(ArmingComponent.class);

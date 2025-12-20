@@ -1,6 +1,6 @@
 package pvz.com.entities.systems;
 
-import pvz.com.entities.components.PlantDamageType;
+import pvz.com.entities.components.types.PlantDamageType;
 
 public interface IGameSpawner {
     void spawnSun(float x, float y, int amount);

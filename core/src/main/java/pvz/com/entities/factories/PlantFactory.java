@@ -10,7 +10,7 @@ import pvz.com.entities.plants.defenders.Wallnut;
 import pvz.com.entities.plants.bombs.CherryBomb;
 import pvz.com.entities.plants.bombs.PotatoMine;
 import pvz.com.entities.plants.shooters.Repeater;
-import pvz.com.entities.components.PlantTypeComponent;
+import pvz.com.entities.components.types.PlantTypeComponent;
 
 import pvz.com.managers.GridConfig;
 

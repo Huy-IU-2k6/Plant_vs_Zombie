@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.team;
 
 public class TeamComponent {
     public Team team;

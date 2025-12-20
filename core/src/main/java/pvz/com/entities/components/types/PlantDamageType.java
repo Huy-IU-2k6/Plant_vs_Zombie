@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.types;
 
 public enum PlantDamageType {
     NORMAL,
@@ -6,4 +6,3 @@ public enum PlantDamageType {
     ICE,
     EXPLOSIVE
 }
-

@@ -1,5 +1,7 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.physics;
+
 import com.badlogic.gdx.math.Rectangle;
+
 public class BoundsComponent {
     public Rectangle bounds;
 

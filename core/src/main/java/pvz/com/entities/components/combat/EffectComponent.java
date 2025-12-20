@@ -1,4 +1,4 @@
-package pvz.com.entities.components;
+package pvz.com.entities.components.combat;
 
 public class EffectComponent {
     public boolean isSlowed;
@@ -12,7 +12,7 @@ public class EffectComponent {
         this.effectDuration = 0f;
         this.originalSpeed = 0f;
     }
-    
+
     public void applySlow(float duration, float factor, float currentBaseSpeed) {
         this.isSlowed = true;
         this.effectDuration = duration;
