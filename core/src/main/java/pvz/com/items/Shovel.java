@@ -19,7 +19,7 @@ import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ShovelController;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.ScaleManager;
-import pvz.com.systems.ISunReceiver;
+import pvz.com.entities.systems.ISunReceiver;
 
 public class Shovel extends Actor {
 
@@ -153,7 +153,6 @@ public class Shovel extends Actor {
         Plant plant = grid.getPlantAt(row, col);
         if (plant == null)
             return;
-
 
         PlantType type = getPlantType(plant);
         if (type != null) {
