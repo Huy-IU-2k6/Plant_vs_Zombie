@@ -34,8 +34,8 @@ public class DesignConfig {
 
     public static final float SHOVEL_REFUND_RATIO = 1.0f;
 
-    public static final String SHOVEL_ICON_PATH = "images/items/Shovel_Box.png";
-    public static final String SHOVEL_GHOST_PATH = "images/items/Shovel.png";
+    public static final String SHOVEL_ICON_PATH = "images/items/shovel_box_item.png";
+    public static final String SHOVEL_GHOST_PATH = "images/items/shovel_item.png";
 
     private DesignConfig() {
     }

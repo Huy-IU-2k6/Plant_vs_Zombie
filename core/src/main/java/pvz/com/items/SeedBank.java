@@ -33,34 +33,28 @@ public class SeedBank extends Group {
 
     private static final float BASE_SUN_FONT_SCALE = HudLayoutConfig.BASE_SUN_FONT_SCALE;
 
-    
     private static final float CARD_ASPECT = PlantCard.WIDTH / PlantCard.HEIGHT;
 
-    
     private int sunAmount = 0;
     private final Label sunLabel;
 
     public SeedBank(BitmapFont font) {
-        bgTex = new Texture(Gdx.files.internal("images/items/seed_bank.png"));
+        bgTex = new Texture(Gdx.files.internal("images/items/seed_bank_item.png"));
 
-        
         Label.LabelStyle style = new Label.LabelStyle();
         style.font = font;
         style.fontColor = Color.YELLOW;
 
         sunLabel = new Label("0", style);
         sunLabel.setAlignment(Align.center);
-        
-        
-        sunLabel.setFontScale(1f); 
-        
+
+        sunLabel.setFontScale(1f);
+
         addActor(sunLabel);
 
-        
         setSize(bgTex.getWidth(), bgTex.getHeight());
-        
-        
-        this.setScale(1f); 
+
+        this.setScale(1f);
     }
 
     public void setSunAmount(int sunAmount) {
@@ -80,9 +74,11 @@ public class SeedBank extends Group {
 
     @Override
     public void setSize(float width, float height) {
-        
-        if (width <= 1f) width = 1f;
-        if (height <= 1f) height = 1f;
+
+        if (width <= 1f)
+            width = 1f;
+        if (height <= 1f)
+            height = 1f;
 
         super.setSize(width, height);
         layoutCards();
@@ -99,7 +95,6 @@ public class SeedBank extends Group {
         float scaleX = getWidth() / texW;
         float scaleY = getHeight() / texH;
 
-        
         float sunCenterX = SUN_LABEL_CENTER_X * scaleX;
         float sunCenterY = SUN_LABEL_CENTER_Y * scaleY;
 
@@ -144,19 +139,17 @@ public class SeedBank extends Group {
     }
 
     public void updateLayout(float worldWidth, float worldHeight) {
-        
-        if (worldWidth <= 0 || worldHeight <= 0) return;
 
-        
+        if (worldWidth <= 0 || worldHeight <= 0)
+            return;
+
         float trayWidth = worldWidth * TRAY_WIDTH_RATIO;
 
-        
         float textureAspect = (float) bgTex.getHeight() / (float) bgTex.getWidth();
         float trayHeight = trayWidth * textureAspect;
 
         setSize(trayWidth, trayHeight);
 
-        
         float x = ScaleManager.toWorldX(TRAY_MARGIN_LEFT, worldWidth);
         float marginTopWorld = ScaleManager.toWorldY(TRAY_MARGIN_TOP, worldHeight);
 
@@ -164,19 +157,18 @@ public class SeedBank extends Group {
 
         setPosition(x, y);
 
-        
         float fontScale = ScaleManager.getHeightScale(worldHeight);
 
-        
         float finalScale = BASE_SUN_FONT_SCALE * fontScale;
-        if (finalScale < 0.01f) finalScale = 0.01f; 
+        if (finalScale < 0.01f)
+            finalScale = 0.01f;
 
         sunLabel.setFontScale(finalScale);
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        
+
         if (getScaleX() < 0.01f || getScaleY() < 0.01f) {
             return;
         }
@@ -185,8 +177,7 @@ public class SeedBank extends Group {
         batch.setColor(c.r, c.g, c.b, c.a * parentAlpha);
 
         batch.draw(bgTex, getX(), getY(), getWidth(), getHeight());
-        
-       
+
         super.draw(batch, parentAlpha);
     }
 

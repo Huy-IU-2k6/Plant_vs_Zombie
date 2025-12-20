@@ -11,9 +11,9 @@ public class BackgroundManager {
     private Texture mainBg;
 
     public BackgroundManager() {
-        countBg = loadTexture("images/backgrounds/count_bg.jpeg");
-        menuBg = loadTexture("images/backgrounds/menu_bg.png");
-        mainBg = loadTexture("images/backgrounds/main_bg.png");
+        countBg = loadTexture("images/backgrounds/count_background.png");
+        menuBg = loadTexture("images/backgrounds/menu_background.png");
+        mainBg = loadTexture("images/backgrounds/main_background.png");
 
         countBg.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         menuBg.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);

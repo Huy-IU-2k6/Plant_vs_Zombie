@@ -13,15 +13,12 @@ public class Sun extends Entity {
 
         this.addComponent(new PositionComponent(x, y));
 
-
-        SpriteComponent sprite = new SpriteComponent("images/items/Sun.png");
+        SpriteComponent sprite = new SpriteComponent("images/items/sun_item.png");
         sprite.sprite.setSize(SUN_WIDTH, SUN_HEIGHT);
         this.addComponent(sprite);
 
-
         this.addComponent(new SizeComponent(SUN_WIDTH, SUN_HEIGHT));
         this.addComponent(new BoundsComponent(x, y, SUN_WIDTH, SUN_HEIGHT));
-
 
         this.addComponent(new SunPickupComponent(amount, 7f));
     }
