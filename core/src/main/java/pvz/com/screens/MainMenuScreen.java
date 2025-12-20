@@ -72,7 +72,7 @@ public class MainMenuScreen implements Screen {
 
     private void loadAudio() {
         if (menuMusic == null) {
-            menuMusic = Gdx.audio.newMusic(Gdx.files.internal("musics/Grasswalk.mp3"));
+            menuMusic = Gdx.audio.newMusic(Gdx.files.internal("musics/grasswalk.mp3"));
             menuMusic.setLooping(true);
             menuMusic.setVolume(musicVolume);
         }
@@ -101,7 +101,7 @@ public class MainMenuScreen implements Screen {
     }
 
     private void createUI() {
-        boardTex = new Texture("images/items/board.png");
+        boardTex = new Texture("images/items/board_item.png");
         boardTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         TextureRegionDrawable boardDrawable = new TextureRegionDrawable(new TextureRegion(boardTex));
 
@@ -126,8 +126,6 @@ public class MainMenuScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 playClickSfx();
 
-                // KHÔNG stop nhạc ở đây
-                // Chuyển nhạc menu sang GameScreen để GameScreen fade/stop/dispose
                 Music inheritedMenuMusic = takeMenuMusic();
                 game.setScreen(new GameScreen(game, inheritedMenuMusic));
             }

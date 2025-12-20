@@ -13,11 +13,11 @@ public class GridConfig {
     private static boolean initialized = false;
 
     public static void init(float worldWidth, float worldHeight) {
-        // scale kích thước ô theo thiết kế gốc 1920x1080
+
         CELL_WIDTH = ScaleManager.scaleByWidth(DesignConfig.CELL_WIDTH, worldWidth);
         CELL_HEIGHT = ScaleManager.scaleByHeight(DesignConfig.CELL_HEIGHT, worldHeight);
 
-        // toạ độ góc trái dưới lawn
+
         START_X = ScaleManager.toWorldX(DesignConfig.START_X, worldWidth);
         START_Y = ScaleManager.toWorldY(DesignConfig.START_Y, worldHeight);
 
@@ -26,7 +26,7 @@ public class GridConfig {
 
     private static void checkInit() {
         if (!initialized) {
-            // fallback: nếu quên init thì dùng giá trị base (1920x1080)
+
             CELL_WIDTH = DesignConfig.CELL_WIDTH;
             CELL_HEIGHT = DesignConfig.CELL_HEIGHT;
             START_X = DesignConfig.START_X;

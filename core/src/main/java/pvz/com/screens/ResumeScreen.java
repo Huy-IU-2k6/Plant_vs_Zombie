@@ -56,10 +56,11 @@ public class ResumeScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        bgTex = new Texture("images/backgrounds/resume_bg.png");
-        signTex = new Texture("images/items/Plants_vs_Zombies_logo.png");
-        backTex = new Texture("images/buttons/back.png");
-        exitTex = new Texture("images/buttons/exit.png");
+        // TODO: push bgTex to BackgroundManager
+        bgTex = new Texture("images/backgrounds/resume_background.png");
+        signTex = new Texture("images/items/PvZ_logo_item.png");
+        backTex = new Texture("images/buttons/back_button.png");
+        exitTex = new Texture("images/buttons/exit_button.png");
 
         backgroundImage = new Image(bgTex);
         backgroundImage.setFillParent(true);
@@ -150,7 +151,7 @@ public class ResumeScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
-        layoutActors(); // resize xong đặt lại size/position theo tỉ lệ
+        layoutActors();
     }
 
     @Override

@@ -1,23 +1,19 @@
 package pvz.com.logic;
 
-
 public final class GameState {
 
     public enum State {
-        COUNTDOWN, 
-        PLAYING, 
-        GAME_OVER 
+        COUNTDOWN,
+        PLAYING,
+        GAME_OVER
     }
 
     private State state = State.COUNTDOWN;
 
-    
     private boolean playerWon = false;
 
     public GameState() {
     }
-
-    
 
     public State getState() {
         return state;
@@ -39,7 +35,6 @@ public final class GameState {
         return state == State.GAME_OVER;
     }
 
-    
     public void setGameOver(boolean playerWon) {
         this.state = State.GAME_OVER;
         this.playerWon = playerWon;

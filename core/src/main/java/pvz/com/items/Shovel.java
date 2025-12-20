@@ -12,14 +12,14 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.utils.Align;
-import pvz.com.entities.components.PlantTypeComponent;
+import pvz.com.entities.components.types.PlantTypeComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.entities.plants.PlantType;
 import pvz.com.logic.PlantGridController;
 import pvz.com.logic.ShovelController;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.ScaleManager;
-import pvz.com.systems.ISunReceiver;
+import pvz.com.entities.systems.interfaces.ISunReceiver;
 
 public class Shovel extends Actor {
 
@@ -154,7 +154,6 @@ public class Shovel extends Actor {
         if (plant == null)
             return;
 
-        // refund
         PlantType type = getPlantType(plant);
         if (type != null) {
             PlantDef def = PlantCatalog.def(type);

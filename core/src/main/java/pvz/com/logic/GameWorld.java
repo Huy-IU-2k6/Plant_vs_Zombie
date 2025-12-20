@@ -3,25 +3,25 @@ package pvz.com.logic;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import java.util.List;
 import pvz.com.entities.Entity;
-import pvz.com.entities.Zombies.BaseZombie;
-import pvz.com.entities.components.PlantDamageType;
+import pvz.com.entities.zombies.BaseZombie;
+import pvz.com.entities.components.types.PlantDamageType;
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.projectiles.FrozenPeaProjectile;
-import pvz.com.entities.projectiles.PeaProjectile;
+import pvz.com.entities.plants.projectiles.FrozenPeaProjectile;
+import pvz.com.entities.plants.projectiles.PeaProjectile;
 import pvz.com.entities.suns.Sun;
 import pvz.com.managers.GridConfig;
-import pvz.com.systems.AnimationSystem;
-import pvz.com.systems.ArmingSystem;
-import pvz.com.systems.CleanupSystem;
-import pvz.com.systems.CollisionSystem;
-import pvz.com.systems.ExplosionSystem;
-import pvz.com.systems.IGameSpawner;
-import pvz.com.systems.ISunReceiver;
-import pvz.com.systems.MovementSystem;
-import pvz.com.systems.PlantAttackSystem;
-import pvz.com.systems.SunPickupSystem;
-import pvz.com.systems.SunProductionSystem;
-import pvz.com.systems.WallnutStateSystem;
+import pvz.com.entities.systems.combat.ArmingSystem;
+import pvz.com.entities.systems.lifecycle.CleanupSystem;
+import pvz.com.entities.systems.physics.CollisionSystem;
+import pvz.com.entities.systems.combat.ExplosionSystem;
+import pvz.com.entities.systems.interfaces.IGameSpawner;
+import pvz.com.entities.systems.interfaces.ISunReceiver;
+import pvz.com.entities.systems.physics.MovementSystem;
+import pvz.com.entities.systems.combat.PlantAttackSystem;
+import pvz.com.entities.systems.economy.SunPickupSystem;
+import pvz.com.entities.systems.economy.SunProductionSystem;
+import pvz.com.entities.systems.state.WallnutStateSystem;
+import pvz.com.entities.systems.animation.AnimationSystem;
 
 public class GameWorld implements IGameSpawner, ISunReceiver {
 
@@ -31,10 +31,8 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
     private final ZombieWaveController zombieWaveController;
 
-    
     private final HudController hudController;
 
-    
     private final SunProductionSystem sunSystem;
     private final WallnutStateSystem wallnutStateSystem;
     private final ExplosionSystem explosionSystem;
@@ -61,7 +59,6 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
 
         this.zombieWaveController = zombieWaveController;
 
-        
         this.sunSystem = new SunProductionSystem(this, entities);
         this.wallnutStateSystem = new WallnutStateSystem();
         this.explosionSystem = new ExplosionSystem(zombieWaveController, plantGridController);
@@ -80,7 +77,6 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         if (!gameState.isPlaying())
             return;
 
-        
         sunSystem.update(delta);
         wallnutStateSystem.update(entities);
         explosionSystem.update(entities, delta);
@@ -90,7 +86,6 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         movementSystem.update(entities, delta);
         collisionSystem.update(delta);
 
-        
         checkLoseCondition();
         if (!gameState.isGameOver()) {
             checkWinCondition();
@@ -103,42 +98,38 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         cleanupSystem.update();
     }
 
-    
     private void checkLoseCondition() {
         if (zombieWaveController == null)
             return;
 
         float loseX = GridConfig.getCellOriginX(0) - GridConfig.CELL_WIDTH * 0.35f;
 
-        for (BaseZombie z : zombieWaveController.getZombies()) {
+        for (BaseZombie z : zombieWaveController.getzombies()) {
             if (z == null || z.isDead())
                 continue;
             if (z.getX() <= loseX) {
-                gameState.setGameOver(false); // playerWon = false
+                gameState.setGameOver(false);
                 return;
             }
         }
     }
 
-    
     private void checkWinCondition() {
         if (zombieWaveController == null)
             return;
 
-        
         if (!zombieWaveController.isWaveFinished())
             return;
 
-        for (BaseZombie z : zombieWaveController.getZombies()) {
+        for (BaseZombie z : zombieWaveController.getzombies()) {
             if (z != null && !z.isDead()) {
-                return; 
+                return;
             }
         }
 
-        gameState.setGameOver(true); 
+        gameState.setGameOver(true);
     }
 
-    
     @Override
     public void spawnSun(float x, float y, int amount) {
         entities.add(new Sun(x, y, amount));
@@ -156,13 +147,11 @@ public class GameWorld implements IGameSpawner, ISunReceiver {
         }
     }
 
-    
     @Override
     public void addSun(int amount) {
         hudController.addSun(amount);
     }
 
-    
     public SunPickupSystem getSunPickupSystem() {
         return sunPickupSystem;
     }

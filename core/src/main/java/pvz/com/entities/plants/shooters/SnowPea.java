@@ -1,10 +1,19 @@
 package pvz.com.entities.plants.shooters;
 
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.components.*;
-import pvz.com.entities.projectiles.FrozenPeaProjectile;
+import pvz.com.entities.plants.projectiles.FrozenPeaProjectile;
 import pvz.com.managers.GridConfig;
-import pvz.com.factories.PlantAssetLoader;
+import pvz.com.entities.factories.PlantAssetLoader;
+import pvz.com.entities.components.state.EntityState;
+import pvz.com.entities.components.state.StateComponent;
+import pvz.com.entities.components.animation.AnimationComponent;
+import pvz.com.entities.components.team.Team;
+import pvz.com.entities.components.team.TeamComponent;
+import pvz.com.entities.components.types.PlantDamageType;
+import pvz.com.entities.components.grid.GridCellComponent;
+import pvz.com.entities.components.render.SpriteComponent;
+import pvz.com.entities.components.combat.HealthComponent;
+import pvz.com.entities.components.combat.PlantAttackComponent;
 
 public class SnowPea extends Plant {
     private static final float SCALE_X = 0.7f;
@@ -13,7 +22,6 @@ public class SnowPea extends Plant {
     public SnowPea(float x, float y, int col, int row) {
         super(x, y, GridConfig.CELL_WIDTH * SCALE_X, GridConfig.CELL_HEIGHT * SCALE_Y);
 
-        // 1. Lấy Animation từ Loader
         var idleAnim = PlantAssetLoader.SNOWPEA_IDLE;
 
         if (idleAnim == null) {
@@ -21,15 +29,13 @@ public class SnowPea extends Plant {
             return;
         }
 
-        // 2. Thiết lập Components
         this.addComponent(new SpriteComponent(idleAnim.getKeyFrame(0)));
 
         AnimationComponent animComp = new AnimationComponent();
         animComp.addAnimation(EntityState.IDLE, idleAnim);
-        // SnowPea thường dùng chung animation lắc lư cho cả lúc đứng yên và lúc bắn
+
         animComp.addAnimation(EntityState.ATTACKING, idleAnim);
 
-        // Dùng chung animation cho lúc bắn
         animComp.addAnimation(EntityState.ATTACKING, idleAnim);
 
         this.addComponent(animComp);

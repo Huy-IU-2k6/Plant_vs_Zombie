@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
-import pvz.com.entities.Zombies.BaseZombie;
+import pvz.com.entities.zombies.BaseZombie;
 import pvz.com.items.LawnMower;
 import pvz.com.managers.GridConfig;
 import pvz.com.managers.DesignConfig;
@@ -17,7 +17,6 @@ public class LawnMowerController {
     private final float worldWidth;
     private final float mowerStartX;
 
-    
     private final Texture idleTexture;
     private final Texture activeTexture;
 
@@ -25,25 +24,23 @@ public class LawnMowerController {
         this.worldWidth = worldWidth;
         this.mowerStartX = mowerStartX;
 
-        
-        this.idleTexture = new Texture(Gdx.files.internal("images/items/lawnMower_Idle.png"));
-        this.activeTexture = new Texture(Gdx.files.internal("images/items/lawnMower_Idle.png")); // Đổi đuôi sang png
-        
-        
+        this.idleTexture = new Texture(Gdx.files.internal("images/items/lawnmower_idle_item.png"));
+        // TODO: Make gif lawnmower
+        this.activeTexture = new Texture(Gdx.files.internal("images/items/lawnmower_idle_item.png"));
+
         this.idleTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         this.activeTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
     }
 
     public void createLawnMowers() {
-        disposeMowers(); 
+        disposeMowers();
         lawnMowers.clear();
 
         for (int row = 0; row < laneCount; row++) {
             float laneCenterY = GridConfig.getCellCenterY(row);
-            
-            float mowerY = laneCenterY - (DesignConfig.FIXED_WIDTH / 2f); 
 
-            
+            float mowerY = laneCenterY - (DesignConfig.FIXED_WIDTH / 2f);
+
             lawnMowers.add(new LawnMower(mowerStartX, mowerY, worldWidth, idleTexture, activeTexture));
         }
     }
@@ -53,7 +50,6 @@ public class LawnMowerController {
             LawnMower mower = lawnMowers.get(i);
             mower.update(delta, zombies);
 
-            
             if (mower.isUsed()) {
                 lawnMowers.removeIndex(i);
             }
@@ -67,14 +63,16 @@ public class LawnMowerController {
     }
 
     private void disposeMowers() {
-        
+
         lawnMowers.clear();
     }
 
     public void dispose() {
         disposeMowers();
-        
-        if (idleTexture != null) idleTexture.dispose();
-        if (activeTexture != null) activeTexture.dispose();
+
+        if (idleTexture != null)
+            idleTexture.dispose();
+        if (activeTexture != null)
+            activeTexture.dispose();
     }
 }

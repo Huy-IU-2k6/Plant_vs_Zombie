@@ -34,7 +34,7 @@ import pvz.com.logic.ZombieWaveController;
 import pvz.com.managers.BackgroundManager;
 import pvz.com.managers.DesignConfig;
 import pvz.com.managers.GridConfig;
-import pvz.com.systems.RenderSystem;
+import pvz.com.entities.systems.render.RenderSystem;
 
 public class GameScreen implements Screen {
 
@@ -90,15 +90,14 @@ public class GameScreen implements Screen {
 
     public GameScreen(Game game) {
         this(game, null);
-        
+
     }
 
     public GameScreen(Game game, Music inheritedMenuMusic) {
         this.game = game;
         this.inheritedMenuMusic = inheritedMenuMusic;
-        pvz.com.factories.ZombieAssetLoader.loadAll();
-        pvz.com.factories.PlantAssetLoader.loadAll();
-        
+        pvz.com.entities.factories.ZombieAssetLoader.loadAll();
+        pvz.com.entities.factories.PlantAssetLoader.loadAll();
 
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
@@ -208,14 +207,11 @@ public class GameScreen implements Screen {
     public void renderFrozen() {
         clearScreen();
 
-        // background + lanes + mowers + zombies
         renderWorldOnly(gameState.isCountdown(), true);
 
-        // entities (plants/projectiles/suns...)
         batch.setProjectionMatrix(camera.combined);
         renderSystem.update(entities);
 
-        // HUD
         hudStage.act(0f);
         hudStage.draw();
     }
@@ -254,12 +250,11 @@ public class GameScreen implements Screen {
     }
 
     private void resumeMusics() {
-        // Resume nhạc menu (nếu vẫn còn tồn tại)
+
         if (inheritedMenuMusic != null) {
             inheritedMenuMusic.play();
         }
 
-        // Resume nhạc ingame (nếu có)
         if (gameMusic != null) {
             gameMusic.play();
         }
@@ -307,7 +302,7 @@ public class GameScreen implements Screen {
         if (!gameState.isPlaying())
             return;
         zombieWaveController.update(delta);
-        lawnMowerController.update(delta, zombieWaveController.getZombies());
+        lawnMowerController.update(delta, zombieWaveController.getzombies());
     }
 
     private void handleEscape() {
@@ -400,6 +395,6 @@ public class GameScreen implements Screen {
 
         worldRenderer.dispose();
 
-        pvz.com.entities.Zombies.ZombieSounds.disposeAll();
+        pvz.com.entities.zombies.ZombieSounds.disposeAll();
     }
 }

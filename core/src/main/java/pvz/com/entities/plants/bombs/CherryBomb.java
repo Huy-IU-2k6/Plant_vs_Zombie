@@ -1,16 +1,23 @@
 package pvz.com.entities.plants.bombs;
 
 import pvz.com.entities.plants.Plant;
-import pvz.com.entities.components.*;
-import pvz.com.factories.PlantAssetLoader;
+import pvz.com.entities.factories.PlantAssetLoader;
+import pvz.com.entities.components.state.EntityState;
+import pvz.com.entities.components.state.StateComponent;
+import pvz.com.entities.components.animation.AnimationComponent;
+import pvz.com.entities.components.team.Team;
+import pvz.com.entities.components.team.TeamComponent;
+import pvz.com.entities.components.grid.GridCellComponent;
+import pvz.com.entities.components.render.SpriteComponent;
+import pvz.com.entities.components.combat.HealthComponent;
+import pvz.com.entities.components.combat.ExplosiveComponent;
 
 public class CherryBomb extends Plant {
 
     public CherryBomb(float x, float y, int col, int row) {
-        // Kích thước cố định 90x90
+
         super(x, y, 90, 90);
 
-        // 1. Lấy Animations từ Loader
         var idleAnim = PlantAssetLoader.CHERRY_IDLE;
         var explodeAnim = PlantAssetLoader.CHERRY_EXPLODE;
 
@@ -19,7 +26,6 @@ public class CherryBomb extends Plant {
             return;
         }
 
-        // 2. Thiết lập Components
         this.addComponent(new SpriteComponent(idleAnim.getKeyFrame(0)));
 
         AnimationComponent animComp = new AnimationComponent();

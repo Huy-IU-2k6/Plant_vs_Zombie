@@ -12,14 +12,13 @@ import pvz.com.items.SeedBank;
 import pvz.com.items.Shovel;
 import pvz.com.managers.FontManager;
 import pvz.com.managers.HudLayoutConfig;
-import pvz.com.systems.ISunReceiver;
+import pvz.com.entities.systems.interfaces.ISunReceiver;
 
 public class HudController implements ISunReceiver {
 
     private static final float COUNTDOWN_POS_X_RATIO = HudLayoutConfig.getCountdownPosXRatio();
     private static final float COUNTDOWN_POS_Y_RATIO = HudLayoutConfig.getCountdownPosYRatio();
 
-    
     private final Stage hudStage;
 
     private final SeedBank seedBank;
@@ -27,10 +26,8 @@ public class HudController implements ISunReceiver {
     private CountdownActor countdown;
     private final BitmapFont hudFont;
 
-    
     private final Shovel shovel;
 
-    
     private int sunPoints;
 
     public HudController(Stage hudStage,
@@ -44,26 +41,21 @@ public class HudController implements ISunReceiver {
 
         hudFont = FontManager.getPvzFont();
 
-        
         seedBank = new SeedBank(hudFont);
         seedBank.setVisible(false);
         seedBank.setSunAmount(initialSun);
         hudStage.addActor(seedBank);
 
-        
         countdown = new CountdownActor(countdownDuration);
         hudStage.addActor(countdown);
 
-        
         createPlantCards();
 
-        
         shovel = new Shovel(plantGridController, shovelController, this);
         shovel.setVisible(false);
         shovel.setTouchable(Touchable.disabled);
         hudStage.addActor(shovel);
 
-        
         updateHudLayout();
     }
 
@@ -87,34 +79,28 @@ public class HudController implements ISunReceiver {
             countdown.setPosition(countdownX, countdownY);
         }
 
-        
         shovel.layoutTopLeft(worldWidth, worldHeight);
     }
 
-    
     public void resize(int width, int height) {
         hudStage.getViewport().update(width, height, true);
         updateHudLayout();
     }
-
-    
 
     public boolean isCountdownFinished() {
         return countdown != null && countdown.isFinished();
     }
 
     public void onCountdownFinished() {
-        
+
         if (countdown != null) {
             countdown.remove();
             countdown = null;
         }
 
-        
         unlockPlantCards();
         seedBank.setVisible(true);
 
-        
         shovel.setVisible(true);
         shovel.setTouchable(Touchable.enabled);
     }
@@ -124,8 +110,6 @@ public class HudController implements ISunReceiver {
             card.setLockedByGame(false);
         }
     }
-
-    
 
     @Override
     public void addSun(int amount) {
@@ -145,8 +129,6 @@ public class HudController implements ISunReceiver {
     public int getSunPoints() {
         return sunPoints;
     }
-
-    
 
     public Stage getHudStage() {
         return hudStage;

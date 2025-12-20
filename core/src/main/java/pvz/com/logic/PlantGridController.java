@@ -5,9 +5,9 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
 import java.util.List;
 import pvz.com.entities.Entity;
-import pvz.com.entities.components.GridCellComponent;
 import pvz.com.entities.plants.Plant;
 import pvz.com.managers.GridConfig;
+import pvz.com.entities.components.grid.GridCellComponent;
 
 public class PlantGridController extends InputAdapter {
 
